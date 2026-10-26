@@ -1,7 +1,9 @@
 {
     "agents": [
+        "antigravity",
         "codex"
     ],
+    "guidelines": true,
     "mcp": true,
     "nightwatch": false,
     "sail": false
