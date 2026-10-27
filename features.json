@@ -1,0 +1,1536 @@
+{
+  "_instructions": "ATURAN UNTUK AGENT: File ini adalah Single Source of Truth kebutuhan fungsional. Agent HANYA boleh mengubah nilai passes (dari false menjadi true) setelah diverifikasi lulus. DILARANG KERAS menghapus entri, memodifikasi ID, atau melemahkan/menghapus kriteria penerimaan.",
+  "total_count": 81,
+  "features": [
+    {
+      "id": "CUS-01",
+      "role": "Customer",
+      "module": "Autentikasi & Registrasi",
+      "description": "Registrasi customer dengan nama, email, nomor HP, jenis kelamin, dan password; verifikasi email dan OTP nomor HP.",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.3",
+      "slice": "S3",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Customer dapat mendaftar dengan menginput nama, email, nomor HP, gender (L/P), dan password.",
+        "Sistem mengirimkan email verifikasi dan kode OTP ke nomor HP customer.",
+        "Akun belum dapat login sebelum email dan OTP nomor HP diverifikasi.",
+        "Pendaftaran gagal jika email atau nomor HP sudah terdaftar di sistem."
+      ],
+      "verification": "Uji pendaftaran akun baru, verifikasi email & OTP, coba login sebelum dan sesudah verifikasi.",
+      "passes": false
+    },
+    {
+      "id": "CUS-02",
+      "role": "Customer",
+      "module": "Autentikasi & Login",
+      "description": "Login customer dengan email dan password, opsi login Google (penggabungan akun jika email sama), dan fitur lupa password.",
+      "priority": "Must",
+      "brd_ref": "5.1",
+      "slice": "S3",
+      "depends_on": [
+        "CUS-01"
+      ],
+      "acceptance_criteria": [
+        "Customer dapat login dengan email dan password yang valid.",
+        "Customer dapat login dengan Google OAuth; jika email sama akun otomatis tertaut.",
+        "Fitur reset password mengirimkan token pemulihan ke email terdaftar.",
+        "Percobaan login salah dibatasi rate limiting maksimal 5 kali berturut-turut."
+      ],
+      "verification": "Uji login kredensial valid, invalid, Google OAuth mock, dan pemulihan password.",
+      "passes": false
+    },
+    {
+      "id": "CUS-03",
+      "role": "Customer",
+      "module": "Katalog Layanan",
+      "description": "Melihat katalog layanan, pilihan durasi, dan harga tetap.",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.2",
+      "slice": "S3",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Customer dapat melihat daftar layanan aktif beserta deskripsi.",
+        "Customer dapat melihat pilihan durasi paket (misal 60, 90, 120 menit) beserta harga masing-masing.",
+        "Harga dan durasi yang tampil seragam di seluruh wilayah tanpa biaya transport.",
+        "Tidak ada komponen add-on atau opsi penambahan durasi di luar paket katalog."
+      ],
+      "verification": "Buka halaman katalog di frontend PWA Customer dan validasi durasi & harga sesuai database.",
+      "passes": false
+    },
+    {
+      "id": "CUS-04",
+      "role": "Customer",
+      "module": "Pemesanan",
+      "description": "Memesan layanan untuk diri sendiri atau orang lain dengan mengisi nama dan jenis kelamin penerima layanan.",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.3",
+      "slice": "S4",
+      "depends_on": [
+        "CUS-03"
+      ],
+      "acceptance_criteria": [
+        "Customer dapat memilih apakah pesanan untuk diri sendiri atau orang lain.",
+        "Jika untuk orang lain, customer wajib mengisi nama lengkap dan jenis kelamin penerima layanan.",
+        "Jenis kelamin penerima layanan terkunci menjadi acuan penugasan mitra (aturan sesama gender)."
+      ],
+      "verification": "Simulasi form order penerima layanan berbeda gender dari customer, pastikan tersimpan di pesanan.",
+      "passes": false
+    },
+    {
+      "id": "CUS-05",
+      "role": "Customer",
+      "module": "Manajemen Alamat",
+      "description": "Memilih dan menyimpan alamat dengan pin peta wajib, detail dan patokan; validasi area layanan; alamat pertama otomatis menjadi alamat utama.",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.16",
+      "slice": "S3",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Customer wajib menempatkan pin koordinat pada peta Leaflet saat menyimpan alamat.",
+        "Sistem secara otomatis menentukan wilayah dari titik pin peta menggunakan spatial query ST_Contains.",
+        "Alamat dengan pin di luar poligon wilayah aktif ditolak dengan pesan error area belum dilayani.",
+        "Alamat pertama yang berhasil disimpan otomatis ditandai sebagai is_primary (Alamat Utama) dan menetapkan region_id akun customer."
+      ],
+      "verification": "Uji simpan alamat di dalam wilayah aktif (sukses jadi utama) dan di luar wilayah aktif (ditolak).",
+      "passes": false
+    },
+    {
+      "id": "CUS-06",
+      "role": "Customer",
+      "module": "Pemesanan",
+      "description": "Memilih waktu layanan Sekarang (instan) atau Jadwalkan (minimal 3 jam, maksimal 7 hari, dalam jam operasional).",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.4",
+      "slice": "S4",
+      "depends_on": [
+        "CUS-04"
+      ],
+      "acceptance_criteria": [
+        "Customer dapat memilih waktu layanan Sekarang atau Terjadwal.",
+        "Untuk terjadwal, waktu yang dipilih minimal 3 jam dari sekarang dan maksimal 7 hari ke depan.",
+        "Waktu mulai dan estimasi selesai (mulai + durasi) harus berada di dalam rentang jam operasional (08:00 - 21:00 waktu setempat wilayah alamat layanan)."
+      ],
+      "verification": "Uji pemilihan waktu di luar jam operasional (ditolak) dan waktu valid (diterima).",
+      "passes": false
+    },
+    {
+      "id": "CUS-07",
+      "role": "Customer",
+      "module": "Pemesanan",
+      "description": "Persetujuan syarat risiko wajib dan pengisian catatan kondisi medis opsional yang terenkripsi.",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.13",
+      "slice": "S4",
+      "depends_on": [
+        "CUS-04"
+      ],
+      "acceptance_criteria": [
+        "Checkbox persetujuan memahami risiko wajib dicentang sebelum konfirmasi pesanan; waktu & versi teks tercatat.",
+        "Kolom catatan kondisi medis bersifat opsional dan tersimpan dalam kondisi terenkripsi di database.",
+        "Catatan medis tidak tampil pada tawaran awal mitra dan hanya dapat dilihat setelah mitra menerima pesanan."
+      ],
+      "verification": "Uji submit pesanan tanpa centang risiko (gagal) dan dengan catatan medis (terenkripsi di DB).",
+      "passes": false
+    },
+    {
+      "id": "CUS-08",
+      "role": "Customer",
+      "module": "Pemesanan Instan",
+      "description": "Pengecekan ketersediaan mitra sebelum konfirmasi pesanan instan; tawaran beralih ke terjadwal bila mitra tidak ada.",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.5",
+      "slice": "S5",
+      "depends_on": [
+        "CUS-05",
+        "CUS-06"
+      ],
+      "acceptance_criteria": [
+        "Sebelum customer konfirmasi instan, sistem memeriksa apakah ada mitra online, sesama gender, dan radius 5 km di wilayah yang sama.",
+        "Jika tidak ada mitra online yang memenuhi syarat, sistem menampilkan modal informasi dan menawarkan opsi beralih ke jadwal terjadwal."
+      ],
+      "verification": "Simulasi kondisi 0 mitra online di wilayah layanan, pastikan prompt beralih ke terjadwal muncul.",
+      "passes": false
+    },
+    {
+      "id": "CUS-09",
+      "role": "Customer",
+      "module": "Pembayaran Pesanan",
+      "description": "Membayar dengan saldo dompet; top-up kekurangan dari alur pemesanan lewat Xendit (Menunggu Pembayaran maks 15 menit).",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.6, 4.9",
+      "slice": "S3",
+      "depends_on": [
+        "CUS-05"
+      ],
+      "acceptance_criteria": [
+        "Pesanan dibayar menggunakan saldo dompet; pembayaran tunai tidak tersedia.",
+        "Jika saldo cukup, dana ditahan (held_balance) dan pesanan langsung masuk status Mencari Mitra.",
+        "Jika saldo kurang, status pesanan menjadi Menunggu Pembayaran selama 15 menit dan menampilkan tagihan top-up Xendit sebesar kekurangannya.",
+        "Jika top-up berhasil dalam 15 menit, dana otomatis ditahan dan status berpindah ke Mencari Mitra."
+      ],
+      "verification": "Uji pembayaran dengan saldo cukup vs saldo kurang (simulasi webhook Xendit top-up).",
+      "passes": false
+    },
+    {
+      "id": "CUS-10",
+      "role": "Customer",
+      "module": "Pelacakan Pesanan",
+      "description": "Memantau status pesanan, hitung mundur pencarian, serta profil mitra (nama panggilan, foto, rating, jumlah layanan) dan estimasi kedatangan.",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.1, 4.8",
+      "slice": "S4",
+      "depends_on": [
+        "CUS-04"
+      ],
+      "acceptance_criteria": [
+        "Layar pemantauan menampilkan status pesanan secara realtime.",
+        "Saat Mencari Mitra, hitung mundur batas waktu pencarian tampil.",
+        "Saat Dijadwalkan/OTW, profil mitra tampil: nama panggilan, foto, rating, dan jumlah layanan (tanpa NIK/data sensitif).",
+        "Saat OTW, estimasi waktu kedatangan mitra tampil dan posisi diperbarui setiap 30 detik."
+      ],
+      "verification": "Verifikasi tampilan tracking pada status Mencari Mitra, Dijadwalkan, OTW di PWA Customer.",
+      "passes": false
+    },
+    {
+      "id": "CUS-11",
+      "role": "Customer",
+      "module": "Chat Pesanan",
+      "description": "Chat dengan mitra selama pesanan berjalan; nomor HP disembunyikan.",
+      "priority": "Should",
+      "brd_ref": "5.1, 4.15",
+      "slice": "S6",
+      "depends_on": [
+        "CUS-10"
+      ],
+      "acceptance_criteria": [
+        "Fitur chat aktif hanya selama pesanan berstatus Dijadwalkan, Menuju Lokasi, Tiba, hingga Sedang Berlangsung.",
+        "Nomor HP asli customer dan mitra tidak pernah ditampilkan di antarmuka chat.",
+        "Chat dinonaktifkan otomatis setelah pesanan selesai atau dibatalkan."
+      ],
+      "verification": "Kirim pesan chat antar customer dan mitra saat pesanan aktif, periksa nomor HP tersembunyi.",
+      "passes": false
+    },
+    {
+      "id": "CUS-12",
+      "role": "Customer",
+      "module": "Pembatalan Pesanan",
+      "description": "Membatalkan pesanan sesuai matriks aturan 4.7 dengan modal peringatan rincian potongan dana.",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.7",
+      "slice": "S7",
+      "depends_on": [
+        "CUS-09"
+      ],
+      "acceptance_criteria": [
+        "Customer dapat membatalkan saat Mencari Mitra (refund 100%).",
+        "Customer dapat membatalkan terjadwal >= 3 jam sebelum jadwal (refund 100%).",
+        "Customer membatalkan terjadwal < 3 jam sebelum jadwal (sebelum OTW) wajib menampilkan modal peringatan potongan 50% dan rincian nominal refund.",
+        "Setelah mitra menekan OTW, tombol pembatalan customer dinonaktifkan/hilang (kecuali mitra telat > 30 menit dari estimasi)."
+      ],
+      "verification": "Uji pembatalan customer pada status Mencari Mitra, H-4 jam, H-1 jam, dan status OTW.",
+      "passes": false
+    },
+    {
+      "id": "CUS-13",
+      "role": "Customer",
+      "module": "Reschedule Pesanan",
+      "description": "Reschedule pesanan terjadwal maksimal 2 kali per pesanan tanpa biaya, minimal 3 jam sebelum jadwal lama.",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.7",
+      "slice": "S7",
+      "depends_on": [
+        "CUS-06"
+      ],
+      "acceptance_criteria": [
+        "Reschedule hanya tersedia untuk pesanan terjadwal berstatus Dijadwalkan.",
+        "Reschedule hanya dapat diajukan minimal 3 jam sebelum waktu jadwal lama.",
+        "Setiap pesanan hanya dapat di-reschedule maksimal 2 kali.",
+        "Setelah reschedule berhasil, pesanan kembali ke status Mencari Mitra dan mitra lama menerima notifikasi."
+      ],
+      "verification": "Uji reschedule ke-1, ke-2 (sukses), dan ke-3 (ditolak) serta uji batas < 3 jam (ditolak).",
+      "passes": false
+    },
+    {
+      "id": "CUS-14",
+      "role": "Customer",
+      "module": "Rating Layanan",
+      "description": "Memberi rating bintang 1-5 kepada mitra setelah layanan Selesai tanpa ulasan teks.",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.14",
+      "slice": "S6",
+      "depends_on": [
+        "CUS-10"
+      ],
+      "acceptance_criteria": [
+        "Form rating bintang 1-5 terbuka otomatis setelah pesanan berstatus Selesai.",
+        "Tidak ada kolom input ulasan teks.",
+        "Rating yang telah dikirim bersifat final dan tidak dapat diubah.",
+        "Jika rating <= 3 bintang, sistem memunculkan tombol Laporkan Masalah ke menu Aduan."
+      ],
+      "verification": "Kirim rating bintang 5 dan bintang 2; pastikan rating 2 menampilkan prompt lapor masalah.",
+      "passes": false
+    },
+    {
+      "id": "CUS-15",
+      "role": "Customer",
+      "module": "Riwayat & Nota",
+      "description": "Melihat riwayat pesanan dan rincian nota digital.",
+      "priority": "Must",
+      "brd_ref": "5.1",
+      "slice": "S6",
+      "depends_on": [
+        "CUS-10"
+      ],
+      "acceptance_criteria": [
+        "Customer dapat melihat daftar pesanan aktif dan pesanan selesai/batal.",
+        "Setiap pesanan memiliki rincian nota digital: kode pesanan, nama layanan, durasi, harga, penerima, alamat, dan metode bayar."
+      ],
+      "verification": "Buka menu Riwayat Pesanan dan buka rincian nota digital pesanan selesai.",
+      "passes": false
+    },
+    {
+      "id": "CUS-16",
+      "role": "Customer",
+      "module": "Dompet Customer",
+      "description": "Melihat saldo dompet, riwayat transaksi mutasi, dan top-up saldo mandiri.",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.9",
+      "slice": "S3",
+      "depends_on": [
+        "CUS-05"
+      ],
+      "acceptance_criteria": [
+        "Customer dapat melihat saldo dompet dan held balance.",
+        "Top-up mandiri hanya dapat dilakukan jika customer telah memiliki Alamat Utama tersimpan.",
+        "Customer dapat memilih nominal top-up (minimal Rp 20.000) dan membayar via Xendit.",
+        "Daftar mutasi menampilkan seluruh riwayat top-up, pembayaran, dan refund."
+      ],
+      "verification": "Uji top-up customer dengan alamat utama vs tanpa alamat utama (harus diminta simpan alamat).",
+      "passes": false
+    },
+    {
+      "id": "CUS-17",
+      "role": "Customer",
+      "module": "Penarikan Dompet",
+      "description": "Penarikan saldo dompet ke rekening bank terverifikasi atas nama yang sama dengan nama akun.",
+      "priority": "Should",
+      "brd_ref": "5.1, 4.9",
+      "slice": "S9",
+      "depends_on": [
+        "CUS-16"
+      ],
+      "acceptance_criteria": [
+        "Customer dapat mengajukan penarikan saldo tersedia ke rekening bank.",
+        "Nama pemilik rekening bank wajib diverifikasi admin cocok dengan nama akun customer.",
+        "Penarikan dikenakan batas minimum dan biaya admin penarikan.",
+        "Nominal penarikan di atas ambang batas masuk antrean verifikasi manual admin wilayah akun."
+      ],
+      "verification": "Uji pengajuan penarikan saldo customer dan verifikasi mutasi rekening di backend.",
+      "passes": false
+    },
+    {
+      "id": "CUS-18",
+      "role": "Customer",
+      "module": "Tombol Darurat",
+      "description": "Tombol darurat selama sesi layanan berlangsung yang mengirimkan peringatan darurat ke admin siaga wilayah.",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.12, 4.16",
+      "slice": "S8",
+      "depends_on": [
+        "CUS-10"
+      ],
+      "acceptance_criteria": [
+        "Tombol darurat hanya aktif selama pesanan berstatus Sedang Berlangsung.",
+        "Saat ditekan, sistem seketika mengirimkan notifikasi prioritas tinggi ke admin siaga wilayah pesanan.",
+        "Data lokasi terkini dan rincian pesanan terlampir otomatis pada tiket darurat."
+      ],
+      "verification": "Tekan tombol darurat saat status Sedang Berlangsung, pastikan alarm darurat masuk ke admin siaga wilayah.",
+      "passes": false
+    },
+    {
+      "id": "CUS-19",
+      "role": "Customer",
+      "module": "Layanan Aduan",
+      "description": "Mengajukan aduan berupa teks, bukti foto, dan kategori dalam waktu maksimal 24 jam setelah layanan selesai.",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.12",
+      "slice": "S8",
+      "depends_on": [
+        "CUS-14"
+      ],
+      "acceptance_criteria": [
+        "Aduan hanya dapat diajukan dalam jendela 24 jam sejak pesanan Selesai.",
+        "Customer wajib memilih kategori aduan, menulis deskripsi, dan dapat mengunggah bukti foto.",
+        "Pengajuan aduan berhasil membekukan pelepasan pendapatan pesanan tersebut di saldo mitra."
+      ],
+      "verification": "Kirim aduan dalam rentang < 24 jam (berhasil) dan setelah > 24 jam (form aduan terkunci).",
+      "passes": false
+    },
+    {
+      "id": "CUS-20",
+      "role": "Customer",
+      "module": "Sanksi & Banding",
+      "description": "Melihat status sanksi SP dan mengajukan banding surat pernyataan.",
+      "priority": "Should",
+      "brd_ref": "5.1, 4.11",
+      "slice": "S8",
+      "depends_on": [
+        "CUS-02"
+      ],
+      "acceptance_criteria": [
+        "Customer dapat melihat riwayat SP, tingkat SP (SP1, SP2, SP3), alasan, dan bukti pelanggaran.",
+        "Customer dapat mengajukan formulir banding dengan mengunggah surat pernyataan.",
+        "Berkas banding masuk ke antrean verifikasi Admin Wilayah Akun customer saat pengajuan."
+      ],
+      "verification": "Terbitkan SP pada customer dan uji pengajuan banding dari antarmuka customer.",
+      "passes": false
+    },
+    {
+      "id": "CUS-21",
+      "role": "Customer",
+      "module": "Notifikasi Push",
+      "description": "Menerima push notification Web Push untuk perubahan status pesanan, pembayaran, dan refund.",
+      "priority": "Must",
+      "brd_ref": "5.1, Lampiran A",
+      "slice": "S11",
+      "depends_on": [
+        "CUS-01"
+      ],
+      "acceptance_criteria": [
+        "Customer menerima Web Push saat mitra ditugaskan, OTW, Tiba, Mulai, dan Selesai.",
+        "Customer menerima Web Push saat top-up sukses dan refund berhasil diproses."
+      ],
+      "verification": "Simulasi trigger event notifikasi dan verifikasi payload Web Push VAPID terkirim.",
+      "passes": false
+    },
+    {
+      "id": "CUS-22",
+      "role": "Customer",
+      "module": "Profil & Pengaturan",
+      "description": "Kelola profil, ubah password, pusat bantuan, dan permohonan hapus akun.",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.15",
+      "slice": "S3",
+      "depends_on": [
+        "CUS-01"
+      ],
+      "acceptance_criteria": [
+        "Customer dapat memperbarui nama profil dan password dengan konfirmasi password lama.",
+        "Customer dapat mengajukan hapus akun jika tidak memiliki pesanan aktif dan saldo dompet nol.",
+        "Data identitas pribadi di-scrub/dianonimkan saat hapus akun, namun riwayat transaksi tetap tersimpan untuk audit."
+      ],
+      "verification": "Uji ubah sandi dan uji hapus akun saat saldo masih ada (ditolak) vs saldo nol (sukses).",
+      "passes": false
+    },
+    {
+      "id": "CUS-23",
+      "role": "Customer",
+      "module": "Perpindahan Domisili",
+      "description": "Mengubah Alamat Utama di Profil; wilayah customer mengikuti alamat utama dan berpindah seketika.",
+      "priority": "Must",
+      "brd_ref": "5.1, 4.16, 6.7",
+      "slice": "S3",
+      "depends_on": [
+        "CUS-05"
+      ],
+      "acceptance_criteria": [
+        "Customer dapat menetapkan alamat tersimpan lain sebagai Alamat Utama di menu Profil.",
+        "Sistem seketika memperbarui wilayah akun customer (customer.region_id) mengikuti wilayah Alamat Utama baru.",
+        "Pesanan yang sedang berjalan tidak terpengaruh dan tetap terikat pada wilayah pesanannya."
+      ],
+      "verification": "Ubah alamat utama ke wilayah lain, pastikan region_id akun customer berpindah instan.",
+      "passes": false
+    },
+    {
+      "id": "MIT-01",
+      "role": "Mitra",
+      "module": "Autentikasi & Registrasi",
+      "description": "Pendaftaran data dasar (nama, email, no HP, password) dan verifikasi email; akun berstatus Belum Lengkap.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.1",
+      "slice": "S2",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Mitra dapat mendaftar dengan data dasar: nama lengkap, email, nomor HP, dan password.",
+        "Sistem mengirimkan tautan verifikasi ke email mitra.",
+        "Setelah verifikasi email berhasil, akun mitra berstatus BELUM_LENGKAP."
+      ],
+      "verification": "Uji registrasi mitra baru, klik verifikasi email, periksa status akun menjadi BELUM_LENGKAP.",
+      "passes": false
+    },
+    {
+      "id": "MIT-02",
+      "role": "Mitra",
+      "module": "Kelengkapan Berkas",
+      "description": "Melengkapi data NIK, alamat domisili pin peta, rekening & bukti, KTP, selfie, OTP no HP, persetujuan kemitraan & SOP.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.1, 4.16",
+      "slice": "S2",
+      "depends_on": [
+        "MIT-01"
+      ],
+      "acceptance_criteria": [
+        "Mitra mengisi NIK, mengunggah foto KTP dan foto selfie di dalam aplikasi.",
+        "Mitra menyematkan pin peta alamat domisili; sistem memvalidasi wilayah dan menolak jika di luar wilayah aktif.",
+        "Mitra mengisi nomor rekening bank dan mengunggah foto buku tabungan/bukti rekening.",
+        "Mitra memverifikasi nomor HP dengan OTP.",
+        "Mitra menyetujui perjanjian kemitraan dan panduan SOP; sistem mencatat timestamp dan versi dokumen.",
+        "Setelah data lengkap tersimpan, status akun berubah menjadi MENUNGGU_VERIFIKASI."
+      ],
+      "verification": "Uji pengisian berkas lengkap di dalam PWA Mitra, verifikasi status berubah menjadi MENUNGGU_VERIFIKASI.",
+      "passes": false
+    },
+    {
+      "id": "MIT-03",
+      "role": "Mitra",
+      "module": "Autentikasi & Login",
+      "description": "Login dengan email dan password atau Google; status akun dan alasan penolakan terlihat.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.1",
+      "slice": "S2",
+      "depends_on": [
+        "MIT-01"
+      ],
+      "acceptance_criteria": [
+        "Mitra dapat login menggunakan email dan password atau Google OAuth.",
+        "Mitra dengan status BELUM_LENGKAP diarahkan langsung ke form kelengkapan data.",
+        "Mitra dengan status MENUNGGU_VERIFIKASI melihat layar penantian verifikasi admin 1x24 jam.",
+        "Mitra dengan status DITOLAK melihat alasan penolakan dari admin dan tombol perbaikan data."
+      ],
+      "verification": "Uji login mitra pada berbagai status akun (Belum Lengkap, Menunggu, Ditolak, Terverifikasi).",
+      "passes": false
+    },
+    {
+      "id": "MIT-04",
+      "role": "Mitra",
+      "module": "Ketersediaan & Lokasi",
+      "description": "Status Online/Offline; izin lokasi wajib; hanya mitra Terverifikasi yang dapat Online; peringatan layar tetap terbuka.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.1, 4.15",
+      "slice": "S5",
+      "depends_on": [
+        "MIT-02"
+      ],
+      "acceptance_criteria": [
+        "Tombol toggle Online/Offline hanya aktif jika status akun TERVERIFIKASI dan tidak ditangguhkan.",
+        "Mitra wajib memberikan izin lokasi browser/GPS untuk dapat menyalakan status Online.",
+        "Saat Online, sistem menampilkan pesan pengingat agar aplikasi tetap terbuka dan mengaktifkan Screen Wake Lock API.",
+        "Lokasi koordinat mitra diperbarui ke server setiap 5 menit saat Online."
+      ],
+      "verification": "Uji aktivasi status Online pada akun belum terverifikasi (gagal) dan terverifikasi (sukses).",
+      "passes": false
+    },
+    {
+      "id": "MIT-05",
+      "role": "Mitra",
+      "module": "Pesanan Instan",
+      "description": "Tawaran pesanan instan 60 detik dengan push prioritas tinggi; terima atau tolak; alamat lengkap terbuka setelah menerima.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.4, 4.5",
+      "slice": "S5",
+      "depends_on": [
+        "MIT-04"
+      ],
+      "acceptance_criteria": [
+        "Mitra menerima modal pop-up hitung mundur 60 detik disertai getar dan suara saat pesanan instan ditawarkan.",
+        "Tawaran hanya menampilkan estimasi jarak, durasi, jenis layanan, dan tarif (alamat lengkap disembunyikan).",
+        "Jika mitra menekan Tolak atau waktu 60 detik habis, tawaran ditutup dan beralih ke mitra berikutnya.",
+        "Jika mitra menekan Terima, status pesanan menjadi DIJADWALKAN dan alamat lengkap layanan terbuka."
+      ],
+      "verification": "Simulasi pengiriman tawaran instan ke mitra terdekat, uji terima dalam 60s dan timeout 60s.",
+      "passes": false
+    },
+    {
+      "id": "MIT-06",
+      "role": "Mitra",
+      "module": "Pesanan Terjadwal",
+      "description": "Menu Pesanan Terjadwal: daftar pesanan yang sesuai syarat; ambil pesanan FCFS (siapa cepat dia dapat).",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.4, 4.5",
+      "slice": "S4",
+      "depends_on": [
+        "MIT-02"
+      ],
+      "acceptance_criteria": [
+        "Menu Pesanan Terjadwal menampilkan daftar pesanan terjadwal yang memenuhi syarat (wilayah domisili sama, sesama gender, layanan aktif, tidak bentrok jadwal).",
+        "Pesanan diambil secara FCFS; sistem mengunci pesanan menggunakan database transaction lock.",
+        "Jika pesanan sudah diambil mitra lain, sistem menampilkan notifikasi bahwa pesanan telah terisi."
+      ],
+      "verification": "Simulasi 2 mitra mengambil 1 pesanan terjadwal secara bersamaan; pastikan hanya 1 yang berhasil.",
+      "passes": false
+    },
+    {
+      "id": "MIT-07",
+      "role": "Mitra",
+      "module": "Jadwal Saya",
+      "description": "Menu Jadwal Saya: daftar pesanan Dijadwalkan beserta rincian lengkap dan catatan kondisi medis penerima.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.4, 4.13",
+      "slice": "S4",
+      "depends_on": [
+        "MIT-06"
+      ],
+      "acceptance_criteria": [
+        "Menu Jadwal Saya memuat seluruh pesanan berstatus Dijadwalkan yang menjadi tanggung jawab mitra.",
+        "Rincian memuat waktu jadwal, nama penerima, jenis kelamin, alamat lengkap, dan nomor kontak sementara.",
+        "Catatan kondisi medis penerima (jika ada) terbuka dan dapat dibaca mitra di layar ini."
+      ],
+      "verification": "Buka menu Jadwal Saya setelah mengambil pesanan, pastikan catatan medis tampil.",
+      "passes": false
+    },
+    {
+      "id": "MIT-08",
+      "role": "Mitra",
+      "module": "Preferensi Layanan",
+      "description": "Mengaktifkan atau menonaktifkan jenis layanan yang dilayani di menu Profil.",
+      "priority": "Should",
+      "brd_ref": "5.2, 4.2",
+      "slice": "S4",
+      "depends_on": [
+        "MIT-02"
+      ],
+      "acceptance_criteria": [
+        "Mitra dapat mengaktifkan atau menonaktifkan jenis layanan yang bersedia dilayani (default: seluruhnya aktif).",
+        "Sistem tidak akan menawarkan pesanan atau menampilkan pesanan di bursa jika layanannya dinonaktifkan oleh mitra."
+      ],
+      "verification": "Nonaktifkan Layanan X di profil mitra, pastikan pesanan dengan Layanan X tidak ditawarkan.",
+      "passes": false
+    },
+    {
+      "id": "MIT-09",
+      "role": "Mitra",
+      "module": "Pelaksanaan Layanan",
+      "description": "Alur pelaksanaan layanan: tombol OTW, Tiba, Mulai (timer berjalan), dan Selesai.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.6, 4.8",
+      "slice": "S6",
+      "depends_on": [
+        "MIT-05"
+      ],
+      "acceptance_criteria": [
+        "Mitra menekan OTW: status menjadi Menuju Lokasi, interval GPS menjadi 30 detik.",
+        "Mitra menekan Tiba: status menjadi Tiba, timer tunggu 15 menit dimulai.",
+        "Mitra menekan Mulai: status menjadi Sedang Berlangsung, timer durasi paket berjalan mundur.",
+        "Tombol Selesai dinonaktifkan dan baru dapat ditekan setelah timer durasi paket terpenuhi 100%."
+      ],
+      "verification": "Jalankan seluruh alur status dari OTW hingga Selesai di PWA Mitra.",
+      "passes": false
+    },
+    {
+      "id": "MIT-10",
+      "role": "Mitra",
+      "module": "Validasi Lokasi Tiba",
+      "description": "Validasi tombol Tiba aktif dalam radius 50 m dengan toleransi GPS; Minta konfirmasi lokasi sebagai jalur cadangan.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.8",
+      "slice": "S6",
+      "depends_on": [
+        "MIT-09"
+      ],
+      "acceptance_criteria": [
+        "Tombol Tiba divalidasi di server; hanya aktif jika koordinat GPS mitra <= 50 meter dari titik alamat layanan (dengan toleransi akurasi GPS hingga 150 m).",
+        "Jika GPS perangkat tidak akurat dan tombol tetap nonaktif, mitra dapat menekan Minta Konfirmasi Lokasi untuk chat ke customer tanpa sanksi."
+      ],
+      "verification": "Uji tekan tombol Tiba pada jarak 100 m (gagal) dan jarak 30 m (berhasil).",
+      "passes": false
+    },
+    {
+      "id": "MIT-11",
+      "role": "Mitra",
+      "module": "Pembatalan Khusus",
+      "description": "Opsi pembatalan khusus: Customer tidak ada, Gender tidak sesuai (setelah Tiba), dan Kondisi medis tidak sesuai.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.3, 4.7, 4.13",
+      "slice": "S7",
+      "depends_on": [
+        "MIT-09"
+      ],
+      "acceptance_criteria": [
+        "Pada status Tiba setelah 15 menit, mitra dapat memilih Customer tidak ada (customer kena potongan 50% & SP; mitra dapat kompensasi).",
+        "Pada status Tiba, jika gender penerima tidak sesuai, mitra memilih Gender tidak sesuai (customer kena potongan 50% & SP; mitra bebas sanksi).",
+        "Mitra dapat membatalkan dengan alasan Kondisi medis tidak sesuai (refund 100%, mitra bebas sanksi)."
+      ],
+      "verification": "Simulasi eksekusi masing-masing opsi pembatalan khusus dan verifikasi efek sanksi/refund.",
+      "passes": false
+    },
+    {
+      "id": "MIT-12",
+      "role": "Mitra",
+      "module": "Pembatalan Mandiri",
+      "description": "Pembatalan pesanan oleh mitra dengan alasan wajib dan peringatan konsekuensi SP.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.7, 4.11",
+      "slice": "S7",
+      "depends_on": [
+        "MIT-07"
+      ],
+      "acceptance_criteria": [
+        "Mitra yang membatalkan pesanan dijadwalkan wajib mengisi alasan pembatalan.",
+        "Sistem menampilkan modal peringatan konsekuensi sanksi SP sebelum konfirmasi pembatalan.",
+        "Pesanan yang dibatalkan dilempar ulang ke bursa pencarian."
+      ],
+      "verification": "Uji pembatalan mandiri oleh mitra pada pesanan terjadwal, pastikan SP tercatat otomatis.",
+      "passes": false
+    },
+    {
+      "id": "MIT-13",
+      "role": "Mitra",
+      "module": "Chat dengan Customer",
+      "description": "Fitur chat dalam aplikasi dengan customer selama pesanan berjalan; nomor kontak tersembunyi.",
+      "priority": "Should",
+      "brd_ref": "5.2, 4.15",
+      "slice": "S6",
+      "depends_on": [
+        "MIT-09"
+      ],
+      "acceptance_criteria": [
+        "Mitra dapat berkirim pesan teks dengan customer pemesan selama pesanan aktif.",
+        "Nomor HP customer tidak ditampilkan.",
+        "Riwayat chat tersimpan di server untuk kebutuhan investigasi aduan."
+      ],
+      "verification": "Kirim pesan chat dari PWA Mitra ke PWA Customer saat status Menuju Lokasi.",
+      "passes": false
+    },
+    {
+      "id": "MIT-14",
+      "role": "Mitra",
+      "module": "Rating Customer",
+      "description": "Memberi rating bintang 1-5 kepada customer setelah layanan Selesai tanpa ulasan teks.",
+      "priority": "Should",
+      "brd_ref": "5.2, 4.14",
+      "slice": "S6",
+      "depends_on": [
+        "MIT-09"
+      ],
+      "acceptance_criteria": [
+        "Mitra dapat memberi rating 1-5 bintang kepada customer setelah pesanan Selesai.",
+        "Tidak ada form ulasan teks; rating bersifat final."
+      ],
+      "verification": "Kirim rating dari mitra ke customer pasca-layanan selesai.",
+      "passes": false
+    },
+    {
+      "id": "MIT-15",
+      "role": "Mitra",
+      "module": "Manajemen Saldo",
+      "description": "Melihat saldo Tertahan dan Tersedia, riwayat pemasukan dengan filter 7 hari atau 30 hari.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.10",
+      "slice": "S9",
+      "depends_on": [
+        "MIT-09"
+      ],
+      "acceptance_criteria": [
+        "Layar saldo menampilkan nilai Saldo Tertahan dan Saldo Tersedia secara terpisah.",
+        "Riwayat pemasukan menampilkan rincian komisi per pesanan yang selesai.",
+        "Mitra dapat menyaring riwayat berdasarkan rentang 7 hari atau 30 hari terakhir."
+      ],
+      "verification": "Verifikasi tampilan saldo tertahan pasca order selesai dan riwayat mutasi di PWA Mitra.",
+      "passes": false
+    },
+    {
+      "id": "MIT-16",
+      "role": "Mitra",
+      "module": "Penarikan Saldo",
+      "description": "Penarikan saldo Tersedia ke rekening terverifikasi; riwayat pencairan.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.10",
+      "slice": "S9",
+      "depends_on": [
+        "MIT-15"
+      ],
+      "acceptance_criteria": [
+        "Penarikan hanya dapat dilakukan dari Saldo Tersedia ke rekening bank terverifikasi.",
+        "Penarikan diblokir jika akun mitra sedang ditangguhkan atau rekening sedang diverifikasi ulang.",
+        "Permohonan di atas batas peninjauan manual masuk ke antrean verifikasi Admin Wilayah."
+      ],
+      "verification": "Uji pengajuan penarikan saldo tersedia dan periksa status pada riwayat pencairan.",
+      "passes": false
+    },
+    {
+      "id": "MIT-17",
+      "role": "Mitra",
+      "module": "Riwayat & Performa",
+      "description": "Melihat riwayat layanan yang diselesaikan, rata-rata rating, dan jumlah SP.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.11, 4.14",
+      "slice": "S6",
+      "depends_on": [
+        "MIT-09"
+      ],
+      "acceptance_criteria": [
+        "Profil mitra menampilkan jumlah total layanan selesai, nilai rata-rata rating bintang, dan jumlah SP aktif."
+      ],
+      "verification": "Periksa profil mitra setelah menyelesaikan pesanan dan setelah menerima rating/SP.",
+      "passes": false
+    },
+    {
+      "id": "MIT-18",
+      "role": "Mitra",
+      "module": "Banding SP",
+      "description": "Pengajuan banding atas sanksi SP dengan mengunggah surat pernyataan dari menu Profil.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.11",
+      "slice": "S8",
+      "depends_on": [
+        "MIT-17"
+      ],
+      "acceptance_criteria": [
+        "Mitra yang terkena SP dapat mengajukan banding dari menu Profil.",
+        "Mitra wajib mengunggah dokumen/surat pernyataan banding.",
+        "Pengajuan banding masuk ke antrean Admin Wilayah Akun mitra saat itu."
+      ],
+      "verification": "Simulasi mitra SP2 mengunggah surat pernyataan banding, pastikan masuk antrean admin.",
+      "passes": false
+    },
+    {
+      "id": "MIT-19",
+      "role": "Mitra",
+      "module": "Tombol Darurat",
+      "description": "Tombol darurat dan laporan insiden selama sesi layanan berlangsung.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.12",
+      "slice": "S8",
+      "depends_on": [
+        "MIT-09"
+      ],
+      "acceptance_criteria": [
+        "Tombol darurat aktif di aplikasi mitra selama status Sedang Berlangsung.",
+        "Penekanan tombol darurat mengirimkan notifikasi prioritas tinggi ke admin siaga wilayah pesanan."
+      ],
+      "verification": "Uji tombol darurat di sisi mitra saat layanan berlangsung.",
+      "passes": false
+    },
+    {
+      "id": "MIT-20",
+      "role": "Mitra",
+      "module": "Profil & Pengaturan",
+      "description": "Ubah data profil (alamat dan rekening wajib verifikasi ulang), ganti password, bantuan, hapus akun.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.1, 4.15",
+      "slice": "S2",
+      "depends_on": [
+        "MIT-02"
+      ],
+      "acceptance_criteria": [
+        "Mitra dapat memperbarui data profil dan password.",
+        "Perubahan nomor rekening atau alamat domisili dalam wilayah yang sama otomatis memicu verifikasi ulang admin dan membekukan penarikan saldo sementara."
+      ],
+      "verification": "Uji ubah nomor rekening di profil mitra, pastikan penarikan saldo langsung terblokir hingga diverifikasi.",
+      "passes": false
+    },
+    {
+      "id": "MIT-21",
+      "role": "Mitra",
+      "module": "Notifikasi Push",
+      "description": "Menerima push notification Web Push untuk tawaran baru, pesanan terjadwal, pembatalan, saldo, SP, dan verifikasi.",
+      "priority": "Must",
+      "brd_ref": "5.2, Lampiran A",
+      "slice": "S11",
+      "depends_on": [
+        "MIT-01"
+      ],
+      "acceptance_criteria": [
+        "Mitra menerima Web Push saat mendapat tawaran instan, ada pesanan terjadwal baru, pesanan dibatalkan, saldo dilepas, dan SP terbit."
+      ],
+      "verification": "Verifikasi pengiriman payload Web Push ke service worker PWA Mitra.",
+      "passes": false
+    },
+    {
+      "id": "MIT-22",
+      "role": "Mitra",
+      "module": "Perpindahan Domisili",
+      "description": "Mengajukan perpindahan domisili ke wilayah lain dari Profil; syarat tanpa pesanan aktif/dijadwalkan; akun beku selama verifikasi admin tujuan.",
+      "priority": "Must",
+      "brd_ref": "5.2, 4.16, 6.7",
+      "slice": "S10",
+      "depends_on": [
+        "MIT-20"
+      ],
+      "acceptance_criteria": [
+        "Mitra dapat mengajukan pindah domisili ke wilayah aktif lain dengan menyematkan pin peta baru.",
+        "Pengajuan ditolak jika mitra masih memiliki pesanan aktif atau Dijadwalkan.",
+        "Selama proses verifikasi oleh admin wilayah tujuan, status mitra tidak dapat Online dan penarikan saldo ditahan.",
+        "Jika disetujui admin wilayah tujuan, wilayah mitra resmi berpindah dan riwayat lama tetap utuh."
+      ],
+      "verification": "Simulasi pengajuan pindah wilayah mitra, pastikan akun terkunci hingga disetujui admin tujuan.",
+      "passes": false
+    },
+    {
+      "id": "ADM-01",
+      "role": "Admin",
+      "module": "Dashboard Wilayah",
+      "description": "Dashboard ringkasan operasional wilayah tugas admin (pesanan per status, mitra Online, pesanan macet, aduan baru, pendapatan harian).",
+      "priority": "Must",
+      "brd_ref": "5.3, 4.16",
+      "slice": "S1",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Dashboard menampilkan metrik operasional hanya untuk wilayah tugas yang diberikan kepada admin tersebut.",
+        "Data mencakup: pesanan aktif per status, jumlah mitra online, pesanan macet, aduan baru, dan omzet harian.",
+        "Admin dengan multi-wilayah tugas dapat memfilter per wilayah atau melihat gabungan wilayah tugasnya."
+      ],
+      "verification": "Login sebagai admin wilayah X, pastikan data wilayah Y tidak muncul di dashboard.",
+      "passes": false
+    },
+    {
+      "id": "ADM-02",
+      "role": "Admin",
+      "module": "Verifikasi Mitra",
+      "description": "Memeriksa KTP, selfie, rekening, dan alamat domisili mitra; setujui atau tolak dengan alasan baku dalam target 1x24 jam.",
+      "priority": "Must",
+      "brd_ref": "5.3, 4.1, 4.16",
+      "slice": "S2",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Admin melihat antrean pendaftaran mitra yang berdomisili di wilayah tugasnya.",
+        "Admin dapat memvalidasi kesesuaian foto KTP, selfie, NIK, dan kesesuaian nama rekening dengan KTP.",
+        "Admin dapat menyetujui (status menjadi TERVERIFIKASI) atau menolak dengan memilih alasan baku yang tercatat di sistem.",
+        "Perpindahan domisili mitra masuk ke antrean admin wilayah tujuan."
+      ],
+      "verification": "Uji persetujuan dan penolakan berkas mitra dari panel admin wilayah domisili mitra.",
+      "passes": false
+    },
+    {
+      "id": "ADM-03",
+      "role": "Admin",
+      "module": "Verifikasi Rekening",
+      "description": "Memeriksa bukti kepemilikan rekening bank customer dan mitra sesuai wilayah akun.",
+      "priority": "Must",
+      "brd_ref": "5.3, 4.9, 4.10",
+      "slice": "S2",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Admin memvalidasi foto buku tabungan/rekening koran terhadap nama pemilik akun.",
+        "Antrean verifikasi rekening difilter berdasarkan wilayah akun pemohon."
+      ],
+      "verification": "Uji persetujuan rekening bank mitra dan customer dari panel admin.",
+      "passes": false
+    },
+    {
+      "id": "ADM-04",
+      "role": "Admin",
+      "module": "Pemantauan Pesanan",
+      "description": "Daftar dan rincian pesanan beserta linimasa status; membatalkan pesanan macet dengan alasan wajib (tanpa penugasan manual).",
+      "priority": "Must",
+      "brd_ref": "5.3, 4.5, 4.6",
+      "slice": "S7",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Admin dapat melihat daftar seluruh pesanan di wilayah tugasnya beserta linimasa status lengkap.",
+        "Admin tidak memiliki tombol penugasan manual.",
+        "Admin dapat membatalkan pesanan macet dengan menginput alasan wajib; dana customer kembali 100% otomatis."
+      ],
+      "verification": "Uji pembatalan pesanan macet oleh admin wilayah pesanan dan pastikan pengembalian dana 100%.",
+      "passes": false
+    },
+    {
+      "id": "ADM-05",
+      "role": "Admin",
+      "module": "Manajemen Pengguna",
+      "description": "Mengelola akun mitra dan customer di wilayah tugas: aktifkan, tangguhkan, atau blokir nomor HP dan perangkat.",
+      "priority": "Must",
+      "brd_ref": "5.3, 4.11",
+      "slice": "S11",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Admin dapat mengaktifkan, menangguhkan sementara, atau memblokir akun mitra/customer di wilayah tugasnya.",
+        "Aksi pemblokiran permanen mencatat nomor HP dan device ID ke daftar hitam sistem."
+      ],
+      "verification": "Uji sanksi blokir akun dari admin, pastikan nomor HP dan perangkat tidak dapat login kembali.",
+      "passes": false
+    },
+    {
+      "id": "ADM-06",
+      "role": "Admin",
+      "module": "Manajemen SP & Sanksi",
+      "description": "Penerbitan SP manual dan peninjauan riwayat SP otomatis beserta bukti dan alasan.",
+      "priority": "Must",
+      "brd_ref": "5.3, 4.11",
+      "slice": "S8",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Admin dapat menerbitkan SP manual dengan mengunggah bukti dan alasan pelanggaran.",
+        "Admin dapat melihat riwayat SP otomatis yang diterbitkan oleh sistem."
+      ],
+      "verification": "Terbitkan SP manual ke mitra dari panel admin dan periksa notifikasi serta riwayat di sisi mitra.",
+      "passes": false
+    },
+    {
+      "id": "ADM-07",
+      "role": "Admin",
+      "module": "Banding SP",
+      "description": "Meninjau berkas banding SP pengguna di wilayah akun; peninjau boleh sama dengan penerbit, tercatat di log audit.",
+      "priority": "Must",
+      "brd_ref": "5.3, 4.11, 4.16",
+      "slice": "S8",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Admin wilayah akun meninjau surat pernyataan banding SP yang diajukan customer atau mitra.",
+        "Admin dapat menyetujui banding (akun aktif kembali, status SP tetap tercatat) atau menolak banding.",
+        "ID penerbit SP, ID peninjau, dan keputusan wajib tercatat lengkap di log audit."
+      ],
+      "verification": "Setujui banding SP dari panel admin dan verifikasi log audit mencatat seluruh aktor.",
+      "passes": false
+    },
+    {
+      "id": "ADM-08",
+      "role": "Admin",
+      "module": "Laporan Aduan",
+      "description": "Mengelola aduan pesanan (Baru, Diproses, Selesai); prioritas darurat; keputusan refund, SP, atau penangguhan.",
+      "priority": "Must",
+      "brd_ref": "5.3, 4.12, 4.16",
+      "slice": "S8",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Admin wilayah pesanan menerima dan meninjau aduan pesanan.",
+        "Admin dapat memutuskan aduan: Tolak/Abaikan, atau Setujui dengan opsi refund penuh ke customer dan potong pendapatan mitra.",
+        "Aduan yang terbukti palsu menghasilkan opsi penerbitan SP kepada pelapor."
+      ],
+      "verification": "Uji penyelesaian aduan dengan putusan refund penuh, periksa mutasi saldo tertahan mitra ditarik.",
+      "passes": false
+    },
+    {
+      "id": "ADM-09",
+      "role": "Admin",
+      "module": "Tinjauan Mitra & Rating",
+      "description": "Tinjauan mitra dan customer berating rendah (< 4.0 min 10 pesanan): aksi abaikan, terbitkan SP, atau tangguhkan.",
+      "priority": "Must",
+      "brd_ref": "5.3, 4.14",
+      "slice": "S8",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Sistem menampilkan daftar mitra di wilayah tugas dengan rating rata-rata < 4.0 dan minimal 10 pesanan.",
+        "Admin dapat memeriksa riwayat pesanan, distribusi bintang, dan mengambil tindakan SP atau penangguhan."
+      ],
+      "verification": "Simulasi mitra dengan rating rata-rata 3.8 (12 pesanan), pastikan muncul di menu Tinjauan Mitra.",
+      "passes": false
+    },
+    {
+      "id": "ADM-10",
+      "role": "Admin",
+      "module": "Katalog Layanan",
+      "description": "Kelola layanan, pilihan durasi, dan harga paket (berlaku global; izin khusus Katalog dari Super Admin; tanpa add-on).",
+      "priority": "Must",
+      "brd_ref": "5.3, 4.2",
+      "slice": "S3",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Hanya admin dengan izin KATALOG yang dapat mengakses menu ini.",
+        "Admin dapat menambah/mengedit jenis layanan, durasi paket, harga paket, dan status aktif.",
+        "Perubahan harga berlaku seragam di seluruh wilayah tanpa ada opsi add-on."
+      ],
+      "verification": "Uji akses menu katalog dengan akun admin berizin katalog vs tanpa izin katalog.",
+      "passes": false
+    },
+    {
+      "id": "ADM-11",
+      "role": "Admin",
+      "module": "Keuangan Wilayah",
+      "description": "Laporan arus kas wilayah tugas: top-up, refund, pencairan mitra, rekonsiliasi Xendit per transaksi, ekspor .xlsx dan .pdf.",
+      "priority": "Must",
+      "brd_ref": "5.3, 4.16, 4.28",
+      "slice": "S9",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Hanya admin dengan izin KEUANGAN yang dapat mengakses menu Keuangan untuk wilayah tugasnya.",
+        "Menampilkan mutasi arus kas akun wilayah (top-up customer, pencairan mitra domisili) dan transaksi pesanan wilayah (omzet, komisi, refund di wilayah layanan).",
+        "Admin dapat mencocokkan status transaksi dengan ID referensi Xendit dan mengekspor laporan ke format Excel dan PDF."
+      ],
+      "verification": "Buka menu Keuangan sebagai Admin Wilayah X, pastikan angka mutasi hanya berasal dari transaksi dengan region_id wilayah X.",
+      "passes": false
+    },
+    {
+      "id": "ADM-12",
+      "role": "Admin",
+      "module": "Otorisasi Wilayah Tugas",
+      "description": "Penegakan pembatasan hak akses per menu dan wilayah tugas di tingkat server pada setiap request API.",
+      "priority": "Must",
+      "brd_ref": "5.3, 4.16, SYS-12",
+      "slice": "S1",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Server menolak request API dari admin jika data target berada di luar wilayah tugasnya (HTTP 403 Forbidden).",
+        "Admin tanpa wilayah tugas tidak dapat melihat data operasional apa pun."
+      ],
+      "verification": "Coba akses endpoint detail pesanan wilayah Y menggunakan token admin wilayah X (wajib 403 Forbidden).",
+      "passes": false
+    },
+    {
+      "id": "ADM-13",
+      "role": "Admin",
+      "module": "Siaga Tombol Darurat",
+      "description": "Menerima peringatan darurat realtime dengan target respons 5 menit; admin pertama klik Tangani menjadi PIC kasus.",
+      "priority": "Must",
+      "brd_ref": "5.3, 4.12, 4.16",
+      "slice": "S8",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Hanya admin dengan izin SIAGA_DARURAT di wilayah pesanan yang menerima alarm darurat realtime.",
+        "Admin pertama yang menekan tombol Tangani seketika mengunci kasus dan admin siaga lain melihat nama PIC.",
+        "Jika dalam 2 menit tidak ada respon, sistem mengekskalasi ke Super Admin."
+      ],
+      "verification": "Simulasi tombol darurat ditekan, pastikan modal darurat muncul pada admin siaga wilayah terkait.",
+      "passes": false
+    },
+    {
+      "id": "ADM-14",
+      "role": "Admin",
+      "module": "Profil & Notifikasi",
+      "description": "Manajemen profil admin, notifikasi antrean tugas, dan ganti kata sandi.",
+      "priority": "Should",
+      "brd_ref": "5.3",
+      "slice": "S11",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Admin dapat melihat notifikasi antrean tugas baru dan mengubah kata sandi akunnya."
+      ],
+      "verification": "Uji ubah password akun admin dan periksa penerimaan notifikasi antrean verifikasi.",
+      "passes": false
+    },
+    {
+      "id": "ADM-15",
+      "role": "Admin",
+      "module": "Filter Multi-Wilayah",
+      "description": "Pemilih wilayah (region selector) bagi admin dengan multi-wilayah tugas; kolom wilayah di setiap tabel.",
+      "priority": "Must",
+      "brd_ref": "5.3, 4.16",
+      "slice": "S1",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Admin yang ditugaskan di lebih dari 1 wilayah memiliki dropdown pemilih wilayah di navbar/header.",
+        "Admin dapat menyaring tabel pesanan, mitra, dan keuangan per wilayah atau memilih Semua Wilayah Tugas.",
+        "Setiap tabel data menampilkan kolom nama wilayah."
+      ],
+      "verification": "Uji login admin dengan 2 wilayah tugas, pilih filter wilayah A lalu wilayah B, periksa isi tabel berganti.",
+      "passes": false
+    },
+    {
+      "id": "ADM-16",
+      "role": "Admin",
+      "module": "Audit Riwayat Lintas Wilayah",
+      "description": "Melihat seluruh riwayat akun mitra/customer (termasuk dari wilayah lama pasca-pindah); kasus lintas wilayah akses terbatas.",
+      "priority": "Must",
+      "brd_ref": "5.3, 4.16",
+      "slice": "S11",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Admin wilayah baru dapat melihat seluruh riwayat pesanan, rating, dan SP mitra yang pindah dari wilayah lama.",
+        "Admin wilayah pesanan yang menangani insiden customer luar kota hanya dapat melihat data sebatas kasus terkait."
+      ],
+      "verification": "Periksa profil mitra pasca pindah domisili dari panel admin wilayah baru.",
+      "passes": false
+    },
+    {
+      "id": "SA-01",
+      "role": "Super Admin",
+      "module": "Manajemen Parameter",
+      "description": "Mengatur seluruh parameter operasional Bagian 8; perubahan tercatat di log audit dan non-retroactive.",
+      "priority": "Must",
+      "brd_ref": "5.4, 8.0",
+      "slice": "S11",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Super Admin dapat mengubah nilai parameter jam operasional, radius penugasan, batas waktu, komisi, dan sanksi.",
+        "Setiap perubahan parameter wajib mengisi catatan alasan dan tercatat di log audit.",
+        "Perubahan nilai komisi atau denda tidak berlaku surut pada transaksi yang sudah berjalan."
+      ],
+      "verification": "Ubah persentase komisi di panel Super Admin, periksa catatan di audit log dan pastikan pesanan lama tidak berubah.",
+      "passes": false
+    },
+    {
+      "id": "SA-02",
+      "role": "Super Admin",
+      "module": "Kelola Akun Admin",
+      "description": "Kelola akun Admin: hak akses menu, wilayah tugas (1+), izin Siaga Darurat, izin Katalog; cegah cabut admin terakhir.",
+      "priority": "Must",
+      "brd_ref": "5.4, 4.16",
+      "slice": "S1",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Super Admin dapat membuat akun Admin baru dan menentukan menu yang diizinkan.",
+        "Super Admin dapat menetapkan satu atau lebih wilayah tugas pada akun Admin.",
+        "Super Admin dapat memberikan izin Siaga Darurat per wilayah dan izin Katalog.",
+        "Sistem menolak pencabutan admin terakhir atau izin siaga terakhir pada wilayah yang berstatus Aktif."
+      ],
+      "verification": "Uji coba cabut penugasan admin terakhir pada wilayah aktif (harus ditolak sistem).",
+      "passes": false
+    },
+    {
+      "id": "SA-03",
+      "role": "Super Admin",
+      "module": "Log Audit Terpusat",
+      "description": "Melihat log audit terpusat: siapa mengubah apa dan kapan (wilayah, penugasan admin, putusan banding, parameter).",
+      "priority": "Must",
+      "brd_ref": "5.4, 4.16, 7.3",
+      "slice": "S11",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Log audit merekam seluruh mutasi data sensitif: ID user, aksi, payload lama, payload baru, IP address, timestamp.",
+        "Super Admin dapat menyaring log audit berdasarkan modul, rentang tanggal, dan aktor."
+      ],
+      "verification": "Buka menu Log Audit di Super Admin setelah melakukan perubahan parameter dan periksa integritas baris log.",
+      "passes": false
+    },
+    {
+      "id": "SA-04",
+      "role": "Super Admin",
+      "module": "Monitoring Saldo Mengendap",
+      "description": "Memantau total dana mengendap di dompet customer per wilayah domisili dan settlement global Xendit.",
+      "priority": "Must",
+      "brd_ref": "5.4, 4.9, 4.16",
+      "slice": "S9",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Super Admin dapat melihat ringkasan total saldo mengendap customer secara global dan per wilayah domisili customer.",
+        "Menampilkan total settlement yang diterima dari bank penampung Xendit dan membandingkannya dengan kewajiban saldo aktif."
+      ],
+      "verification": "Buka menu Pantau Dana Mengendap di Super Admin dan verifikasi kesesuaian agregasi saldo dompet.",
+      "passes": false
+    },
+    {
+      "id": "SA-05",
+      "role": "Super Admin",
+      "module": "Kelola Konten & Dokumen Legal",
+      "description": "Mengelola konten dan riwayat versi: syarat dan ketentuan, kebijakan privasi, perjanjian kemitraan, SOP, dan risiko.",
+      "priority": "Should",
+      "brd_ref": "5.4, 4.1, 4.13",
+      "slice": "S11",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Super Admin dapat memperbarui teks perjanjian kemitraan, panduan SOP, dan pernyataan risiko.",
+        "Sistem mencatat nomor versi dokumen baru; persetujuan pengguna berikutnya mengacu pada versi terbaru."
+      ],
+      "verification": "Perbarui teks perjanjian kemitraan, pastikan pendaftaran mitra baru mencatat nomor versi teks terbaru.",
+      "passes": false
+    },
+    {
+      "id": "SA-06",
+      "role": "Super Admin",
+      "module": "Master Wilayah",
+      "description": "Kelola wilayah: nama, batas poligon peta (tidak tumpang tindih), zona waktu, status; syarat aktivasi min 1 admin & 1 siaga.",
+      "priority": "Must",
+      "brd_ref": "5.4, 4.16",
+      "slice": "S1",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Super Admin dapat membuat wilayah baru dengan menggambar poligon batas pada peta Leaflet.",
+        "Sistem menolak penyimpanan jika poligon baru beririsan/tumpang tindih dengan poligon wilayah yang sudah ada.",
+        "Super Admin menentukan zona waktu wilayah (WIB/WITA/WIT).",
+        "Wilayah baru hanya dapat diaktifkan jika telah memiliki minimal 1 admin bertugas dan 1 admin siaga darurat."
+      ],
+      "verification": "Uji buat wilayah baru, gambar batas tumpang tindih (harus ditolak), pasang admin, lalu aktifkan wilayah.",
+      "passes": false
+    },
+    {
+      "id": "SA-07",
+      "role": "Super Admin",
+      "module": "Akses Admin Pusat & Eskalasi",
+      "description": "Akses ke seluruh menu Admin untuk semua wilayah (admin pusat), termasuk penanganan darurat eskalasi.",
+      "priority": "Must",
+      "brd_ref": "5.4, 4.16",
+      "slice": "S8",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Super Admin dapat mengakses seluruh menu operasional admin tanpa batasan wilayah tugas.",
+        "Super Admin dapat mengambil alih penanganan wilayah yang tidak memiliki admin.",
+        "Super Admin menerima notifikasi eskalasi darurat jika dalam 2 menit admin siaga wilayah belum merespons."
+      ],
+      "verification": "Simulasi alarm darurat tidak direspon admin siaga selama 2 menit, pastikan notifikasi eskalasi berbunyi di Super Admin.",
+      "passes": false
+    },
+    {
+      "id": "SA-08",
+      "role": "Super Admin",
+      "module": "Laporan Lintas Wilayah",
+      "description": "Dashboard dan laporan lintas wilayah (filter 1 wilayah, multi wilayah, atau gabungan); ekspor .xlsx dan .pdf.",
+      "priority": "Must",
+      "brd_ref": "5.4, 4.16",
+      "slice": "S9",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Super Admin dapat melihat metrik kinerja seluruh wilayah: jumlah pesanan, mitra aktif, omzet, aduan, dan keuangan.",
+        "Laporan dapat diekspor ke format Excel dan PDF secara menyeluruh atau difilter per wilayah terpilih."
+      ],
+      "verification": "Ekspor laporan keuangan konsolidasi seluruh wilayah dari dashboard Super Admin.",
+      "passes": false
+    },
+    {
+      "id": "SYS-01",
+      "role": "Sistem",
+      "module": "Matching Pesanan Instan",
+      "description": "Penawaran pesanan instan berurutan ke mitra terdekat yang memenuhi syarat (wilayah sama) dengan batas 60 detik per mitra.",
+      "priority": "Must",
+      "brd_ref": "5.5, 4.5",
+      "slice": "S5",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Sistem memfilter kandidat mitra: berstatus Terverifikasi, Online, lokasi < 10 menit, sesama gender, wilayah domisili == wilayah pesanan, radius <= 5 km, layanan aktif, tidak bentrok jadwal.",
+        "Tawaran dikirim ke mitra terdekat ke-1 selama 60 detik; jika ditolak/timeout, berlanjut ke mitra terdekat ke-2.",
+        "Mitra yang menolak tidak ditawari kembali untuk pesanan yang sama."
+      ],
+      "verification": "Simulasi penawaran sekuensial instan di backend, verifikasi perpindahan tawaran setelah 60 detik timeout.",
+      "passes": false
+    },
+    {
+      "id": "SYS-02",
+      "role": "Sistem",
+      "module": "Pembatalan & Kedaluwarsa Otomatis",
+      "description": "Pembatalan otomatis pesanan tanpa mitra (instan 30 menit, terjadwal batas waktu) dan kedaluwarsa top-up 15 menit.",
+      "priority": "Must",
+      "brd_ref": "5.5, 4.4, 4.6",
+      "slice": "S7",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Pesanan instan yang tidak mendapat mitra dalam 30 menit otomatis dibatalkan dan dana kembali 100%.",
+        "Pesanan terjadwal yang tidak terisi hingga 2 jam sebelum jadwal (atau 24 jam) otomatis dibatalkan dan dana kembali 100%.",
+        "Status Menunggu Pembayaran yang tidak dibayar dalam 15 menit otomatis menjadi Kedaluwarsa."
+      ],
+      "verification": "Jalankan scheduler sistem, uji pembatalan otomatis pesanan instan menit ke-31 dan invoice menit ke-16.",
+      "passes": false
+    },
+    {
+      "id": "SYS-03",
+      "role": "Sistem",
+      "module": "Otomasi Saldo & Komisi",
+      "description": "Menahan dan melepas dana pesanan; pembagian komisi platform dan saldo mitra; pelepasan saldo Tertahan setelah 24 jam.",
+      "priority": "Must",
+      "brd_ref": "5.5, 4.10",
+      "slice": "S9",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Saat pesanan berstatus Selesai, dana ditahan dilepas: komisi platform (20%) tercatat, saldo mitra (80%) masuk ke pending_balance.",
+        "Scheduler sistem melepaskan saldo dari pending_balance ke available_balance tepat setelah 24 jam dari waktu Selesai jika tidak ada aduan aktif."
+      ],
+      "verification": "Simulasi pesanan selesai, periksa pending_balance, jalankan job 24 jam kemudian, pastikan masuk available_balance.",
+      "passes": false
+    },
+    {
+      "id": "SYS-04",
+      "role": "Sistem",
+      "module": "Otomasi Surat Peringatan (SP)",
+      "description": "Pencatatan sanksi SP otomatis sesuai pemicu Bagian 4.11.",
+      "priority": "Must",
+      "brd_ref": "5.5, 4.11",
+      "slice": "S8",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Sistem otomatis menerbitkan SP mitra saat membatalkan < 3 jam sebelum jadwal atau telat > 30 menit.",
+        "Sistem otomatis menerbitkan SP customer saat no-show atau gender penerima tidak sesuai.",
+        "Penerbitan SP otomatis meningkatkan tingkat sanksi (SP1 -> SP2 -> SP3) dan menerapkan pembekuan/pemblokiran."
+      ],
+      "verification": "Uji pemicu pembatalan customer no-show, verifikasi SP1 customer terbit otomatis dan pesanan dipotong 50%.",
+      "passes": false
+    },
+    {
+      "id": "SYS-05",
+      "role": "Sistem",
+      "module": "Integritas Webhook & Dompet",
+      "description": "Verifikasi signature webhook Xendit, rekonsiliasi harian, transaksi dompet atomik, dan pencegahan saldo negatif.",
+      "priority": "Must",
+      "brd_ref": "5.5, 4.9, 7.3",
+      "slice": "S3",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Sistem memvalidasi token/signature webhook Xendit sebelum memproses mutasi.",
+        "Mutasi dompet dibungkus transaksi database atomik dengan penguncian baris pesimis (SELECT FOR UPDATE).",
+        "Check constraint database memastikan saldo dompet customer tidak pernah bernilai negatif."
+      ],
+      "verification": "Kirim webhook palsu (harus 401/403) dan uji transaksi debit melebihi saldo (harus gagal rollback).",
+      "passes": false
+    },
+    {
+      "id": "SYS-06",
+      "role": "Sistem",
+      "module": "Penyebaran Notifikasi Terisolasi",
+      "description": "Pengiriman notifikasi sesuai Lampiran A; notifikasi untuk admin dikirim hanya ke admin wilayah terkait.",
+      "priority": "Must",
+      "brd_ref": "5.5, Lampiran A, 4.16",
+      "slice": "S11",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Event notifikasi memfilter daftar penerima admin berdasarkan region_id penugasan.",
+        "Notifikasi tidak bocor ke admin wilayah lain."
+      ],
+      "verification": "Trigger event aduan baru di wilayah X, pastikan hanya admin wilayah X yang menerima push notification.",
+      "passes": false
+    },
+    {
+      "id": "SYS-07",
+      "role": "Sistem",
+      "module": "Pembersihan Data Otomatis",
+      "description": "Penghapusan otomatis riwayat chat dan catatan kondisi medis setelah 30 hari.",
+      "priority": "Must",
+      "brd_ref": "5.5, 4.13, 4.15",
+      "slice": "S11",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Scheduler harian memeriksa catatan medis dan riwayat chat yang berumur > 30 hari.",
+        "Data teks chat dan catatan medis dihapus/dibersihkan secara permanen demi kepatuhan UU PDP."
+      ],
+      "verification": "Jalankan cron job pembersihan data lama, pastikan chat > 30 hari terhapus sedangkan nota pesanan tetap ada.",
+      "passes": false
+    },
+    {
+      "id": "SYS-08",
+      "role": "Sistem",
+      "module": "Audit Versi Persetujuan",
+      "description": "Pencatatan waktu dan versi persetujuan hukum (risiko customer, perjanjian kemitraan mitra).",
+      "priority": "Must",
+      "brd_ref": "5.5, 4.1, 4.13",
+      "slice": "S4",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Setiap submit pesanan menyimpan referensi risk_agreement_version dan consent_timestamp.",
+        "Setiap onboarding mitra menyimpan agreement_version dan terms_consent_timestamp."
+      ],
+      "verification": "Periksa baris data pesanan dan mitra di database, pastikan versi dokumen hukum tercatat.",
+      "passes": false
+    },
+    {
+      "id": "SYS-09",
+      "role": "Sistem",
+      "module": "Idempotensi Aksi Luar Jaringan",
+      "description": "Pengiriman ulang aksi penting (Mulai, Selesai) secara idempotensial saat sinyal terputus.",
+      "priority": "Should",
+      "brd_ref": "5.5, 7.1",
+      "slice": "S6",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "API Mulai dan Selesai menerima header Idempotency-Key.",
+        "Jika request yang sama terkirim berulang kali karena gangguan jaringan, sistem mengembalikan status sukses tanpa mengeksekusi transisi ganda."
+      ],
+      "verification": "Kirim 2 request serentak dengan Idempotency-Key yang sama ke endpoint Mulai Layanan, pastikan transisi dieksekusi tepat 1 kali.",
+      "passes": false
+    },
+    {
+      "id": "SYS-10",
+      "role": "Sistem",
+      "module": "Penentuan Wilayah Spasial",
+      "description": "Menentukan wilayah dari pin peta otomatis untuk alamat, domisili, dan pesanan; mencatat wilayah permanen.",
+      "priority": "Must",
+      "brd_ref": "5.5, 4.16",
+      "slice": "S1",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Fungsi spasial backend mengevaluasi koordinat pin peta terhadap poligon tabel regions.",
+        "Nilai region_id dicatat permanen pada tabel pesanan dan transaksi saat kejadian dan tidak berubah."
+      ],
+      "verification": "Input koordinat kota Bandung, pastikan sistem mengembalikan region_id Bandung dan tersimpan permanen pada pesanan.",
+      "passes": false
+    },
+    {
+      "id": "SYS-11",
+      "role": "Sistem",
+      "module": "Eskalasi Darurat Otomatis",
+      "description": "Meneruskan notifikasi tombol darurat ke Super Admin bila belum direspons admin siaga dalam 2 menit.",
+      "priority": "Must",
+      "brd_ref": "5.5, 4.12, 4.16",
+      "slice": "S8",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Job monitoring mendeteksi tiket darurat yang belum berstatus DIPROSES setelah 2 menit sejak dibuat.",
+        "Sistem mengirimkan notifikasi eskalasi prioritas tinggi ke seluruh akun Super Admin."
+      ],
+      "verification": "Simulasi tiket darurat tanpa klik tangani selama 2 menit, pastikan event eskalasi terpicu.",
+      "passes": false
+    },
+    {
+      "id": "SYS-12",
+      "role": "Sistem",
+      "module": "Partisi Data Server-Side Admin",
+      "description": "Membatasi akses data admin menurut wilayah tugas di lapisan server pada setiap request dan ekspor laporan.",
+      "priority": "Must",
+      "brd_ref": "5.5, 4.16, 7.3",
+      "slice": "S1",
+      "depends_on": [
+        "F0"
+      ],
+      "acceptance_criteria": [
+        "Middleware dan global scope Eloquent menyaring seluruh query model operasional berdasarkan assigned_regions admin login.",
+        "Ekspor laporan Excel/PDF membatasi query data di level database server."
+      ],
+      "verification": "Uji ekspor laporan keuangan admin wilayah tugas X, pastikan isi berkas Excel tidak memuat baris wilayah Y.",
+      "passes": false
+    }
+  ]
+}
