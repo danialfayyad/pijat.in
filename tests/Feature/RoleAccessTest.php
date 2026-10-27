@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Role;
+use App\Models\Region;
 use App\Models\User;
 
 test('each role is redirected to its own dashboard after login', function (Role $role, string $routeName) {
@@ -18,7 +19,9 @@ test('each role is redirected to its own dashboard after login', function (Role 
 ]);
 
 test('users can only access dashboards allowed for their role', function () {
+    $region = Region::factory()->create();
     $admin = User::factory()->create(['role' => Role::Admin]);
+    $admin->assignedRegions()->attach($region->id);
 
     $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk();
     $this->actingAs($admin)->get(route('superadmin.dashboard'))->assertForbidden();
@@ -27,7 +30,10 @@ test('users can only access dashboards allowed for their role', function () {
 
 test('public registration always creates a customer account', function () {
     $this->post('/register', [
+        'nik' => '9876543210987654',
         'name' => 'New Customer',
+        'gender' => 'perempuan',
+        'phone' => '089876543210',
         'email' => 'customer@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',

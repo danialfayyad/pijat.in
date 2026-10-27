@@ -11,15 +11,31 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
+                <div class="hidden space-x-6 sm:-my-px sm:ms-8 sm:flex">
+                    @if (Auth::user()->isSuperadmin())
+                        <x-nav-link :href="route('superadmin.regions.index')" :active="request()->routeIs('superadmin.regions.*')">
+                            {{ __('Master Wilayah') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('superadmin.admins.index')" :active="request()->routeIs('superadmin.admins.*')">
+                            {{ __('Penugasan Admin') }}
+                        </x-nav-link>
+                    @elseif (Auth::user()->isAdmin())
+                        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                            {{ __('Dashboard Wilayah') }}
+                        </x-nav-link>
+                    @else
+                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                            {{ __('Dashboard') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold mr-2 {{ Auth::user()->isSuperadmin() ? 'bg-purple-100 text-purple-800' : (Auth::user()->isAdmin() ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800') }}">
+                    {{ Auth::user()->role->label() }}
+                </span>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">

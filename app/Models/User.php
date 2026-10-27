@@ -8,6 +8,8 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -63,5 +65,79 @@ class User extends Authenticatable
     public function isMitra(): bool
     {
         return $this->hasRole(Role::Mitra);
+    }
+
+    /**
+     * @return BelongsToMany<Region, $this>
+     */
+    public function assignedRegions(): BelongsToMany
+    {
+        return $this->belongsToMany(Region::class, 'admin_region_assignments')
+            ->withPivot('can_handle_emergency')
+            ->withTimestamps();
+    }
+
+    /**
+     * @return HasMany<AdminRegionAssignment, $this>
+     */
+    public function adminAssignments(): HasMany
+    {
+        return $this->hasMany(AdminRegionAssignment::class);
+    }
+
+    /**
+     * @return HasMany<AdminMenuPermission, $this>
+     */
+    public function menuPermissions(): HasMany
+    {
+        return $this->hasMany(AdminMenuPermission::class);
+    }
+
+    /**
+     * Check if user can access a specific region's data.
+     */
+    public function canAccessRegion(int $regionId): bool
+    {
+        if ($this->isSuperadmin()) {
+            return true;
+        }
+
+        if (! $this->isAdmin()) {
+            return false;
+        }
+
+        return $this->assignedRegions()->where('regions.id', $regionId)->exists();
+    }
+
+    /**
+     * Check if admin can access a specific menu code.
+     */
+    public function canAccessMenu(string $menuCode): bool
+    {
+        if ($this->isSuperadmin()) {
+            return true;
+        }
+
+        if (! $this->isAdmin()) {
+            return false;
+        }
+
+        return $this->menuPermissions()->where('menu_code', $menuCode)->exists();
+    }
+
+    /**
+     * Check if user has emergency duty permission for a specific region.
+     */
+    public function canHandleEmergency(int $regionId): bool
+    {
+        if ($this->isSuperadmin()) {
+            return true;
+        }
+
+        if (! $this->isAdmin()) {
+            return false;
+        }
+
+        return $this->canAccessRegion($regionId);
     }
 }

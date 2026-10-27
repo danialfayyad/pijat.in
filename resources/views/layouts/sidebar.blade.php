@@ -1,0 +1,86 @@
+<!-- Left Sidebar (Desktop - Bright Emerald Gradient) -->
+<aside class="hidden lg:flex lg:flex-col lg:w-64 bg-gradient-to-b from-emerald-600 via-emerald-700 to-teal-800 text-white shrink-0 min-h-screen border-r border-emerald-500/30 shadow-xl">
+    <!-- Brand / Logo -->
+    <div class="h-20 flex items-center px-6 border-b border-white/15 bg-white/10 backdrop-blur-xs">
+        <a href="{{ route('dashboard') }}" class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-white text-emerald-700 flex items-center justify-center shadow-md">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                </svg>
+            </div>
+            <div>
+                <span class="text-2xl font-black tracking-tight text-white block leading-none">Pijat.In</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+        @if (Auth::user()->isSuperadmin())
+            <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                Menu Super Admin
+            </div>
+            
+            <a href="{{ route('superadmin.regions.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.regions.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.regions.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                Master Wilayah
+            </a>
+
+            <a href="{{ route('superadmin.admins.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.admins.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.admins.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                Penugasan Admin
+            </a>
+
+        @elseif (Auth::user()->isAdmin())
+            <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                Menu Operasional
+            </div>
+
+            <a href="{{ route('admin.dashboard') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.dashboard') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.dashboard') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                Dashboard Wilayah
+            </a>
+        @else
+            <a href="{{ route('dashboard') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('dashboard') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('dashboard') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Dashboard
+            </a>
+        @endif
+    </nav>
+
+    <!-- Bottom User Profile Card -->
+    <div class="p-4 border-t border-white/15 bg-black/15 backdrop-blur-xs">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3 overflow-hidden">
+                <div class="w-9 h-9 rounded-full bg-white text-emerald-800 font-bold flex items-center justify-center shrink-0 text-sm shadow">
+                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                </div>
+                <div class="overflow-hidden">
+                    <p class="text-sm font-semibold text-white truncate leading-tight">{{ Auth::user()->name }}</p>
+                    <p class="text-xs text-emerald-100/80 truncate mt-0.5">{{ Auth::user()->email }}</p>
+                </div>
+            </div>
+            
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" title="Keluar / Logout" class="p-2 text-emerald-200 hover:text-white hover:bg-white/15 rounded-lg transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+</aside>
