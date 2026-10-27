@@ -1,0 +1,32 @@
+{
+    "id": "3516",
+    "name": "Kabupaten Mojokerto",
+    "province": "Jawa Timur",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    112.35,
+                    -7.7
+                ],
+                [
+                    112.65,
+                    -7.7
+                ],
+                [
+                    112.65,
+                    -7.4
+                ],
+                [
+                    112.35,
+                    -7.4
+                ],
+                [
+                    112.35,
+                    -7.7
+                ]
+            ]
+        ]
+    }
+}

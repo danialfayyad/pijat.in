@@ -1,0 +1,32 @@
+{
+    "id": "1205",
+    "name": "Kabupaten Tapanuli Utara",
+    "province": "Sumatera Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    98.9207,
+                    1.8528
+                ],
+                [
+                    99.2207,
+                    1.8528
+                ],
+                [
+                    99.2207,
+                    2.1528
+                ],
+                [
+                    98.9207,
+                    2.1528
+                ],
+                [
+                    98.9207,
+                    1.8528
+                ]
+            ]
+        ]
+    }
+}

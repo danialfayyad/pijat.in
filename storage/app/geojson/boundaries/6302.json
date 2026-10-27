@@ -1,0 +1,32 @@
+{
+    "id": "6302",
+    "name": "Kabupaten Kota Baru",
+    "province": "Kalimantan Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    115.85,
+                    -3.15
+                ],
+                [
+                    116.15,
+                    -3.15
+                ],
+                [
+                    116.15,
+                    -2.85
+                ],
+                [
+                    115.85,
+                    -2.85
+                ],
+                [
+                    115.85,
+                    -3.15
+                ]
+            ]
+        ]
+    }
+}

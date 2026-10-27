@@ -1,0 +1,32 @@
+{
+    "id": "7205",
+    "name": "Kabupaten Donggala",
+    "province": "Sulawesi Tengah",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    119.7,
+                    -0.73333
+                ],
+                [
+                    120,
+                    -0.73333
+                ],
+                [
+                    120,
+                    -0.43333
+                ],
+                [
+                    119.7,
+                    -0.43333
+                ],
+                [
+                    119.7,
+                    -0.73333
+                ]
+            ]
+        ]
+    }
+}

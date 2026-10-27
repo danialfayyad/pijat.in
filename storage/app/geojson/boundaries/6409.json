@@ -1,0 +1,32 @@
+{
+    "id": "6409",
+    "name": "Kabupaten Penajam Paser Utara",
+    "province": "Kalimantan Timur",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    116.68333,
+                    -1.4
+                ],
+                [
+                    116.98333,
+                    -1.4
+                ],
+                [
+                    116.98333,
+                    -1.1
+                ],
+                [
+                    116.68333,
+                    -1.1
+                ],
+                [
+                    116.68333,
+                    -1.4
+                ]
+            ]
+        ]
+    }
+}

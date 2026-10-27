@@ -1,0 +1,32 @@
+{
+    "id": "6104",
+    "name": "Kabupaten Mempawah",
+    "province": "Kalimantan Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    109.01667,
+                    0.1
+                ],
+                [
+                    109.31667,
+                    0.1
+                ],
+                [
+                    109.31667,
+                    0.4
+                ],
+                [
+                    109.01667,
+                    0.4
+                ],
+                [
+                    109.01667,
+                    0.1
+                ]
+            ]
+        ]
+    }
+}

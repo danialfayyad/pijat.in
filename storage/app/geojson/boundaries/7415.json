@@ -1,0 +1,32 @@
+{
+    "id": "7415",
+    "name": "Kabupaten Buton Selatan",
+    "province": "Sulawesi Tenggara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    122.55,
+                    -5.71667
+                ],
+                [
+                    122.85,
+                    -5.71667
+                ],
+                [
+                    122.85,
+                    -5.41667
+                ],
+                [
+                    122.55,
+                    -5.41667
+                ],
+                [
+                    122.55,
+                    -5.71667
+                ]
+            ]
+        ]
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "id": "9108",
+    "name": "Kabupaten Raja Ampat",
+    "province": "Papua Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    129.85,
+                    -0.65
+                ],
+                [
+                    130.15,
+                    -0.65
+                ],
+                [
+                    130.15,
+                    -0.35
+                ],
+                [
+                    129.85,
+                    -0.35
+                ],
+                [
+                    129.85,
+                    -0.65
+                ]
+            ]
+        ]
+    }
+}

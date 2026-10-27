@@ -1,0 +1,32 @@
+{
+    "id": "1606",
+    "name": "Kabupaten Musi Banyu Asin",
+    "province": "Sumatera Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    103.6,
+                    -2.56667
+                ],
+                [
+                    103.9,
+                    -2.56667
+                ],
+                [
+                    103.9,
+                    -2.26667
+                ],
+                [
+                    103.6,
+                    -2.26667
+                ],
+                [
+                    103.6,
+                    -2.56667
+                ]
+            ]
+        ]
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "id": "7602",
+    "name": "Kabupaten Polewali Mandar",
+    "province": "Sulawesi Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    119.01667,
+                    -3.45
+                ],
+                [
+                    119.31667,
+                    -3.45
+                ],
+                [
+                    119.31667,
+                    -3.15
+                ],
+                [
+                    119.01667,
+                    -3.15
+                ],
+                [
+                    119.01667,
+                    -3.45
+                ]
+            ]
+        ]
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "id": "7107",
+    "name": "Kabupaten Bolaang Mongondow Utara",
+    "province": "Sulawesi Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    123.26766,
+                    0.63527
+                ],
+                [
+                    123.56766,
+                    0.63527
+                ],
+                [
+                    123.56766,
+                    0.93527
+                ],
+                [
+                    123.26766,
+                    0.93527
+                ],
+                [
+                    123.26766,
+                    0.63527
+                ]
+            ]
+        ]
+    }
+}

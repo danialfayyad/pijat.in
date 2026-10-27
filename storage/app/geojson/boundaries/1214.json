@@ -1,0 +1,32 @@
+{
+    "id": "1214",
+    "name": "Kabupaten Nias Selatan",
+    "province": "Sumatera Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    97.6,
+                    0.62
+                ],
+                [
+                    97.9,
+                    0.62
+                ],
+                [
+                    97.9,
+                    0.92
+                ],
+                [
+                    97.6,
+                    0.92
+                ],
+                [
+                    97.6,
+                    0.62
+                ]
+            ]
+        ]
+    }
+}

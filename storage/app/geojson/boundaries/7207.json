@@ -1,0 +1,32 @@
+{
+    "id": "7207",
+    "name": "Kabupaten Buol",
+    "province": "Sulawesi Tengah",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    120.6,
+                    0.6
+                ],
+                [
+                    120.9,
+                    0.6
+                ],
+                [
+                    120.9,
+                    0.9
+                ],
+                [
+                    120.6,
+                    0.9
+                ],
+                [
+                    120.6,
+                    0.6
+                ]
+            ]
+        ]
+    }
+}

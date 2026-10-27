@@ -1,0 +1,32 @@
+{
+    "id": "1273",
+    "name": "Kota Pematang Siantar",
+    "province": "Sumatera Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    98.9,
+                    2.81667
+                ],
+                [
+                    99.2,
+                    2.81667
+                ],
+                [
+                    99.2,
+                    3.11667
+                ],
+                [
+                    98.9,
+                    3.11667
+                ],
+                [
+                    98.9,
+                    2.81667
+                ]
+            ]
+        ]
+    }
+}

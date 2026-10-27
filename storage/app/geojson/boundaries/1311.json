@@ -1,0 +1,32 @@
+{
+    "id": "1311",
+    "name": "Kabupaten Dharmasraya",
+    "province": "Sumatera Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    101.217,
+                    -1.2
+                ],
+                [
+                    101.517,
+                    -1.2
+                ],
+                [
+                    101.517,
+                    -0.9
+                ],
+                [
+                    101.217,
+                    -0.9
+                ],
+                [
+                    101.217,
+                    -1.2
+                ]
+            ]
+        ]
+    }
+}

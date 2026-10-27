@@ -1,0 +1,32 @@
+{
+    "id": "6105",
+    "name": "Kabupaten Sanggau",
+    "province": "Kalimantan Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    110.3,
+                    0.10472
+                ],
+                [
+                    110.6,
+                    0.10472
+                ],
+                [
+                    110.6,
+                    0.40472
+                ],
+                [
+                    110.3,
+                    0.40472
+                ],
+                [
+                    110.3,
+                    0.10472
+                ]
+            ]
+        ]
+    }
+}

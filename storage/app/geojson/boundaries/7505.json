@@ -1,0 +1,32 @@
+{
+    "id": "7505",
+    "name": "Kabupaten Gorontalo Utara",
+    "province": "Gorontalo",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    122.16667,
+                    0.62
+                ],
+                [
+                    122.46667,
+                    0.62
+                ],
+                [
+                    122.46667,
+                    0.92
+                ],
+                [
+                    122.16667,
+                    0.92
+                ],
+                [
+                    122.16667,
+                    0.62
+                ]
+            ]
+        ]
+    }
+}

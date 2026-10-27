@@ -1,0 +1,32 @@
+{
+    "id": "7309",
+    "name": "Kabupaten Pangkajene Dan Kepulauan",
+    "province": "Sulawesi Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    119.4006,
+                    -4.9327
+                ],
+                [
+                    119.7006,
+                    -4.9327
+                ],
+                [
+                    119.7006,
+                    -4.6327
+                ],
+                [
+                    119.4006,
+                    -4.6327
+                ],
+                [
+                    119.4006,
+                    -4.9327
+                ]
+            ]
+        ]
+    }
+}

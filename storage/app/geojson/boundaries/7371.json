@@ -1,0 +1,32 @@
+{
+    "id": "7371",
+    "name": "Kota Makassar",
+    "province": "Sulawesi Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    119.3,
+                    -5.3
+                ],
+                [
+                    119.6,
+                    -5.3
+                ],
+                [
+                    119.6,
+                    -5
+                ],
+                [
+                    119.3,
+                    -5
+                ],
+                [
+                    119.3,
+                    -5.3
+                ]
+            ]
+        ]
+    }
+}

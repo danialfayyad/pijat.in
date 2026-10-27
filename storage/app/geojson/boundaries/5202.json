@@ -1,0 +1,32 @@
+{
+    "id": "5202",
+    "name": "Kabupaten Lombok Tengah",
+    "province": "Nusa Tenggara Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    116.15,
+                    -8.85
+                ],
+                [
+                    116.45,
+                    -8.85
+                ],
+                [
+                    116.45,
+                    -8.55
+                ],
+                [
+                    116.15,
+                    -8.55
+                ],
+                [
+                    116.15,
+                    -8.85
+                ]
+            ]
+        ]
+    }
+}

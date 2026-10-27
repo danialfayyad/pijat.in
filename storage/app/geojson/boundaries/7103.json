@@ -1,0 +1,32 @@
+{
+    "id": "7103",
+    "name": "Kabupaten Kepulauan Sangihe",
+    "province": "Sulawesi Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    125.4,
+                    3.35
+                ],
+                [
+                    125.7,
+                    3.35
+                ],
+                [
+                    125.7,
+                    3.65
+                ],
+                [
+                    125.4,
+                    3.65
+                ],
+                [
+                    125.4,
+                    3.35
+                ]
+            ]
+        ]
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "id": "6212",
+    "name": "Kabupaten Barito Timur",
+    "province": "Kalimantan Tengah",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    114.95,
+                    -2.08333
+                ],
+                [
+                    115.25,
+                    -2.08333
+                ],
+                [
+                    115.25,
+                    -1.78333
+                ],
+                [
+                    114.95,
+                    -1.78333
+                ],
+                [
+                    114.95,
+                    -2.08333
+                ]
+            ]
+        ]
+    }
+}

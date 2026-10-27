@@ -1,0 +1,32 @@
+{
+    "id": "1612",
+    "name": "Kabupaten Penukal Abab Lematang Ilir",
+    "province": "Sumatera Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    103.93722,
+                    -3.36342
+                ],
+                [
+                    104.23722,
+                    -3.36342
+                ],
+                [
+                    104.23722,
+                    -3.06342
+                ],
+                [
+                    103.93722,
+                    -3.06342
+                ],
+                [
+                    103.93722,
+                    -3.36342
+                ]
+            ]
+        ]
+    }
+}

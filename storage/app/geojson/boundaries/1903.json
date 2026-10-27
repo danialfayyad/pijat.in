@@ -1,0 +1,32 @@
+{
+    "id": "1903",
+    "name": "Kabupaten Bangka Barat",
+    "province": "Kepulauan Bangka Belitung",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    105.38741,
+                    -2.10839
+                ],
+                [
+                    105.68741,
+                    -2.10839
+                ],
+                [
+                    105.68741,
+                    -1.80839
+                ],
+                [
+                    105.38741,
+                    -1.80839
+                ],
+                [
+                    105.38741,
+                    -2.10839
+                ]
+            ]
+        ]
+    }
+}

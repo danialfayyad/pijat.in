@@ -1,0 +1,32 @@
+{
+    "id": "6502",
+    "name": "Kabupaten Bulungan",
+    "province": "Kalimantan Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    117.01667,
+                    2.85
+                ],
+                [
+                    117.31667,
+                    2.85
+                ],
+                [
+                    117.31667,
+                    3.15
+                ],
+                [
+                    117.01667,
+                    3.15
+                ],
+                [
+                    117.01667,
+                    2.85
+                ]
+            ]
+        ]
+    }
+}

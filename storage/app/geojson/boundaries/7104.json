@@ -1,0 +1,32 @@
+{
+    "id": "7104",
+    "name": "Kabupaten Kepulauan Talaud",
+    "province": "Sulawesi Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    126.63085,
+                    4.16178
+                ],
+                [
+                    126.93085,
+                    4.16178
+                ],
+                [
+                    126.93085,
+                    4.46178
+                ],
+                [
+                    126.63085,
+                    4.46178
+                ],
+                [
+                    126.63085,
+                    4.16178
+                ]
+            ]
+        ]
+    }
+}

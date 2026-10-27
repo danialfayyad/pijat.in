@@ -1,0 +1,32 @@
+{
+    "id": "1611",
+    "name": "Kabupaten Empat Lawang",
+    "province": "Sumatera Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    98.94256,
+                    3.07667
+                ],
+                [
+                    99.24256,
+                    3.07667
+                ],
+                [
+                    99.24256,
+                    3.37667
+                ],
+                [
+                    98.94256,
+                    3.37667
+                ],
+                [
+                    98.94256,
+                    3.07667
+                ]
+            ]
+        ]
+    }
+}

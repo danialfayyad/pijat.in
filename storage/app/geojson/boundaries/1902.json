@@ -1,0 +1,32 @@
+{
+    "id": "1902",
+    "name": "Kabupaten Belitung",
+    "province": "Kepulauan Bangka Belitung",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    107.55,
+                    -3.01667
+                ],
+                [
+                    107.85,
+                    -3.01667
+                ],
+                [
+                    107.85,
+                    -2.71667
+                ],
+                [
+                    107.55,
+                    -2.71667
+                ],
+                [
+                    107.55,
+                    -3.01667
+                ]
+            ]
+        ]
+    }
+}

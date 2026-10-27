@@ -1,0 +1,32 @@
+{
+    "id": "7322",
+    "name": "Kabupaten Luwu Utara",
+    "province": "Sulawesi Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    120.1,
+                    -2.75
+                ],
+                [
+                    120.4,
+                    -2.75
+                ],
+                [
+                    120.4,
+                    -2.45
+                ],
+                [
+                    120.1,
+                    -2.45
+                ],
+                [
+                    120.1,
+                    -2.75
+                ]
+            ]
+        ]
+    }
+}

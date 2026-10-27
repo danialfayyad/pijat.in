@@ -1,0 +1,32 @@
+{
+    "id": "6211",
+    "name": "Kabupaten Gunung Mas",
+    "province": "Kalimantan Tengah",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    113.35,
+                    -1.1
+                ],
+                [
+                    113.65,
+                    -1.1
+                ],
+                [
+                    113.65,
+                    -0.8
+                ],
+                [
+                    113.35,
+                    -0.8
+                ],
+                [
+                    113.35,
+                    -1.1
+                ]
+            ]
+        ]
+    }
+}

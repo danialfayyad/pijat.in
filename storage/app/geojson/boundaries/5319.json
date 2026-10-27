@@ -1,0 +1,32 @@
+{
+    "id": "5319",
+    "name": "Kabupaten Manggarai Timur",
+    "province": "Nusa Tenggara Timur",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    120.44761,
+                    -8.70533
+                ],
+                [
+                    120.74761,
+                    -8.70533
+                ],
+                [
+                    120.74761,
+                    -8.40533
+                ],
+                [
+                    120.44761,
+                    -8.40533
+                ],
+                [
+                    120.44761,
+                    -8.70533
+                ]
+            ]
+        ]
+    }
+}

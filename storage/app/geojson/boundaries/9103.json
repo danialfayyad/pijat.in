@@ -1,0 +1,32 @@
+{
+    "id": "9103",
+    "name": "Kabupaten Teluk Wondama",
+    "province": "Papua Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    134.35,
+                    -2.85
+                ],
+                [
+                    134.65,
+                    -2.85
+                ],
+                [
+                    134.65,
+                    -2.55
+                ],
+                [
+                    134.35,
+                    -2.55
+                ],
+                [
+                    134.35,
+                    -2.85
+                ]
+            ]
+        ]
+    }
+}

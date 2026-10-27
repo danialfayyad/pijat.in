@@ -1,0 +1,32 @@
+{
+    "id": "1302",
+    "name": "Kabupaten Pesisir Selatan",
+    "province": "Sumatera Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    100.7,
+                    -1.73333
+                ],
+                [
+                    101,
+                    -1.73333
+                ],
+                [
+                    101,
+                    -1.43333
+                ],
+                [
+                    100.7,
+                    -1.43333
+                ],
+                [
+                    100.7,
+                    -1.73333
+                ]
+            ]
+        ]
+    }
+}

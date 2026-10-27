@@ -2,6 +2,10 @@
 
 use App\Enums\Role;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\PartnerVerificationController;
+use App\Http\Controllers\Mitra\MitraDashboardController;
+use App\Http\Controllers\Mitra\MitraProfileController;
+use App\Http\Controllers\Mitra\OnboardingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SuperAdmin\AdminAssignmentController;
 use App\Http\Controllers\SuperAdmin\RegionController;
@@ -12,13 +16,24 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    $role = auth()->user()->role;
+    $user = auth()->user();
+    $role = $user->role;
+
+    if ($role === Role::Mitra) {
+        if ($user->isBelumLengkap()) {
+            return redirect()->route('mitra.onboarding');
+        }
+        if ($user->isMenungguVerifikasi() || $user->isDitolak()) {
+            return redirect()->route('mitra.status');
+        }
+
+        return redirect()->route('mitra.dashboard');
+    }
 
     return redirect()->route(match ($role) {
         Role::Superadmin => 'superadmin.dashboard',
         Role::Admin => 'admin.dashboard',
         Role::Pelanggan => 'pelanggan.dashboard',
-        Role::Mitra => 'mitra.dashboard',
     });
 })->middleware('auth')->name('dashboard');
 
@@ -39,13 +54,25 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
 
 Route::middleware(['auth', 'role:admin,superadmin', 'admin.region'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/mitra/verifikasi', [PartnerVerificationController::class, 'index'])->name('mitra.index');
+    Route::get('/mitra/{mitra}', [PartnerVerificationController::class, 'show'])->name('mitra.show');
+    Route::post('/mitra/{mitra}/approve', [PartnerVerificationController::class, 'approve'])->name('mitra.approve');
+    Route::post('/mitra/{mitra}/reject', [PartnerVerificationController::class, 'reject'])->name('mitra.reject');
+});
+
+Route::middleware(['auth', 'role:mitra'])->prefix('mitra')->name('mitra.')->group(function () {
+    Route::get('/onboarding', [OnboardingController::class, 'create'])->name('onboarding');
+    Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
+    Route::get('/status', [OnboardingController::class, 'status'])->name('status');
+    Route::get('/dashboard', [MitraDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/toggle-active', [MitraDashboardController::class, 'toggleActive'])->name('toggle-active');
+    Route::get('/profile', [MitraProfileController::class, 'edit'])->name('profile');
+    Route::post('/profile', [MitraProfileController::class, 'update'])->name('profile.update');
 });
 
 Route::middleware('auth')->group(function () {
     Route::get('/pelanggan/dashboard', fn () => view('role-dashboard', ['roleLabel' => 'Pelanggan']))
         ->middleware('role:pelanggan')->name('pelanggan.dashboard');
-    Route::get('/mitra/dashboard', fn () => view('role-dashboard', ['roleLabel' => 'Mitra']))
-        ->middleware('role:mitra')->name('mitra.dashboard');
 });
 
 Route::middleware('auth')->group(function () {

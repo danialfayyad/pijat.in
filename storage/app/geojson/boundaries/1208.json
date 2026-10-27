@@ -1,0 +1,32 @@
+{
+    "id": "1208",
+    "name": "Kabupaten Asahan",
+    "province": "Sumatera Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    99.4,
+                    2.63333
+                ],
+                [
+                    99.7,
+                    2.63333
+                ],
+                [
+                    99.7,
+                    2.93333
+                ],
+                [
+                    99.4,
+                    2.93333
+                ],
+                [
+                    99.4,
+                    2.63333
+                ]
+            ]
+        ]
+    }
+}

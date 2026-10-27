@@ -1,0 +1,32 @@
+{
+    "id": "1301",
+    "name": "Kabupaten Kepulauan Mentawai",
+    "province": "Sumatera Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    99.36889,
+                    1.83917
+                ],
+                [
+                    99.66889,
+                    1.83917
+                ],
+                [
+                    99.66889,
+                    2.13917
+                ],
+                [
+                    99.36889,
+                    2.13917
+                ],
+                [
+                    99.36889,
+                    1.83917
+                ]
+            ]
+        ]
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "id": "1906",
+    "name": "Kabupaten Belitung Timur",
+    "province": "Kepulauan Bangka Belitung",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    108.00216,
+                    -3.1127
+                ],
+                [
+                    108.30216,
+                    -3.1127
+                ],
+                [
+                    108.30216,
+                    -2.8127
+                ],
+                [
+                    108.00216,
+                    -2.8127
+                ],
+                [
+                    108.00216,
+                    -3.1127
+                ]
+            ]
+        ]
+    }
+}

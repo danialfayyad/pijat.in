@@ -1,0 +1,32 @@
+{
+    "id": "6405",
+    "name": "Kabupaten Berau",
+    "province": "Kalimantan Timur",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    117.15,
+                    1.85
+                ],
+                [
+                    117.45,
+                    1.85
+                ],
+                [
+                    117.45,
+                    2.15
+                ],
+                [
+                    117.15,
+                    2.15
+                ],
+                [
+                    117.15,
+                    1.85
+                ]
+            ]
+        ]
+    }
+}

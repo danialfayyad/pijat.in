@@ -1,0 +1,32 @@
+{
+    "id": "1111",
+    "name": "Kabupaten Aceh Utara",
+    "province": "Aceh",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    96.99,
+                    4.82
+                ],
+                [
+                    97.29,
+                    4.82
+                ],
+                [
+                    97.29,
+                    5.12
+                ],
+                [
+                    96.99,
+                    5.12
+                ],
+                [
+                    96.99,
+                    4.82
+                ]
+            ]
+        ]
+    }
+}

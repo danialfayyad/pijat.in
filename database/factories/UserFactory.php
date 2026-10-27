@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\Role;
+use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -28,7 +29,9 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'phone' => fake()->phoneNumber(),
             'role' => Role::Pelanggan,
+            'status' => UserStatus::Terverifikasi,
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
@@ -42,6 +45,37 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    public function mitra(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => Role::Mitra,
+            'status' => UserStatus::Terverifikasi,
+        ]);
+    }
+
+    public function belumLengkap(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => UserStatus::BelumLengkap,
+        ]);
+    }
+
+    public function menungguVerifikasi(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => UserStatus::MenungguVerifikasi,
+        ]);
+    }
+
+    public function ditolak(?string $reason = 'Foto KTP tidak terbaca jelas'): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => UserStatus::Ditolak,
+            'rejection_code' => 'KTP_BLURRED',
+            'rejection_reason' => $reason,
         ]);
     }
 }

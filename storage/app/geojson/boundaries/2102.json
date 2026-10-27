@@ -1,0 +1,32 @@
+{
+    "id": "2102",
+    "name": "Kabupaten Bintan",
+    "province": "Kepulauan Riau",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    104.46944,
+                    0.8
+                ],
+                [
+                    104.76944,
+                    0.8
+                ],
+                [
+                    104.76944,
+                    1.1
+                ],
+                [
+                    104.46944,
+                    1.1
+                ],
+                [
+                    104.46944,
+                    0.8
+                ]
+            ]
+        ]
+    }
+}

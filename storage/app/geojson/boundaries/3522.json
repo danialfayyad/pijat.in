@@ -1,0 +1,32 @@
+{
+    "id": "3522",
+    "name": "Kabupaten Bojonegoro",
+    "province": "Jawa Timur",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    111.65,
+                    -7.4
+                ],
+                [
+                    111.95,
+                    -7.4
+                ],
+                [
+                    111.95,
+                    -7.1
+                ],
+                [
+                    111.65,
+                    -7.1
+                ],
+                [
+                    111.65,
+                    -7.4
+                ]
+            ]
+        ]
+    }
+}

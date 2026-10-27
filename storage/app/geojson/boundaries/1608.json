@@ -1,0 +1,32 @@
+{
+    "id": "1608",
+    "name": "Kabupaten Ogan Komering Ulu Selatan",
+    "province": "Sumatera Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    103.85659,
+                    -4.80728
+                ],
+                [
+                    104.15659,
+                    -4.80728
+                ],
+                [
+                    104.15659,
+                    -4.50728
+                ],
+                [
+                    103.85659,
+                    -4.50728
+                ],
+                [
+                    103.85659,
+                    -4.80728
+                ]
+            ]
+        ]
+    }
+}

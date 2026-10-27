@@ -1,0 +1,32 @@
+{
+    "id": "6106",
+    "name": "Kabupaten Ketapang",
+    "province": "Kalimantan Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    110.35,
+                    -1.73333
+                ],
+                [
+                    110.65,
+                    -1.73333
+                ],
+                [
+                    110.65,
+                    -1.43333
+                ],
+                [
+                    110.35,
+                    -1.43333
+                ],
+                [
+                    110.35,
+                    -1.73333
+                ]
+            ]
+        ]
+    }
+}

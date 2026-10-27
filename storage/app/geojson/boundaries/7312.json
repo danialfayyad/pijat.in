@@ -1,0 +1,32 @@
+{
+    "id": "7312",
+    "name": "Kabupaten Soppeng",
+    "province": "Sulawesi Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    119.74,
+                    -4.5342
+                ],
+                [
+                    120.04,
+                    -4.5342
+                ],
+                [
+                    120.04,
+                    -4.2342
+                ],
+                [
+                    119.74,
+                    -4.2342
+                ],
+                [
+                    119.74,
+                    -4.5342
+                ]
+            ]
+        ]
+    }
+}

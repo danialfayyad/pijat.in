@@ -1,0 +1,32 @@
+{
+    "id": "7316",
+    "name": "Kabupaten Enrekang",
+    "province": "Sulawesi Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    119.71667,
+                    -3.65
+                ],
+                [
+                    120.01667,
+                    -3.65
+                ],
+                [
+                    120.01667,
+                    -3.35
+                ],
+                [
+                    119.71667,
+                    -3.35
+                ],
+                [
+                    119.71667,
+                    -3.65
+                ]
+            ]
+        ]
+    }
+}

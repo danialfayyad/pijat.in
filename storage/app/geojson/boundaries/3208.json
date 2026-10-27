@@ -1,0 +1,32 @@
+{
+    "id": "3208",
+    "name": "Kabupaten Kuningan",
+    "province": "Jawa Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    108.4,
+                    -7.15
+                ],
+                [
+                    108.7,
+                    -7.15
+                ],
+                [
+                    108.7,
+                    -6.85
+                ],
+                [
+                    108.4,
+                    -6.85
+                ],
+                [
+                    108.4,
+                    -7.15
+                ]
+            ]
+        ]
+    }
+}

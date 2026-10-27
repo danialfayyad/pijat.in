@@ -1,0 +1,32 @@
+{
+    "id": "1113",
+    "name": "Kabupaten Gayo Lues",
+    "province": "Aceh",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    97.24,
+                    3.8
+                ],
+                [
+                    97.54,
+                    3.8
+                ],
+                [
+                    97.54,
+                    4.1
+                ],
+                [
+                    97.24,
+                    4.1
+                ],
+                [
+                    97.24,
+                    3.8
+                ]
+            ]
+        ]
+    }
+}

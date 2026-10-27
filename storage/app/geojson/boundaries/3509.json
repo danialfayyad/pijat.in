@@ -1,0 +1,32 @@
+{
+    "id": "3509",
+    "name": "Kabupaten Jember",
+    "province": "Jawa Timur",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    113.5,
+                    -8.4
+                ],
+                [
+                    113.8,
+                    -8.4
+                ],
+                [
+                    113.8,
+                    -8.1
+                ],
+                [
+                    113.5,
+                    -8.1
+                ],
+                [
+                    113.5,
+                    -8.4
+                ]
+            ]
+        ]
+    }
+}
