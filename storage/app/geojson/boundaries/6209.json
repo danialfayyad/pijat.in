@@ -1,0 +1,32 @@
+{
+    "id": "6209",
+    "name": "Kabupaten Katingan",
+    "province": "Kalimantan Tengah",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    113.25,
+                    -2.21667
+                ],
+                [
+                    113.55,
+                    -2.21667
+                ],
+                [
+                    113.55,
+                    -1.91667
+                ],
+                [
+                    113.25,
+                    -1.91667
+                ],
+                [
+                    113.25,
+                    -2.21667
+                ]
+            ]
+        ]
+    }
+}

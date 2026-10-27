@@ -1,0 +1,32 @@
+{
+    "id": "3329",
+    "name": "Kabupaten Brebes",
+    "province": "Jawa Tengah",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    108.75,
+                    -7.2
+                ],
+                [
+                    109.05,
+                    -7.2
+                ],
+                [
+                    109.05,
+                    -6.9
+                ],
+                [
+                    108.75,
+                    -6.9
+                ],
+                [
+                    108.75,
+                    -7.2
+                ]
+            ]
+        ]
+    }
+}

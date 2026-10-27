@@ -1,0 +1,32 @@
+{
+    "id": "7307",
+    "name": "Kabupaten Sinjai",
+    "province": "Sulawesi Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    120,
+                    -5.36667
+                ],
+                [
+                    120.3,
+                    -5.36667
+                ],
+                [
+                    120.3,
+                    -5.06667
+                ],
+                [
+                    120,
+                    -5.06667
+                ],
+                [
+                    120,
+                    -5.36667
+                ]
+            ]
+        ]
+    }
+}

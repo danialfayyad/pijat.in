@@ -1,0 +1,32 @@
+{
+    "id": "3517",
+    "name": "Kabupaten Jombang",
+    "province": "Jawa Timur",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    112.1,
+                    -7.7
+                ],
+                [
+                    112.4,
+                    -7.7
+                ],
+                [
+                    112.4,
+                    -7.4
+                ],
+                [
+                    112.1,
+                    -7.4
+                ],
+                [
+                    112.1,
+                    -7.7
+                ]
+            ]
+        ]
+    }
+}

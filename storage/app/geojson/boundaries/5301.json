@@ -1,0 +1,32 @@
+{
+    "id": "5301",
+    "name": "Kabupaten Sumba Barat",
+    "province": "Nusa Tenggara Timur",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    119.3,
+                    -9.71667
+                ],
+                [
+                    119.6,
+                    -9.71667
+                ],
+                [
+                    119.6,
+                    -9.41667
+                ],
+                [
+                    119.3,
+                    -9.41667
+                ],
+                [
+                    119.3,
+                    -9.71667
+                ]
+            ]
+        ]
+    }
+}

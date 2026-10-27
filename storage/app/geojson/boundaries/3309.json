@@ -1,0 +1,32 @@
+{
+    "id": "3309",
+    "name": "Kabupaten Boyolali",
+    "province": "Jawa Tengah",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    110.55,
+                    -7.65
+                ],
+                [
+                    110.85,
+                    -7.65
+                ],
+                [
+                    110.85,
+                    -7.35
+                ],
+                [
+                    110.55,
+                    -7.35
+                ],
+                [
+                    110.55,
+                    -7.65
+                ]
+            ]
+        ]
+    }
+}

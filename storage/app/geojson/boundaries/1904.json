@@ -1,0 +1,32 @@
+{
+    "id": "1904",
+    "name": "Kabupaten Bangka Tengah",
+    "province": "Kepulauan Bangka Belitung",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    105.9642,
+                    -2.48989
+                ],
+                [
+                    106.2642,
+                    -2.48989
+                ],
+                [
+                    106.2642,
+                    -2.18989
+                ],
+                [
+                    105.9642,
+                    -2.18989
+                ],
+                [
+                    105.9642,
+                    -2.48989
+                ]
+            ]
+        ]
+    }
+}

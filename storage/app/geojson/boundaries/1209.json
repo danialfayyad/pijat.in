@@ -1,0 +1,32 @@
+{
+    "id": "1209",
+    "name": "Kabupaten Simalungun",
+    "province": "Sumatera Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    98.85,
+                    2.75
+                ],
+                [
+                    99.15,
+                    2.75
+                ],
+                [
+                    99.15,
+                    3.05
+                ],
+                [
+                    98.85,
+                    3.05
+                ],
+                [
+                    98.85,
+                    2.75
+                ]
+            ]
+        ]
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "id": "1605",
+    "name": "Kabupaten Musi Rawas",
+    "province": "Sumatera Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    103.05,
+                    -3.23333
+                ],
+                [
+                    103.35,
+                    -3.23333
+                ],
+                [
+                    103.35,
+                    -2.93333
+                ],
+                [
+                    103.05,
+                    -2.93333
+                ],
+                [
+                    103.05,
+                    -3.23333
+                ]
+            ]
+        ]
+    }
+}

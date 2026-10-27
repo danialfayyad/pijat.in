@@ -1,0 +1,32 @@
+{
+    "id": "6208",
+    "name": "Kabupaten Seruyan",
+    "province": "Kalimantan Tengah",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    112.1,
+                    -2.48333
+                ],
+                [
+                    112.4,
+                    -2.48333
+                ],
+                [
+                    112.4,
+                    -2.18333
+                ],
+                [
+                    112.1,
+                    -2.18333
+                ],
+                [
+                    112.1,
+                    -2.48333
+                ]
+            ]
+        ]
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "id": "2105",
+    "name": "Kabupaten Kepulauan Anambas",
+    "province": "Kepulauan Riau",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    105.85,
+                    2.85
+                ],
+                [
+                    106.15,
+                    2.85
+                ],
+                [
+                    106.15,
+                    3.15
+                ],
+                [
+                    105.85,
+                    3.15
+                ],
+                [
+                    105.85,
+                    2.85
+                ]
+            ]
+        ]
+    }
+}

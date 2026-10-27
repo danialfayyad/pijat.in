@@ -1,0 +1,32 @@
+{
+    "id": "6307",
+    "name": "Kabupaten Hulu Sungai Tengah",
+    "province": "Kalimantan Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    115.26667,
+                    -2.76667
+                ],
+                [
+                    115.56667,
+                    -2.76667
+                ],
+                [
+                    115.56667,
+                    -2.46667
+                ],
+                [
+                    115.26667,
+                    -2.46667
+                ],
+                [
+                    115.26667,
+                    -2.76667
+                ]
+            ]
+        ]
+    }
+}

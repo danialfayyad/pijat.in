@@ -1,0 +1,32 @@
+{
+    "id": "8101",
+    "name": "Kabupaten Maluku Tenggara Barat",
+    "province": "Maluku",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    131.23,
+                    -7.76186
+                ],
+                [
+                    131.53,
+                    -7.76186
+                ],
+                [
+                    131.53,
+                    -7.46186
+                ],
+                [
+                    131.23,
+                    -7.46186
+                ],
+                [
+                    131.23,
+                    -7.76186
+                ]
+            ]
+        ]
+    }
+}

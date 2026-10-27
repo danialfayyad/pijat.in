@@ -1,0 +1,32 @@
+{
+    "id": "7201",
+    "name": "Kabupaten Banggai Kepulauan",
+    "province": "Sulawesi Tengah",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    123.39881,
+                    -1.7924
+                ],
+                [
+                    123.69881,
+                    -1.7924
+                ],
+                [
+                    123.69881,
+                    -1.4924
+                ],
+                [
+                    123.39881,
+                    -1.4924
+                ],
+                [
+                    123.39881,
+                    -1.7924
+                ]
+            ]
+        ]
+    }
+}

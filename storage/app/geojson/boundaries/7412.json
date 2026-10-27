@@ -1,0 +1,32 @@
+{
+    "id": "7412",
+    "name": "Kabupaten Konawe Kepulauan",
+    "province": "Sulawesi Tenggara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    122.95181,
+                    -4.26656
+                ],
+                [
+                    123.25181,
+                    -4.26656
+                ],
+                [
+                    123.25181,
+                    -3.96656
+                ],
+                [
+                    122.95181,
+                    -3.96656
+                ],
+                [
+                    122.95181,
+                    -4.26656
+                ]
+            ]
+        ]
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "id": "7301",
+    "name": "Kabupaten Kepulauan Selayar",
+    "province": "Sulawesi Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    120.65,
+                    -6.96667
+                ],
+                [
+                    120.95,
+                    -6.96667
+                ],
+                [
+                    120.95,
+                    -6.66667
+                ],
+                [
+                    120.65,
+                    -6.66667
+                ],
+                [
+                    120.65,
+                    -6.96667
+                ]
+            ]
+        ]
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "id": "1374",
+    "name": "Kota Padang Panjang",
+    "province": "Sumatera Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    100.28333,
+                    -0.6
+                ],
+                [
+                    100.58333,
+                    -0.6
+                ],
+                [
+                    100.58333,
+                    -0.3
+                ],
+                [
+                    100.28333,
+                    -0.3
+                ],
+                [
+                    100.28333,
+                    -0.6
+                ]
+            ]
+        ]
+    }
+}

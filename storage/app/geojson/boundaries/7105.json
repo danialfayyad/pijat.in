@@ -1,0 +1,32 @@
+{
+    "id": "7105",
+    "name": "Kabupaten Minahasa Selatan",
+    "province": "Sulawesi Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    124.44708,
+                    1.06291
+                ],
+                [
+                    124.74708,
+                    1.06291
+                ],
+                [
+                    124.74708,
+                    1.36291
+                ],
+                [
+                    124.44708,
+                    1.36291
+                ],
+                [
+                    124.44708,
+                    1.06291
+                ]
+            ]
+        ]
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "id": "6504",
+    "name": "Kabupaten Nunukan",
+    "province": "Kalimantan Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    116.55,
+                    3.98333
+                ],
+                [
+                    116.85,
+                    3.98333
+                ],
+                [
+                    116.85,
+                    4.28333
+                ],
+                [
+                    116.55,
+                    4.28333
+                ],
+                [
+                    116.55,
+                    3.98333
+                ]
+            ]
+        ]
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "id": "6403",
+    "name": "Kabupaten Kutai Kartanegara",
+    "province": "Kalimantan Timur",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    116.83139,
+                    -0.59019
+                ],
+                [
+                    117.13139,
+                    -0.59019
+                ],
+                [
+                    117.13139,
+                    -0.29019
+                ],
+                [
+                    116.83139,
+                    -0.29019
+                ],
+                [
+                    116.83139,
+                    -0.59019
+                ]
+            ]
+        ]
+    }
+}

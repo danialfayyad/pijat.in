@@ -1,0 +1,32 @@
+{
+    "id": "1306",
+    "name": "Kabupaten Padang Pariaman",
+    "province": "Sumatera Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    100.13333,
+                    -0.75
+                ],
+                [
+                    100.43333,
+                    -0.75
+                ],
+                [
+                    100.43333,
+                    -0.45
+                ],
+                [
+                    100.13333,
+                    -0.45
+                ],
+                [
+                    100.13333,
+                    -0.75
+                ]
+            ]
+        ]
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "id": "3515",
+    "name": "Kabupaten Sidoarjo",
+    "province": "Jawa Timur",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    112.55,
+                    -7.6
+                ],
+                [
+                    112.85,
+                    -7.6
+                ],
+                [
+                    112.85,
+                    -7.3
+                ],
+                [
+                    112.55,
+                    -7.3
+                ],
+                [
+                    112.55,
+                    -7.6
+                ]
+            ]
+        ]
+    }
+}

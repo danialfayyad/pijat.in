@@ -1,0 +1,32 @@
+{
+    "id": "1220",
+    "name": "Kabupaten Padang Lawas Utara",
+    "province": "Sumatera Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    99.52346,
+                    1.31011
+                ],
+                [
+                    99.82346,
+                    1.31011
+                ],
+                [
+                    99.82346,
+                    1.61011
+                ],
+                [
+                    99.52346,
+                    1.61011
+                ],
+                [
+                    99.52346,
+                    1.31011
+                ]
+            ]
+        ]
+    }
+}

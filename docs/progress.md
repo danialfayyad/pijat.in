@@ -19,7 +19,7 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 |---|---|---|---|---|---|
 | **F0** | Fondasi Arsitektur, Kontrak, & Skema Inti | Selesai | 27 Okt 2026 | 27 Okt 2026 | Seluruh kontrak dibekukan, CLAUDE.md dan features.json dibuat |
 | **S1** | Setup Master Wilayah & Penugasan Admin | Selesai | 27 Okt 2026 | 27 Okt 2026 | 10/10 tests pass (RegionAndAdminScopingTest), 41/41 total suite pass, Pint clean, 514 Kota/Kabupaten GeoJSON preset terintegrasi |
-| **S2** | Onboarding, Verifikasi Dokumen, & Profil Mitra | Siap Dikerjakan | - | - | Tergantung S1 (Prasyarat S1 selesai) |
+| **S2** | Onboarding, Verifikasi Dokumen, & Profil Mitra | Selesai | 27 Okt 2026 | 27 Okt 2026 | 11/11 tests pass (PartnerOnboardingAndVerificationTest), 53/53 total suite pass, Pint clean, registrasi NIK/KTP/selfie, pin domisili Leaflet di wilayah aktif, antrean verifikasi admin wilayah, proteksi rekening & safeguard re-verifikasi selesai |
 | **S3** | Customer, Alamat Utama, Katalog, & Dompet Top-up | Siap Dikerjakan | - | - | Tergantung S1 (Prasyarat S1 selesai) |
 | **S4** | Pemesanan Terjadwal, Matching FCFS, & Jadwal Mitra | Belum Dimulai | - | - | Tergantung S2, S3 |
 | **S5** | Pemesanan Instan, Penawaran Sekuensial 60s, & Lock | Belum Dimulai | - | - | Tergantung S2, S3 |
@@ -33,8 +33,8 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 ---
 
 ## 3. Slice Aktif Saat Ini
-- **Slice**: `S1` Selesai (Termasuk Preset 514 Kota/Kabupaten Indonesia) $\rightarrow$ Siap memilih antara `S2` (Mitra) atau `S3` (Customer & Dompet)
-- **Tujuan Sesi Ini**: Menyelesaikan Master Wilayah, poligon spasial MySQL 8, proteksi aktivasi/pencabutan admin, otorisasi server-side, dashboard operasional multi-wilayah, dan integrasi dataset GeoJSON batas resmi seluruh kota/kabupaten di Indonesia.
+- **Slice**: `S2` Selesai $\rightarrow$ Siap lanjut ke `S3` (Customer, Alamat Utama, Katalog Layanan, & Dompet Top-up)
+- **Tujuan Sesi Ini**: Menyelesaikan onboarding mitra lengkap (NIK, KTP, selfie, rekening, SOP, pin domisili di wilayah aktif), antrean verifikasi berkas per wilayah admin, aksi setujui/tolak dengan alasan baku, dashboard mitra (toggle aktif/istirahat), dan profil mitra dengan safeguard verifikasi ulang.
 
 ---
 

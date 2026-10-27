@@ -1,0 +1,32 @@
+{
+    "id": "7208",
+    "name": "Kabupaten Parigi Moutong",
+    "province": "Sulawesi Tengah",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    120.02841,
+                    0.1868
+                ],
+                [
+                    120.32841,
+                    0.1868
+                ],
+                [
+                    120.32841,
+                    0.4868
+                ],
+                [
+                    120.02841,
+                    0.4868
+                ],
+                [
+                    120.02841,
+                    0.1868
+                ]
+            ]
+        ]
+    }
+}

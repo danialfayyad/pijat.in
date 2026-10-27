@@ -1,0 +1,32 @@
+{
+    "id": "1215",
+    "name": "Kabupaten Humbang Hasundutan",
+    "province": "Sumatera Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    98.35376,
+                    2.11551
+                ],
+                [
+                    98.65376,
+                    2.11551
+                ],
+                [
+                    98.65376,
+                    2.41551
+                ],
+                [
+                    98.35376,
+                    2.41551
+                ],
+                [
+                    98.35376,
+                    2.11551
+                ]
+            ]
+        ]
+    }
+}

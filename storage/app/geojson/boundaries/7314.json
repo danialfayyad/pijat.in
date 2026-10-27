@@ -1,0 +1,32 @@
+{
+    "id": "7314",
+    "name": "Kabupaten Sidenreng Rappang",
+    "province": "Sulawesi Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    119.81667,
+                    -4
+                ],
+                [
+                    120.11667,
+                    -4
+                ],
+                [
+                    120.11667,
+                    -3.7
+                ],
+                [
+                    119.81667,
+                    -3.7
+                ],
+                [
+                    119.81667,
+                    -4
+                ]
+            ]
+        ]
+    }
+}

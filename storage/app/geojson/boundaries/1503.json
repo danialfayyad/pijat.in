@@ -1,0 +1,32 @@
+{
+    "id": "1503",
+    "name": "Kabupaten Sarolangun",
+    "province": "Jambi",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    102.5,
+                    -2.45
+                ],
+                [
+                    102.8,
+                    -2.45
+                ],
+                [
+                    102.8,
+                    -2.15
+                ],
+                [
+                    102.5,
+                    -2.15
+                ],
+                [
+                    102.5,
+                    -2.45
+                ]
+            ]
+        ]
+    }
+}

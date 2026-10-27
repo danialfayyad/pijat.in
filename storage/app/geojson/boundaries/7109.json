@@ -1,0 +1,32 @@
+{
+    "id": "7109",
+    "name": "Kabupaten Minahasa Tenggara",
+    "province": "Sulawesi Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    124.6425,
+                    0.90633
+                ],
+                [
+                    124.9425,
+                    0.90633
+                ],
+                [
+                    124.9425,
+                    1.20633
+                ],
+                [
+                    124.6425,
+                    1.20633
+                ],
+                [
+                    124.6425,
+                    0.90633
+                ]
+            ]
+        ]
+    }
+}

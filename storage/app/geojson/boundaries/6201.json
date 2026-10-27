@@ -1,0 +1,32 @@
+{
+    "id": "6201",
+    "name": "Kabupaten Kotawaringin Barat",
+    "province": "Kalimantan Tengah",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    111.58333,
+                    -2.55
+                ],
+                [
+                    111.88333,
+                    -2.55
+                ],
+                [
+                    111.88333,
+                    -2.25
+                ],
+                [
+                    111.58333,
+                    -2.25
+                ],
+                [
+                    111.58333,
+                    -2.55
+                ]
+            ]
+        ]
+    }
+}

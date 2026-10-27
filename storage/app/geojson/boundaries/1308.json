@@ -1,0 +1,32 @@
+{
+    "id": "1308",
+    "name": "Kabupaten Lima Puluh Kota",
+    "province": "Sumatera Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    100.4372,
+                    -0.1668
+                ],
+                [
+                    100.7372,
+                    -0.1668
+                ],
+                [
+                    100.7372,
+                    0.1332
+                ],
+                [
+                    100.4372,
+                    0.1332
+                ],
+                [
+                    100.4372,
+                    -0.1668
+                ]
+            ]
+        ]
+    }
+}

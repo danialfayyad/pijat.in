@@ -4,16 +4,18 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\Role;
+use App\Enums\UserStatus;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'nik', 'gender', 'date_of_birth', 'email', 'phone', 'role', 'password'])]
+#[Fillable(['name', 'nik', 'gender', 'date_of_birth', 'email', 'phone', 'role', 'status', 'password', 'phone_verified_at', 'rejection_reason', 'rejection_code'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -29,8 +31,10 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => Role::class,
+            'status' => UserStatus::class,
             'date_of_birth' => 'date',
         ];
     }
@@ -65,6 +69,71 @@ class User extends Authenticatable
     public function isMitra(): bool
     {
         return $this->hasRole(Role::Mitra);
+    }
+
+    public function hasStatus(string|UserStatus ...$statuses): bool
+    {
+        foreach ($statuses as $status) {
+            $value = $status instanceof UserStatus ? $status->value : strtolower($status);
+            $current = $this->status instanceof UserStatus ? $this->status->value : strtolower((string) $this->status);
+            if ($current === $value) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function isBelumLengkap(): bool
+    {
+        return $this->hasStatus(UserStatus::BelumLengkap);
+    }
+
+    public function isMenungguVerifikasi(): bool
+    {
+        return $this->hasStatus(UserStatus::MenungguVerifikasi);
+    }
+
+    public function isTerverifikasi(): bool
+    {
+        return $this->hasStatus(UserStatus::Terverifikasi);
+    }
+
+    public function isDitolak(): bool
+    {
+        return $this->hasStatus(UserStatus::Ditolak);
+    }
+
+    /**
+     * @return HasOne<PartnerProfile, $this>
+     */
+    public function partnerProfile(): HasOne
+    {
+        return $this->hasOne(PartnerProfile::class);
+    }
+
+    /**
+     * @return HasMany<BankAccount, $this>
+     */
+    public function bankAccounts(): HasMany
+    {
+        return $this->hasMany(BankAccount::class);
+    }
+
+    /**
+     * @return HasOne<BankAccount, $this>
+     */
+    public function primaryBankAccount(): HasOne
+    {
+        return $this->hasOne(BankAccount::class)->latestOfMany();
+    }
+
+    /**
+     * @return HasMany<ComplianceAgreement, $this>
+     */
+    public function complianceAgreements(): HasMany
+    {
+        return $this->hasMany(ComplianceAgreement::class);
     }
 
     /**

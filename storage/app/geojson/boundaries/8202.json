@@ -1,0 +1,32 @@
+{
+    "id": "8202",
+    "name": "Kabupaten Halmahera Tengah",
+    "province": "Maluku Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    128.1,
+                    0.33056
+                ],
+                [
+                    128.4,
+                    0.33056
+                ],
+                [
+                    128.4,
+                    0.63056
+                ],
+                [
+                    128.1,
+                    0.63056
+                ],
+                [
+                    128.1,
+                    0.33056
+                ]
+            ]
+        ]
+    }
+}

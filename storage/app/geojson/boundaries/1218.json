@@ -1,0 +1,32 @@
+{
+    "id": "1218",
+    "name": "Kabupaten Serdang Bedagai",
+    "province": "Sumatera Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    98.88333,
+                    3.21667
+                ],
+                [
+                    99.18333,
+                    3.21667
+                ],
+                [
+                    99.18333,
+                    3.51667
+                ],
+                [
+                    98.88333,
+                    3.51667
+                ],
+                [
+                    98.88333,
+                    3.21667
+                ]
+            ]
+        ]
+    }
+}

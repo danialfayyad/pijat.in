@@ -1,0 +1,32 @@
+{
+    "id": "6501",
+    "name": "Kabupaten Malinau",
+    "province": "Kalimantan Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    115.53333,
+                    2.3
+                ],
+                [
+                    115.83333,
+                    2.3
+                ],
+                [
+                    115.83333,
+                    2.6
+                ],
+                [
+                    115.53333,
+                    2.6
+                ],
+                [
+                    115.53333,
+                    2.3
+                ]
+            ]
+        ]
+    }
+}

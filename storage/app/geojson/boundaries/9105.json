@@ -1,0 +1,32 @@
+{
+    "id": "9105",
+    "name": "Kabupaten Manokwari",
+    "province": "Papua Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    133.6,
+                    -1.05
+                ],
+                [
+                    133.9,
+                    -1.05
+                ],
+                [
+                    133.9,
+                    -0.75
+                ],
+                [
+                    133.6,
+                    -0.75
+                ],
+                [
+                    133.6,
+                    -1.05
+                ]
+            ]
+        ]
+    }
+}

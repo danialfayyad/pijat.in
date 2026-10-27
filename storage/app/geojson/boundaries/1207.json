@@ -1,0 +1,32 @@
+{
+    "id": "1207",
+    "name": "Kabupaten Labuhan Batu",
+    "province": "Sumatera Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    99.95,
+                    2.11667
+                ],
+                [
+                    100.25,
+                    2.11667
+                ],
+                [
+                    100.25,
+                    2.41667
+                ],
+                [
+                    99.95,
+                    2.41667
+                ],
+                [
+                    99.95,
+                    2.11667
+                ]
+            ]
+        ]
+    }
+}

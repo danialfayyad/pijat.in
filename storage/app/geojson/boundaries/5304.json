@@ -1,0 +1,32 @@
+{
+    "id": "5304",
+    "name": "Kabupaten Timor Tengah Selatan",
+    "province": "Nusa Tenggara Timur",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    124.25,
+                    -9.98333
+                ],
+                [
+                    124.55,
+                    -9.98333
+                ],
+                [
+                    124.55,
+                    -9.68333
+                ],
+                [
+                    124.25,
+                    -9.68333
+                ],
+                [
+                    124.25,
+                    -9.98333
+                ]
+            ]
+        ]
+    }
+}

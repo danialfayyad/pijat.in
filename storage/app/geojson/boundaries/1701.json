@@ -1,0 +1,32 @@
+{
+    "id": "1701",
+    "name": "Kabupaten Bengkulu Selatan",
+    "province": "Bengkulu",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    102.88333,
+                    -4.5
+                ],
+                [
+                    103.18333,
+                    -4.5
+                ],
+                [
+                    103.18333,
+                    -4.2
+                ],
+                [
+                    102.88333,
+                    -4.2
+                ],
+                [
+                    102.88333,
+                    -4.5
+                ]
+            ]
+        ]
+    }
+}

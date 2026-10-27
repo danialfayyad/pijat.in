@@ -1,0 +1,32 @@
+{
+    "id": "1602",
+    "name": "Kabupaten Ogan Komering Ilir",
+    "province": "Sumatera Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    105.21667,
+                    -3.51667
+                ],
+                [
+                    105.51667,
+                    -3.51667
+                ],
+                [
+                    105.51667,
+                    -3.21667
+                ],
+                [
+                    105.21667,
+                    -3.21667
+                ],
+                [
+                    105.21667,
+                    -3.51667
+                ]
+            ]
+        ]
+    }
+}

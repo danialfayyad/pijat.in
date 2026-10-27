@@ -1,0 +1,32 @@
+{
+    "id": "1373",
+    "name": "Kota Sawah Lunto",
+    "province": "Sumatera Barat",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    100.6,
+                    -0.75
+                ],
+                [
+                    100.9,
+                    -0.75
+                ],
+                [
+                    100.9,
+                    -0.45
+                ],
+                [
+                    100.6,
+                    -0.45
+                ],
+                [
+                    100.6,
+                    -0.75
+                ]
+            ]
+        ]
+    }
+}

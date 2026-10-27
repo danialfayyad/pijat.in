@@ -1,0 +1,32 @@
+{
+    "id": "1971",
+    "name": "Kota Pangkal Pinang",
+    "province": "Kepulauan Bangka Belitung",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    105.98333,
+                    -2.28333
+                ],
+                [
+                    106.28333,
+                    -2.28333
+                ],
+                [
+                    106.28333,
+                    -1.98333
+                ],
+                [
+                    105.98333,
+                    -1.98333
+                ],
+                [
+                    105.98333,
+                    -2.28333
+                ]
+            ]
+        ]
+    }
+}

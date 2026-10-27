@@ -1,0 +1,32 @@
+{
+    "id": "7108",
+    "name": "Kabupaten Siau Tagulandang Biaro",
+    "province": "Sulawesi Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    125.22512,
+                    1.96728
+                ],
+                [
+                    125.52512,
+                    1.96728
+                ],
+                [
+                    125.52512,
+                    2.26728
+                ],
+                [
+                    125.22512,
+                    2.26728
+                ],
+                [
+                    125.22512,
+                    1.96728
+                ]
+            ]
+        ]
+    }
+}

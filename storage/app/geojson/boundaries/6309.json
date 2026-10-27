@@ -1,0 +1,32 @@
+{
+    "id": "6309",
+    "name": "Kabupaten Tabalong",
+    "province": "Kalimantan Selatan",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    115.35,
+                    -2.03333
+                ],
+                [
+                    115.65,
+                    -2.03333
+                ],
+                [
+                    115.65,
+                    -1.73333
+                ],
+                [
+                    115.35,
+                    -1.73333
+                ],
+                [
+                    115.35,
+                    -2.03333
+                ]
+            ]
+        ]
+    }
+}

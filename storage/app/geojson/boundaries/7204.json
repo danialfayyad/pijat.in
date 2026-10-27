@@ -1,0 +1,32 @@
+{
+    "id": "7204",
+    "name": "Kabupaten Poso",
+    "province": "Sulawesi Tengah",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    120.35,
+                    -1.8
+                ],
+                [
+                    120.65,
+                    -1.8
+                ],
+                [
+                    120.65,
+                    -1.5
+                ],
+                [
+                    120.35,
+                    -1.5
+                ],
+                [
+                    120.35,
+                    -1.8
+                ]
+            ]
+        ]
+    }
+}

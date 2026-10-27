@@ -1,0 +1,32 @@
+{
+    "id": "7102",
+    "name": "Kabupaten Minahasa",
+    "province": "Sulawesi Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    124.68,
+                    1.1037
+                ],
+                [
+                    124.98,
+                    1.1037
+                ],
+                [
+                    124.98,
+                    1.4037
+                ],
+                [
+                    124.68,
+                    1.4037
+                ],
+                [
+                    124.68,
+                    1.1037
+                ]
+            ]
+        ]
+    }
+}

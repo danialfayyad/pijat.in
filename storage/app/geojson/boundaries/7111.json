@@ -1,0 +1,32 @@
+{
+    "id": "7111",
+    "name": "Kabupaten Bolaang Mongondow Timur",
+    "province": "Sulawesi Utara",
+    "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [
+                    124.35256,
+                    0.57073
+                ],
+                [
+                    124.65256,
+                    0.57073
+                ],
+                [
+                    124.65256,
+                    0.87073
+                ],
+                [
+                    124.35256,
+                    0.87073
+                ],
+                [
+                    124.35256,
+                    0.57073
+                ]
+            ]
+        ]
+    }
+}
