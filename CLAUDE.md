@@ -46,7 +46,13 @@ Pijat In (v2.2) adalah platform marketplace on-demand layanan pijat ke rumah yan
 - **TypeScript/React**: PascalCase untuk Component/Type, camelCase untuk fungsi/hook, kebab-case untuk nama berkas.
 - **Git Commit**: Mengikuti Conventional Commits: `<tipe>(<slice-id>): <deskripsi singkat>` (contoh: `feat(S2): implementasi verifikasi KTP mitra`).
 
-## 6. Aturan Lintas Modul yang TIDAK Boleh Dilanggar
+## 6. Desain & Tema Visual (Design System)
+- **Tema Warna Dominan**: **Hijau & Putih** (*Emerald / Forest Green* dan *Clean White* dengan aksen abu-abu netral/slate).
+- **Nuansa Tampilan**: Segar, higienis, bersih, menenangkan, dan terpercaya (khas layanan *wellness & home massage*).
+- **Aplikasi Customer & Mitra (PWA)**: *Mobile-first* (max-width smartphone / `max-w-md mx-auto` di layar lebar), navigasi bawah (*bottom navigation*), tombol ramah sentuhan jempol (*thumb-friendly*), dan kontras teks tinggi agar mudah dibaca pada perangkat spesifikasi rendah.
+- **Aplikasi Admin & Super Admin**: *Clean desktop layout*, sidebar hijau gelap/emerald, kontras tabel tinggi, dan status badge warna standar (*emerald* untuk aktif/sukses, *amber* untuk pending/peringatan, *rose* untuk darurat/batal/sanksi).
+
+## 7. Aturan Lintas Modul yang TIDAK Boleh Dilanggar
 1. **Strict Sesama Gender [BRD 4.3]**: Layanan hanya boleh antara mitra dan penerima layanan berjenis kelamin sama. Jenis kelamin melekat pada penerima fisik, bukan pemesan.
 2. **Isolasi Wilayah & Tanpa Pesanan Lintas Wilayah [BRD 4.16]**: Mitra hanya melayani pesanan di wilayah domisilinya. Alamat di luar wilayah aktif ditolak.
 3. **Otorisasi Server-Side Admin [BRD 4.16, 5.3, SYS-12]**: Seluruh data operasional Admin dikunci di server berdasarkan wilayah tugas. Jangan hanya mengandalkan filter frontend.
@@ -56,7 +62,7 @@ Pijat In (v2.2) adalah platform marketplace on-demand layanan pijat ke rumah yan
 7. **Durasi & Harga Tetap [BRD 4.2]**: Durasi paket dan harga tidak dapat diubah di tempat. Tidak ada fitur add-on pada versi 2.
 8. **Disiplin Sanksi SP [BRD 4.11]**: Pemicu sanksi otomatis dicatat di audit log. Pembatalan karena kondisi medis atau gender tidak sesuai adalah pengecualian yang bebas SP mitra.
 
-## 7. Aturan Kerja Agen Koding
+## 8. Aturan Kerja Agen Koding
 - **Satu Sesi, Satu Slice**: Dilarang mengerjakan lebih dari 1 slice dalam satu sesi.
 - **Rencana Dulu**: Awali setiap sesi dengan membuat rencana implementasi sebelum menyentuh kode.
 - **Kontrak adalah Hukum**: Dilarang mengubah file di `docs/contracts/` tanpa berhenti dan melapor ke pimpinan proyek/pengguna.
@@ -64,7 +70,7 @@ Pijat In (v2.2) adalah platform marketplace on-demand layanan pijat ke rumah yan
 - **Integritas Kriteria**: Dilarang menghapus atau melemahkan kriteria penerimaan di `features.json`.
 - **Verifikasi Sebelum Lolos**: Nilai `passes: true` hanya boleh disetel setelah seluruh tes unit, fitur, dan skenario E2E diverifikasi lulus.
 
-## 8. Ritual Awal Sesi
+## 9. Ritual Awal Sesi
 1. Buka dan baca `docs/progress.md` untuk mengetahui slice aktif dan catatan sesi sebelumnya.
 2. Periksa `features.json` untuk melihat kriteria penerimaan slice yang sedang dikerjakan.
 3. Jalankan `git status` dan tes dasar (`php artisan test --compact`) untuk memastikan lingkungan kerja bersih dan hijau sebelum memulai.

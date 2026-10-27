@@ -882,7 +882,7 @@
         "Admin dengan multi-wilayah tugas dapat memfilter per wilayah atau melihat gabungan wilayah tugasnya."
       ],
       "verification": "Login sebagai admin wilayah X, pastikan data wilayah Y tidak muncul di dashboard.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "ADM-02",
@@ -1087,7 +1087,7 @@
         "Admin tanpa wilayah tugas tidak dapat melihat data operasional apa pun."
       ],
       "verification": "Coba akses endpoint detail pesanan wilayah Y menggunakan token admin wilayah X (wajib 403 Forbidden).",
-      "passes": false
+      "passes": true
     },
     {
       "id": "ADM-13",
@@ -1142,7 +1142,7 @@
         "Setiap tabel data menampilkan kolom nama wilayah."
       ],
       "verification": "Uji login admin dengan 2 wilayah tugas, pilih filter wilayah A lalu wilayah B, periksa isi tabel berganti.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "ADM-16",
@@ -1199,7 +1199,7 @@
         "Sistem menolak pencabutan admin terakhir atau izin siaga terakhir pada wilayah yang berstatus Aktif."
       ],
       "verification": "Uji coba cabut penugasan admin terakhir pada wilayah aktif (harus ditolak sistem).",
-      "passes": false
+      "passes": true
     },
     {
       "id": "SA-03",
@@ -1273,7 +1273,7 @@
         "Wilayah baru hanya dapat diaktifkan jika telah memiliki minimal 1 admin bertugas dan 1 admin siaga darurat."
       ],
       "verification": "Uji buat wilayah baru, gambar batas tumpang tindih (harus ditolak), pasang admin, lalu aktifkan wilayah.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "SA-07",
@@ -1494,7 +1494,7 @@
         "Nilai region_id dicatat permanen pada tabel pesanan dan transaksi saat kejadian dan tidak berubah."
       ],
       "verification": "Input koordinat kota Bandung, pastikan sistem mengembalikan region_id Bandung dan tersimpan permanen pada pesanan.",
-      "passes": false
+      "passes": true
     },
     {
       "id": "SYS-11",
@@ -1530,7 +1530,7 @@
         "Ekspor laporan Excel/PDF membatasi query data di level database server."
       ],
       "verification": "Uji ekspor laporan keuangan admin wilayah tugas X, pastikan isi berkas Excel tidak memuat baris wilayah Y.",
-      "passes": false
+      "passes": true
     }
   ]
 }
