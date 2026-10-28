@@ -1,96 +1,100 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-xl font-bold text-slate-800 leading-tight">
-                    Portal Mitra Pijat.In
-                </h2>
-                <div class="flex items-center space-x-2 mt-1">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                        ● Mitra Terverifikasi
-                    </span>
-                    <span class="text-xs text-slate-500 font-medium">
-                        Wilayah: <strong>{{ $profile?->region?->name ?? 'Semua Wilayah' }}</strong>
-                    </span>
-                </div>
-            </div>
-            <div>
-                <a href="{{ route('mitra.profile') }}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition inline-flex items-center space-x-1">
-                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span>Profil Mitra</span>
-                </a>
-            </div>
-        </div>
-    </x-slot>
-
-    <div class="py-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+<x-pwa-layout title="Portal Mitra - Pijat.In" headerTitle="Mitra Pijat.In">
+    <div class="py-2 space-y-4">
 
         @if (session('status'))
-            <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold shadow-xs">
+            <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold shadow-xs">
                 {{ session('status') }}
             </div>
         @endif
 
         @if ($errors->any())
-            <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm font-semibold shadow-xs">
+            <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold shadow-xs">
                 {{ $errors->first() }}
             </div>
         @endif
 
-        <!-- Card Toggle Status Kerja Online / Offline (MIT-20) -->
-        <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div class="flex items-center space-x-4">
-                <div class="w-14 h-14 rounded-2xl {{ $profile?->is_active ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400' }} flex items-center justify-center shadow-md transition-all">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
+        <!-- Profile Greeting & Region Header -->
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-extrabold text-base flex items-center justify-center shadow-md">
+                    {{ substr($user->name, 0, 1) }}
                 </div>
                 <div>
-                    <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Status Kesiapan Mitra</div>
-                    <div class="text-lg font-black text-slate-900 flex items-center space-x-2">
-                        <span>{{ $profile?->is_active ? 'Aktif (Siap Menerima Order)' : 'Sedang Istirahat (Nonaktif)' }}</span>
-                        <span class="w-3 h-3 rounded-full {{ $profile?->is_active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300' }}"></span>
-                    </div>
-                    <p class="text-xs text-slate-500 mt-0.5">
-                        {{ $profile?->is_active ? 'Lokasi Anda terdeteksi radar untuk penawaran order baru sesama gender.' : 'Anda tidak akan menerima tawaran pesanan baru selama mode istirahat aktif.' }}
-                    </p>
+                    <span class="text-xs text-slate-400 font-medium">Halo, Terapis</span>
+                    <h2 class="text-base font-black text-slate-900 leading-tight">{{ $user->name }}</h2>
+                    <span class="text-[10px] font-semibold text-emerald-600 block mt-0.5">
+                        Wilayah: <strong>{{ $profile?->region?->name ?? 'Terdaftar' }}</strong>
+                    </span>
                 </div>
             </div>
 
             <div>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    ● Terverifikasi
+                </span>
+            </div>
+        </div>
+
+        <!-- Work Status Toggle Card (MIT-20) -->
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-md space-y-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl {{ $profile?->is_active ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400' }} flex items-center justify-center transition-all shadow-xs">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Status Kesiapan</span>
+                        <div class="text-sm font-black text-slate-900 flex items-center space-x-1.5">
+                            <span>{{ $profile?->is_active ? 'Online (Aktif)' : 'Istirahat (Nonaktif)' }}</span>
+                            <span class="w-2 h-2 rounded-full {{ $profile?->is_active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300' }}"></span>
+                        </div>
+                    </div>
+                </div>
+
                 <form action="{{ route('mitra.toggle-active') }}" method="POST">
                     @csrf
                     <input type="hidden" name="is_active" value="{{ $profile?->is_active ? '0' : '1' }}">
                     <button type="submit" 
-                        class="w-full md:w-auto px-6 py-3 rounded-xl font-bold text-sm shadow-md transition flex items-center justify-center space-x-2 {{ $profile?->is_active ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300' : 'bg-emerald-600 hover:bg-emerald-700 text-white' }}">
-                        <span>{{ $profile?->is_active ? 'Ubah ke Mode Istirahat' : 'Aktifkan Mode Kerja' }}</span>
+                        class="px-4 py-2 rounded-xl font-bold text-xs shadow-xs transition flex items-center space-x-1.5 {{ $profile?->is_active ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-emerald-600 hover:bg-emerald-700 text-white' }}">
+                        <span>{{ $profile?->is_active ? 'Istirahat' : 'Aktifkan' }}</span>
                     </button>
                 </form>
             </div>
+            <p class="text-[11px] text-slate-500 leading-relaxed border-t border-slate-100 pt-2">
+                {{ $profile?->is_active ? 'Radar aktif: Anda siap menerima penawaran pesanan baru dari pelanggan sesama gender.' : 'Mode istirahat: Anda tidak akan menerima tawaran pesanan baru saat ini.' }}
+            </p>
         </div>
 
         <!-- Quick Metrics Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Saldo Tersedia</span>
-                <div class="text-2xl font-black text-slate-900 mt-1">Rp 0</div>
-                <div class="text-[11px] text-emerald-600 mt-1 font-medium">Rekening: {{ $user->primaryBankAccount?->bank_name ?? '-' }}</div>
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Saldo Tersedia</span>
+                <div class="text-xl font-black text-slate-900 mt-1">Rp 0</div>
+                <span class="text-[10px] text-emerald-600 font-semibold block mt-1">Bank: {{ $user->primaryBankAccount?->bank_name ?? '-' }}</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pesanan Selesai</span>
-                <div class="text-2xl font-black text-slate-900 mt-1">0</div>
-                <div class="text-[11px] text-slate-400 mt-1">Rating performa: 5.0 ★</div>
+            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sanksi SP</span>
+                <div class="text-xl font-black text-emerald-600 mt-1">Bebas SP</div>
+                <span class="text-[10px] text-slate-400 block mt-1">Rekam jejak bersih</span>
             </div>
+        </div>
 
-            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Status Sanksi SP</span>
-                <div class="text-2xl font-black text-emerald-600 mt-1">Bebas SP</div>
-                <div class="text-[11px] text-slate-400 mt-1">Rekam jejak bersih</div>
+        <!-- Active / Scheduled Orders Placeholder -->
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-3">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Pesanan Hari Ini</h3>
+                <span class="text-[10px] font-bold text-slate-400">0 Pesanan</span>
+            </div>
+            <div class="py-6 text-center text-slate-400 text-xs">
+                <svg class="w-8 h-8 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Belum ada pesanan aktif. Pastikan status kerja <strong>Online</strong> untuk menerima order masuk.
             </div>
         </div>
 
     </div>
-</x-app-layout>
+</x-pwa-layout>

@@ -32,7 +32,15 @@ class OnboardingController extends Controller
             return redirect()->route('mitra.status');
         }
 
-        $activeRegions = Region::active()->get(['id', 'name', 'timezone']);
+        $activeRegions = Region::active()
+            ->selectRaw('id, name, timezone, ST_AsGeoJSON(boundaries) as geojson')
+            ->get()
+            ->map(fn ($r) => [
+                'id' => $r->id,
+                'name' => $r->name,
+                'timezone' => $r->timezone,
+                'geojson' => $r->geojson ? json_decode($r->geojson, true) : null,
+            ]);
         $partnerProfile = $user->partnerProfile;
         $bankAccount = $user->primaryBankAccount;
 
@@ -48,6 +56,7 @@ class OnboardingController extends Controller
 
         $validated = $request->validate([
             'nik' => ['required', 'digits:16', Rule::unique('users', 'nik')->ignore($user->id)],
+            'region_id' => ['nullable', 'exists:regions,id'],
             'latitude' => ['required', 'numeric'],
             'longitude' => ['required', 'numeric'],
             'address_text' => ['required', 'string', 'max:500'],
@@ -73,6 +82,7 @@ class OnboardingController extends Controller
 
         $payload = [
             'nik' => $validated['nik'],
+            'region_id' => $validated['region_id'] ?? null,
             'latitude' => (float) $validated['latitude'],
             'longitude' => (float) $validated['longitude'],
             'address_text' => $validated['address_text'],

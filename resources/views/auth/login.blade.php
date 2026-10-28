@@ -42,5 +42,6 @@
         <span>Lanjutkan dengan Google</span>
     </button>
 
-    <p class="login-register">Belum Punya akun? <a href="{{ route('register') }}">Daftar</a></p>
+    <p class="login-register">Belum punya akun pelanggan? <a href="{{ route('register') }}">Daftar</a></p>
+    <p class="login-register">Ingin bergabung sebagai mitra? <a href="{{ route('mitra.register') }}">Daftar sebagai Mitra</a></p>
 </x-guest-layout>

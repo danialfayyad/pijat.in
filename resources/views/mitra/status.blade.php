@@ -1,11 +1,5 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="text-xl font-bold text-slate-800 leading-tight">
-            Status Akun Kemitraan
-        </h2>
-    </x-slot>
-
-    <div class="py-12 max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+<x-pwa-layout title="Status Akun - Pijat.In" headerTitle="Status Kemitraan">
+    <div class="py-4 space-y-4">
 
         @if (session('status'))
             <div class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold shadow-xs">
@@ -127,4 +121,4 @@
         @endif
 
     </div>
-</x-app-layout>
+</x-pwa-layout>

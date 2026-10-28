@@ -1,16 +1,5 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="text-xl font-bold text-slate-800 leading-tight">
-                Profil & Pengaturan Akun Mitra
-            </h2>
-            <a href="{{ route('mitra.dashboard') }}" class="text-xs font-semibold text-emerald-600 hover:underline">
-                ← Kembali ke Dashboard
-            </a>
-        </div>
-    </x-slot>
-
-    <div class="py-8 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+<x-pwa-layout title="Profil Mitra - Pijat.In" headerTitle="Profil Mitra" :backUrl="route('mitra.dashboard')">
+    <div class="py-2 space-y-4">
 
         @if (session('status'))
             <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold shadow-xs">
@@ -122,4 +111,4 @@
         </form>
 
     </div>
-</x-app-layout>
+</x-pwa-layout>
