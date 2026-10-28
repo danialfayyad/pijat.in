@@ -20,7 +20,7 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 | **F0** | Fondasi Arsitektur, Kontrak, & Skema Inti | Selesai | 27 Okt 2026 | 27 Okt 2026 | Seluruh kontrak dibekukan, CLAUDE.md dan features.json dibuat |
 | **S1** | Setup Master Wilayah & Penugasan Admin | Selesai | 27 Okt 2026 | 27 Okt 2026 | 10/10 tests pass (RegionAndAdminScopingTest), 41/41 total suite pass, Pint clean, 514 Kota/Kabupaten GeoJSON preset terintegrasi |
 | **S2** | Onboarding, Verifikasi Dokumen, & Profil Mitra | Selesai | 27 Okt 2026 | 27 Okt 2026 | 11/11 tests pass (PartnerOnboardingAndVerificationTest), 53/53 total suite pass, Pint clean, registrasi NIK/KTP/selfie, pin domisili Leaflet di wilayah aktif, antrean verifikasi admin wilayah, proteksi rekening & safeguard re-verifikasi selesai |
-| **S3** | Customer, Alamat Utama, Katalog, & Dompet Top-up | Sebagian Selesai (ADM-10 Selesai) | 27 Okt 2026 | 28 Okt 2026 | 11/11 tests pass (ServiceCatalogTest), 65/65 total suite pass, Pint clean, CRUD Katalog Layanan & Durasi Paket 60/90/120 menit tanpa add-on, pemisahan katalog aktif & nonaktif dengan navigasi tombol redirect cepat, otorisasi menu KATALOG server-side selesai |
+| **S3** | Customer, Alamat Utama, Katalog, & Dompet Top-up | Sedang Berjalan (ADM-10, CUS-03, CUS-05, CUS-23 Selesai) | 27 Okt 2026 | - | 24/24 tests pass (ServiceCatalogTest + CustomerAddressTest + CustomerCatalogTest), 79/79 total suite pass, Pint clean; CRUD Katalog Layanan Admin & PWA Customer tanpa add-on selesai; Manajemen Alamat Customer PWA, pin peta Leaflet, validasi spasial ST_Contains wilayah aktif, alamat pertama otomatis jadi alamat utama, dan perpindahan domisili instan selesai |
 | **S4** | Pemesanan Terjadwal, Matching FCFS, & Jadwal Mitra | Belum Dimulai | - | - | Tergantung S2, S3 |
 | **S5** | Pemesanan Instan, Penawaran Sekuensial 60s, & Lock | Belum Dimulai | - | - | Tergantung S2, S3 |
 | **S6** | Pelaksanaan Layanan, Tracking OTW, Tiba 50m, Selesai | Belum Dimulai | - | - | Tergantung S2, S4, S5 |
@@ -33,13 +33,20 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 ---
 
 ## 3. Slice Aktif Saat Ini
-- **Slice**: `S3` (Porsi Admin & Super Admin: `ADM-10` Katalog Layanan) $\rightarrow$ **Selesai Penuh**.
+- **Slice**: `S3` (Porsi Customer: `CUS-03` Katalog Layanan PWA, `CUS-05` Manajemen Alamat, & `CUS-23` Perpindahan Domisili) $\rightarrow$ **Selesai**.
 - **Hasil Sesi Ini**:
-  1. CRUD Katalog Layanan & Durasi Paket (60, 90, 120 menit) tanpa add-on (sesuai DEC-01).
-  2. Pembersihan header katalog: Header minimalis (judul + badge jumlah layanan), penghapusan banner kebijakan yang terlalu ramai.
-  3. Pemisahan katalog aktif dan nonaktif: Filter `?status=aktif` vs `?status=nonaktif`, stat card interaktif dengan direct link, tombol redirect "Lihat Katalog Nonaktif" dan "← Kembali ke Katalog Aktif" dengan badge counter dinamis.
-  4. Proteksi otorisasi menu server-side `admin.menu:KATALOG` (Super Admin otomatis lolos, Admin Wilayah wajib memiliki permission `KATALOG`).
-  5. 11/11 Feature tests di `tests/Feature/Admin/ServiceCatalogTest.php` lulus 100%, 65/65 seluruh test suite aplikasi berstatus hijau.
+  1. **Katalog Layanan PWA Customer (`CUS-03`)**:
+     - Controller `CustomerDashboardController` & `CatalogController` (`index`, `show`).
+     - Tampilan Katalog PWA Pelanggan (`resources/views/pelanggan/catalog/index.blade.php` dan `show.blade.php`): Daftar layanan aktif, pilihan durasi paket 60/90/120 menit dengan tarif flat tanpa biaya transportasi tambahan dan tanpa opsi add-on (sesuai DEC-01).
+     - Dashboard Pelanggan dinamis (`resources/views/pelanggan/dashboard.blade.php`) terhubung ke database katalog layanan aktif.
+     - 5/5 Feature tests di `tests/Feature/Pelanggan/CustomerCatalogTest.php` lulus 100%.
+  2. **Manajemen Alamat & Perpindahan Domisili (`CUS-05`, `CUS-23`)**:
+     - Migrasi `users.region_id` dan tabel `customer_addresses` dengan tipe spasial `Point` SRID 4326 dan spatial index.
+     - Model `CustomerAddress` dan relasi ke `User` dan `Region`.
+     - `CustomerAddressService`: Validasi koordinat spasial terhadap wilayah aktif (`ST_Contains`), otomatisasi penandaan alamat pertama sebagai alamat utama (`is_primary`), dan mekanisme perpindahan domisili akun customer seketika saat mengganti alamat utama (`CUS-23`).
+     - Antarmuka PWA Pelanggan (`resources/views/pelanggan/addresses/`): Daftar alamat tersimpan, form tambah/ubah dengan peta Leaflet interaktif, pencarian chip kota operasional.
+     - 8/8 Feature tests di `tests/Feature/Pelanggan/CustomerAddressTest.php` lulus 100%.
+  3. Seluruh 79 test suite aplikasi berstatus hijau (pass), format kode bersih via Laravel Pint.
 
 ---
 
@@ -63,9 +70,8 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 ---
 
 ## 6. Hal yang Perlu Diperhatikan Sesi Berikutnya
-- Porsi **Admin & Super Admin** pada S1, S2, dan S3 telah selesai dengan 65 unit/feature test berstatus hijau.
-- Modul operasional berikutnya dalam wewenang Admin / Super Admin yang siap dikerjakan:
-  1. **ADM-04 / ADM-05 (Pemantauan Pesanan Wilayah & Penanganan Order Nyangkut / Stuck)**: Filter pesanan berdasarkan status wilayah admin, auto-cancel jika tidak ada mitra yang menerima dalam timeout (30 menit jadwal, timeout sekuensial instan), tombol intervensi admin untuk pembatalan manual atau penugasan ulang.
-  2. **SA-01 (Konfigurasi Parameter Sistem Global)**: Biaya platform Rp 15.000, radius jangkauan darurat 10 km, batas penarikan minimum Rp 50.000, timeout matching FCFS/sekuensial.
-  3. **ADM-06 / ADM-07 (Manajemen Pelanggaran, SP Bertingkat & Banding Mitra)**.
+- Porsi **Manajemen Alamat (`CUS-05`, `CUS-23`)**, **Katalog Layanan PWA Pelanggan (`CUS-03`)**, dan **Katalog Layanan Admin (`ADM-10`)** telah selesai dengan 79/79 test berstatus hijau.
+- Modul S3 berikutnya yang siap dikerjakan:
+  1. **CUS-16 / SYS-05 (Dompet Pelanggan & Transaksi Ledger Atomik)**: Tabel dompet, ledger mutasi saldo, proteksi saldo negatif, dan prasyarat kepemilikan Alamat Utama sebelum top-up (DEC-02).
+  2. **CUS-09 / SYS-05 (Integrasi Top-up & Simulasi Webhook Xendit)**: Form top-up saldo di PWA, invoice pending maks 15 menit, verifikasi signature webhook, dan penambahan saldo otomatis.
 
