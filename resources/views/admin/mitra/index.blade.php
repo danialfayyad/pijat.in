@@ -1,29 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-                    Modul Verifikasi Mitra (ADM-02)
-                </span>
-                <h2 class="text-xl font-bold text-slate-800 leading-tight mt-1">
-                    Antrean Verifikasi Berkas Kemitraan
-                </h2>
-            </div>
-
-            <!-- Filter Multi-Wilayah Tugas Admin (ADM-15) -->
-            @if ($assignedRegions->count() > 1)
-                <form method="GET" action="{{ route('admin.mitra.index') }}" class="flex items-center space-x-2">
-                    <label for="region_filter" class="text-xs font-semibold text-slate-600 shrink-0">Filter Wilayah:</label>
-                    <select id="region_filter" name="region_id" onchange="this.form.submit()"
-                        class="text-xs font-medium border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs">
-                        <option value="">Semua Wilayah Tugas ({{ $assignedRegions->count() }})</option>
-                        @foreach ($assignedRegions as $r)
-                            <option value="{{ $r->id }}" @selected($selectedRegionId == $r->id)>{{ $r->name }}</option>
-                        @endforeach
-                    </select>
-                </form>
-            @endif
-        </div>
+        <h2 class="text-xl font-bold text-slate-800 leading-tight">
+            {{ __('Antrean Verifikasi Berkas Kemitraan') }}
+        </h2>
     </x-slot>
 
     <div class="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
@@ -35,14 +14,32 @@
         @endif
 
         <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
-            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+            <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h3 class="font-bold text-slate-800 text-sm">Menunggu Validasi Dokumen</h3>
-                    <p class="text-xs text-slate-500">Target SLA Peninjauan: 1 x 24 jam sejak pengajuan.</p>
+                    <div class="flex items-center space-x-2.5">
+                        <h3 class="font-bold text-slate-800 text-base">Menunggu Validasi Dokumen</h3>
+                        <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                            {{ $pendingPartners->count() }} Permohonan
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5">Target SLA Peninjauan: 1 x 24 jam sejak pengajuan.</p>
                 </div>
-                <span class="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                    {{ $pendingPartners->count() }} Permohonan
-                </span>
+
+                <!-- Filter Multi-Wilayah Tugas Admin (ADM-15) -->
+                @if ($assignedRegions->count() > 1)
+                    <div class="flex items-center space-x-2 shrink-0">
+                        <label for="region_filter" class="text-xs font-semibold text-slate-600 shrink-0">Filter Wilayah:</label>
+                        <form method="GET" action="{{ route('admin.mitra.index') }}" class="inline-block">
+                            <select id="region_filter" name="region_id" onchange="this.form.submit()"
+                                class="text-xs font-semibold border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs py-1.5 pl-3 pr-8 cursor-pointer">
+                                <option value="">Semua Wilayah Tugas ({{ $assignedRegions->count() }})</option>
+                                @foreach ($assignedRegions as $r)
+                                    <option value="{{ $r->id }}" @selected($selectedRegionId == $r->id)>{{ $r->name }}</option>
+                                @endforeach
+                            </select>
+                        </form>
+                    </div>
+                @endif
             </div>
 
             <div class="overflow-x-auto">

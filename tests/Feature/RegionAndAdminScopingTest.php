@@ -149,6 +149,43 @@ test('superadmin can assign and revoke admin from regions with safeguards (SA-02
     $this->assertDatabaseMissing('admin_region_assignments', ['user_id' => $admin->id, 'region_id' => $region->id]);
 });
 
+test('superadmin can batch revoke multiple regions from an admin simultaneously', function () {
+    $superadmin = User::factory()->create(['role' => Role::Superadmin]);
+    $admin = User::factory()->create(['role' => Role::Admin]);
+    $regionService = app(RegionService::class);
+
+    $coordsA = [
+        [110.0, -7.0],
+        [110.4, -7.0],
+        [110.4, -6.6],
+        [110.0, -6.6],
+        [110.0, -7.0],
+    ];
+
+    $coordsB = [
+        [111.0, -7.0],
+        [111.4, -7.0],
+        [111.4, -6.6],
+        [111.0, -6.6],
+        [111.0, -7.0],
+    ];
+
+    $regionA = $regionService->createRegion('Region A', $coordsA);
+    $regionB = $regionService->createRegion('Region B', $coordsB);
+
+    $regionService->assignAdmin($admin, $regionA);
+    $regionService->assignAdmin($admin, $regionB);
+
+    expect($admin->fresh()->assignedRegions)->toHaveCount(2);
+
+    $this->actingAs($superadmin)->post(route('superadmin.admins.revoke'), [
+        'user_id' => $admin->id,
+        'region_ids' => [$regionA->id, $regionB->id],
+    ])->assertRedirect();
+
+    expect($admin->fresh()->assignedRegions)->toHaveCount(0);
+});
+
 test('admin with assigned region can view dashboard and filter by region (ADM-01, ADM-15)', function () {
     $admin = User::factory()->create(['role' => Role::Admin]);
     $regionService = app(RegionService::class);

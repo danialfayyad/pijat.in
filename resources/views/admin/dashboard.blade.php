@@ -1,53 +1,11 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-                <h2 class="font-bold text-xl text-slate-800 leading-tight">
-                    {{ __('Dashboard Operasional Wilayah') }}
-                </h2>
-            </div>
-
-            <!-- ADM-15: Region Selector Dropdown bagi Admin dengan Multi-Wilayah Tugas -->
-            <div class="flex items-center space-x-2">
-                <span class="text-xs text-slate-500 font-medium">Wilayah:</span>
-                <form method="GET" action="{{ route('admin.dashboard') }}" class="inline-block">
-                    <select id="region_selector" name="region_id" onchange="this.form.submit()"
-                        class="rounded-xl border-slate-200 bg-white text-slate-800 font-semibold text-xs shadow-xs focus:border-emerald-500 focus:ring-emerald-500 py-1.5 pl-3 pr-8">
-                        <option value="">Semua Wilayah Tugas ({{ $assignedRegions->count() }})</option>
-                        @foreach ($assignedRegions as $r)
-                            <option value="{{ $r->id }}" {{ (request('region_id') == $r->id || (isset($selectedRegion) && $selectedRegion?->id == $r->id)) ? 'selected' : '' }}>
-                                {{ $r->name }} ({{ strtoupper($r->status) }})
-                            </option>
-                        @endforeach
-                    </select>
-                </form>
-            </div>
-        </div>
+        <h2 class="font-bold text-xl text-slate-800 leading-tight">
+            {{ __('Dashboard Operasional Wilayah') }}
+        </h2>
     </x-slot>
 
     <div class="py-8 px-6 sm:px-8 lg:px-10 space-y-6">
-
-        <!-- Active Region Notice (Compact) -->
-        <div class="p-4 bg-emerald-950 text-white rounded-2xl shadow-xs flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 rounded-xl bg-emerald-800 flex items-center justify-center text-emerald-300">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                </div>
-                <div>
-                    <h3 class="text-sm font-bold text-white">
-                        @if ($selectedRegion)
-                            Wilayah: {{ $selectedRegion->name }} ({{ $selectedRegion->timezone }})
-                        @else
-                            Seluruh Wilayah Tugas: {{ $assignedRegions->pluck('name')->implode(', ') }}
-                        @endif
-                    </h3>
-                    <p class="text-[11px] text-emerald-300/80">Cakupan Wilayah Tugas Aktif</p>
-                </div>
-            </div>
-            <span class="text-xs bg-emerald-900/80 text-emerald-300 border border-emerald-700/60 px-2.5 py-1 rounded-lg font-medium">
-                Siaga Darurat Aktif
-            </span>
-        </div>
 
         <!-- ADM-01: Kartu Metrik Operasional Wilayah -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -94,9 +52,33 @@
 
         <!-- Tabel Detail Wilayah Tugas Anda -->
         <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center">
-                <h3 class="text-base font-bold text-slate-800">Daftar Wilayah Tugas Anda</h3>
-                <span class="text-xs text-slate-500">Total: {{ $assignedRegions->count() }} Wilayah</span>
+            <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-800">Daftar Wilayah Tugas Anda</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        @if ($selectedRegion)
+                            Menampilkan Wilayah: {{ $selectedRegion->name }} ({{ $selectedRegion->timezone }})
+                        @else
+                            Total: {{ $assignedRegions->count() }} Wilayah Tugas
+                        @endif
+                    </p>
+                </div>
+
+                <!-- ADM-15: Region Selector Dropdown bagi Admin dengan Multi-Wilayah Tugas -->
+                <div class="flex items-center space-x-2 shrink-0">
+                    <label for="region_selector" class="text-xs text-slate-500 font-semibold shrink-0">Filter Wilayah:</label>
+                    <form method="GET" action="{{ route('admin.dashboard') }}" class="inline-block">
+                        <select id="region_selector" name="region_id" onchange="this.form.submit()"
+                            class="rounded-xl border-slate-200 bg-white text-slate-800 font-semibold text-xs shadow-xs focus:border-emerald-500 focus:ring-emerald-500 py-1.5 pl-3 pr-8 cursor-pointer">
+                            <option value="">Semua Wilayah Tugas ({{ $assignedRegions->count() }})</option>
+                            @foreach ($assignedRegions as $r)
+                                <option value="{{ $r->id }}" {{ (request('region_id') == $r->id || (isset($selectedRegion) && $selectedRegion?->id == $r->id)) ? 'selected' : '' }}>
+                                    {{ $r->name }} ({{ strtoupper($r->status) }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </form>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -110,7 +92,12 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        @foreach ($assignedRegions as $r)
+                        @php
+                            $displayedRegions = $selectedRegion 
+                                ? $assignedRegions->where('id', $selectedRegion->id) 
+                                : $assignedRegions;
+                        @endphp
+                        @forelse ($displayedRegions as $r)
                             <tr class="hover:bg-slate-50/60 transition">
                                 <td class="px-5 py-3.5 font-semibold text-slate-800">
                                     {{ $r->name }}
@@ -133,7 +120,13 @@
                                     <span class="text-emerald-700 font-medium">✓ Siaga Darurat</span>
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="4" class="px-5 py-8 text-center text-slate-400">
+                                    Tidak ada wilayah yang sesuai dengan filter.
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>

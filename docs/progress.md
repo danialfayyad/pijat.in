@@ -20,7 +20,7 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 | **F0** | Fondasi Arsitektur, Kontrak, & Skema Inti | Selesai | 27 Okt 2026 | 27 Okt 2026 | Seluruh kontrak dibekukan, CLAUDE.md dan features.json dibuat |
 | **S1** | Setup Master Wilayah & Penugasan Admin | Selesai | 27 Okt 2026 | 27 Okt 2026 | 10/10 tests pass (RegionAndAdminScopingTest), 41/41 total suite pass, Pint clean, 514 Kota/Kabupaten GeoJSON preset terintegrasi |
 | **S2** | Onboarding, Verifikasi Dokumen, & Profil Mitra | Selesai | 27 Okt 2026 | 27 Okt 2026 | 11/11 tests pass (PartnerOnboardingAndVerificationTest), 53/53 total suite pass, Pint clean, registrasi NIK/KTP/selfie, pin domisili Leaflet di wilayah aktif, antrean verifikasi admin wilayah, proteksi rekening & safeguard re-verifikasi selesai |
-| **S3** | Customer, Alamat Utama, Katalog, & Dompet Top-up | Siap Dikerjakan | - | - | Tergantung S1 (Prasyarat S1 selesai) |
+| **S3** | Customer, Alamat Utama, Katalog, & Dompet Top-up | Sebagian Selesai (ADM-10 Selesai) | 27 Okt 2026 | 28 Okt 2026 | 11/11 tests pass (ServiceCatalogTest), 65/65 total suite pass, Pint clean, CRUD Katalog Layanan & Durasi Paket 60/90/120 menit tanpa add-on, pemisahan katalog aktif & nonaktif dengan navigasi tombol redirect cepat, otorisasi menu KATALOG server-side selesai |
 | **S4** | Pemesanan Terjadwal, Matching FCFS, & Jadwal Mitra | Belum Dimulai | - | - | Tergantung S2, S3 |
 | **S5** | Pemesanan Instan, Penawaran Sekuensial 60s, & Lock | Belum Dimulai | - | - | Tergantung S2, S3 |
 | **S6** | Pelaksanaan Layanan, Tracking OTW, Tiba 50m, Selesai | Belum Dimulai | - | - | Tergantung S2, S4, S5 |
@@ -33,8 +33,13 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 ---
 
 ## 3. Slice Aktif Saat Ini
-- **Slice**: `S2` Selesai $\rightarrow$ Siap lanjut ke `S3` (Customer, Alamat Utama, Katalog Layanan, & Dompet Top-up)
-- **Tujuan Sesi Ini**: Menyelesaikan onboarding mitra lengkap (NIK, KTP, selfie, rekening, SOP, pin domisili di wilayah aktif), antrean verifikasi berkas per wilayah admin, aksi setujui/tolak dengan alasan baku, dashboard mitra (toggle aktif/istirahat), dan profil mitra dengan safeguard verifikasi ulang.
+- **Slice**: `S3` (Porsi Admin & Super Admin: `ADM-10` Katalog Layanan) $\rightarrow$ **Selesai Penuh**.
+- **Hasil Sesi Ini**:
+  1. CRUD Katalog Layanan & Durasi Paket (60, 90, 120 menit) tanpa add-on (sesuai DEC-01).
+  2. Pembersihan header katalog: Header minimalis (judul + badge jumlah layanan), penghapusan banner kebijakan yang terlalu ramai.
+  3. Pemisahan katalog aktif dan nonaktif: Filter `?status=aktif` vs `?status=nonaktif`, stat card interaktif dengan direct link, tombol redirect "Lihat Katalog Nonaktif" dan "← Kembali ke Katalog Aktif" dengan badge counter dinamis.
+  4. Proteksi otorisasi menu server-side `admin.menu:KATALOG` (Super Admin otomatis lolos, Admin Wilayah wajib memiliki permission `KATALOG`).
+  5. 11/11 Feature tests di `tests/Feature/Admin/ServiceCatalogTest.php` lulus 100%, 65/65 seluruh test suite aplikasi berstatus hijau.
 
 ---
 
@@ -46,6 +51,9 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 - **[DEC-05] Tema Visual Dominan Hijau-Putih**: Sesuai arahan pengguna, antarmuka visual (PWA Customer/Mitra dan Web Admin) menggunakan palet dominan hijau dan putih (Emerald/Forest Green & Clean White) bernuansa segar, bersih, higienis, dan menenangkan khas layanan wellness/pijat profesional.
 - **[DEC-06] Preset Master Wilayah 514 Kota/Kabupaten Indonesia**: Batas wilayah resmi BPS/BIG untuk seluruh 514 kabupaten dan kota di 34+ provinsi di Indonesia diintegrasikan langsung ke dalam sistem (`storage/app/geojson/`). Superadmin dapat memilih wilayah via dropdown bertingkat (Provinsi $\rightarrow$ Kota) atau fitur pencarian cepat tanpa perlu menggambar poligon manual. Kolom spasial MySQL `boundaries` mendukung tipe geometri fleksibel `Polygon` & `MultiPolygon` SRID 4326 dengan sinkronisasi otomatis zona waktu (`WIB`, `WITA`, `WIT`).
 - **[DEC-07] Unifikasi Admin Bertugas & Admin Siaga**: Sesuai arahan pengguna, peran "Admin Bertugas" dan "Admin Siaga" disatukan menjadi 1 entitas: **Admin Wilayah**. Setiap admin yang ditugaskan ke suatu wilayah otomatis memegang tanggung jawab penuh operasional dan penanganan darurat di wilayah tersebut. Syarat aktivasi wilayah disederhanakan menjadi **minimal 1 Admin Bertugas**, dan antarmuka Super Admin dibersihkan dari toggle ganda yang membingungkan.
+- **[DEC-08] Pemisahan Tampilan Katalog Aktif & Nonaktif**: Halaman katalog memisahkan data layanan aktif (tersedia dipesan) dan nonaktif (diarsipkan/ditutup sementara). Navigasi dilakukan melalui stat card interaktif dan tombol redirect cepat (`Lihat Katalog Nonaktif` dan `Kembali ke Katalog Aktif`) dengan badge penghitung layanan secara real-time.
+- **[DEC-09] Modal Dialog Konfirmasi Interaktif Global (`<x-confirm-dialog />`)**: Menggantikan `window.confirm()` browser bawaan dengan modal dialog Alpine.js custom yang elegan dan konsisten. Desain terpusat (*centered circular icon with soft ring accent*), teks *to-the-point* tanpa badge berulang, serta mendukung varian kondisi `danger` (merah), `warning` (kuning/amber), dan `info/success` (hijau). Diterapkan pada Hapus Layanan, Nonaktifkan Layanan, Nonaktifkan Paket Durasi, Cabut Wilayah Penugasan Admin, dan Nonaktifkan Wilayah Layanan.
+- **[DEC-10] Standarisasi Header Bersih & Filter Wilayah Tabel**: Menghapus teks teknis modul (seperti `Modul Verifikasi Mitra (ADM-02)`) dan banner duplikasi data pada header dashboard admin. Filter multi-wilayah dipindahkan langsung ke header card tabel masing-masing agar relevan dan ergonomis.
 
 ---
 
@@ -55,6 +63,9 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 ---
 
 ## 6. Hal yang Perlu Diperhatikan Sesi Berikutnya
-- Pilihan pengerjaan slice berikutnya:
-  - **S2 (Onboarding, Verifikasi Dokumen, & Profil Mitra)**: PWA Mitra, registrasi NIK/KTP/SKCK, verifikasi admin wilayah, dan toggle status aktif/istirahat.
-  - ATAU **S3 (Customer, Alamat Utama, Katalog Layanan, & Dompet Top-up)**: PWA Customer, Alamat Utama via reverse geocoding/Leaflet, katalog layanan tanpa add-on, dan ledger dompet top-up.
+- Porsi **Admin & Super Admin** pada S1, S2, dan S3 telah selesai dengan 65 unit/feature test berstatus hijau.
+- Modul operasional berikutnya dalam wewenang Admin / Super Admin yang siap dikerjakan:
+  1. **ADM-04 / ADM-05 (Pemantauan Pesanan Wilayah & Penanganan Order Nyangkut / Stuck)**: Filter pesanan berdasarkan status wilayah admin, auto-cancel jika tidak ada mitra yang menerima dalam timeout (30 menit jadwal, timeout sekuensial instan), tombol intervensi admin untuk pembatalan manual atau penugasan ulang.
+  2. **SA-01 (Konfigurasi Parameter Sistem Global)**: Biaya platform Rp 15.000, radius jangkauan darurat 10 km, batas penarikan minimum Rp 50.000, timeout matching FCFS/sekuensial.
+  3. **ADM-06 / ADM-07 (Manajemen Pelanggaran, SP Bertingkat & Banding Mitra)**.
+

@@ -13,6 +13,10 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        <style>
+            [x-cloak] { display: none !important; }
+        </style>
     </head>
     <body class="font-sans antialiased bg-slate-50 text-slate-800" x-data="{ sidebarOpen: false }">
         <div class="min-h-screen flex">
@@ -134,5 +138,8 @@
                 </main>
             </div>
         </div>
+
+        <!-- Global Interactive Confirmation Modal Component -->
+        <x-confirm-dialog />
     </body>
 </html>

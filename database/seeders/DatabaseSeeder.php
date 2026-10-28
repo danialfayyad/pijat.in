@@ -23,6 +23,9 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Test User', 'role' => Role::Pelanggan, 'password' => 'password'],
         );
 
-        $this->call(RoleLoginSeeder::class);
+        $this->call([
+            RoleLoginSeeder::class,
+            ServiceCatalogSeeder::class,
+        ]);
     }
 }
