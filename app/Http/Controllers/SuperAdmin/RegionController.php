@@ -56,13 +56,28 @@ class RegionController extends Controller
     {
         // Sanitize cityId to alphanumeric and underscore
         $cityId = preg_replace('/[^a-zA-Z0-9_]/', '', $cityId);
-        $path = storage_path("app/geojson/boundaries/{$cityId}.json");
 
-        if (! file_exists($path)) {
+        // Prioritize underscored filename (e.g. 12_02.json) with fallback to raw cityId
+        $candidates = [];
+        if (strlen($cityId) === 4 && strpos($cityId, '_') === false) {
+            $candidates[] = substr($cityId, 0, 2).'_'.substr($cityId, 2, 2);
+        }
+        $candidates[] = $cityId;
+
+        $targetPath = null;
+        foreach ($candidates as $cand) {
+            $p = storage_path("app/geojson/boundaries/{$cand}.json");
+            if (file_exists($p)) {
+                $targetPath = $p;
+                break;
+            }
+        }
+
+        if (! $targetPath) {
             return response()->json(['error' => 'Data batas wilayah kota tidak ditemukan.'], 404);
         }
 
-        $data = json_decode(file_get_contents($path), true);
+        $data = json_decode(file_get_contents($targetPath), true);
 
         return response()->json($data);
     }

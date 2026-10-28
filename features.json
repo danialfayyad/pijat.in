@@ -339,7 +339,7 @@
             "id": "CUS-18",
             "role": "Customer",
             "module": "Tombol Darurat",
-            "description": "Tombol darurat selama sesi layanan berlangsung yang mengirimkan peringatan darurat ke admin siaga wilayah.",
+            "description": "Tombol darurat selama sesi layanan berlangsung yang mengirimkan peringatan darurat ke admin wilayah.",
             "priority": "Must",
             "brd_ref": "5.1, 4.12, 4.16",
             "slice": "S8",
@@ -348,10 +348,10 @@
             ],
             "acceptance_criteria": [
                 "Tombol darurat hanya aktif selama pesanan berstatus Sedang Berlangsung.",
-                "Saat ditekan, sistem seketika mengirimkan notifikasi prioritas tinggi ke admin siaga wilayah pesanan.",
+                "Saat ditekan, sistem seketika mengirimkan notifikasi prioritas tinggi ke admin wilayah pesanan.",
                 "Data lokasi terkini dan rincian pesanan terlampir otomatis pada tiket darurat."
             ],
-            "verification": "Tekan tombol darurat saat status Sedang Berlangsung, pastikan alarm darurat masuk ke admin siaga wilayah.",
+            "verification": "Tekan tombol darurat saat status Sedang Berlangsung, pastikan alarm darurat masuk ke admin wilayah.",
             "passes": false
         },
         {
@@ -805,7 +805,7 @@
             ],
             "acceptance_criteria": [
                 "Tombol darurat aktif di aplikasi mitra selama status Sedang Berlangsung.",
-                "Penekanan tombol darurat mengirimkan notifikasi prioritas tinggi ke admin siaga wilayah pesanan."
+                "Penekanan tombol darurat mengirimkan notifikasi prioritas tinggi ke admin wilayah pesanan."
             ],
             "verification": "Uji tombol darurat di sisi mitra saat layanan berlangsung.",
             "passes": false
@@ -1050,7 +1050,7 @@
                 "Perubahan harga berlaku seragam di seluruh wilayah tanpa ada opsi add-on."
             ],
             "verification": "Uji akses menu katalog dengan akun admin berizin katalog vs tanpa izin katalog.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "ADM-11",
@@ -1092,8 +1092,8 @@
         {
             "id": "ADM-13",
             "role": "Admin",
-            "module": "Siaga Tombol Darurat",
-            "description": "Menerima peringatan darurat realtime dengan target respons 5 menit; admin pertama klik Tangani menjadi PIC kasus.",
+            "module": "Penanganan Tombol Darurat",
+            "description": "Menerima peringatan darurat realtime di wilayah tugas dengan target respons 5 menit; admin pertama klik Tangani menjadi PIC kasus.",
             "priority": "Must",
             "brd_ref": "5.3, 4.12, 4.16",
             "slice": "S8",
@@ -1101,11 +1101,11 @@
                 "F0"
             ],
             "acceptance_criteria": [
-                "Hanya admin dengan izin SIAGA_DARURAT di wilayah pesanan yang menerima alarm darurat realtime.",
-                "Admin pertama yang menekan tombol Tangani seketika mengunci kasus dan admin siaga lain melihat nama PIC.",
+                "Seluruh admin di wilayah pesanan menerima alarm darurat realtime.",
+                "Admin pertama yang menekan tombol Tangani seketika mengunci kasus dan admin wilayah lain melihat nama PIC.",
                 "Jika dalam 2 menit tidak ada respon, sistem mengekskalasi ke Super Admin."
             ],
-            "verification": "Simulasi tombol darurat ditekan, pastikan modal darurat muncul pada admin siaga wilayah terkait.",
+            "verification": "Simulasi tombol darurat ditekan, pastikan modal darurat muncul pada admin wilayah terkait.",
             "passes": false
         },
         {
@@ -1185,7 +1185,7 @@
             "id": "SA-02",
             "role": "Super Admin",
             "module": "Kelola Akun Admin",
-            "description": "Kelola akun Admin: hak akses menu, wilayah tugas (1+), izin Siaga Darurat, izin Katalog; cegah cabut admin terakhir.",
+            "description": "Kelola akun Admin: hak akses menu, wilayah tugas (1+), izin Katalog; proteksi cegah cabut admin terakhir pada wilayah aktif.",
             "priority": "Must",
             "brd_ref": "5.4, 4.16",
             "slice": "S1",
@@ -1194,9 +1194,9 @@
             ],
             "acceptance_criteria": [
                 "Super Admin dapat membuat akun Admin baru dan menentukan menu yang diizinkan.",
-                "Super Admin dapat menetapkan satu atau lebih wilayah tugas pada akun Admin.",
-                "Super Admin dapat memberikan izin Siaga Darurat per wilayah dan izin Katalog.",
-                "Sistem menolak pencabutan admin terakhir atau izin siaga terakhir pada wilayah yang berstatus Aktif."
+                "Super Admin dapat menetapkan satu atau lebih wilayah tugas pada akun Admin (setiap admin otomatis memegang tanggung jawab operasional dan darurat di wilayah tugasnya).",
+                "Super Admin dapat memberikan izin Katalog khusus jika diperlukan.",
+                "Sistem menolak pencabutan admin terakhir pada wilayah yang berstatus Aktif."
             ],
             "verification": "Uji coba cabut penugasan admin terakhir pada wilayah aktif (harus ditolak sistem).",
             "passes": true
@@ -1259,7 +1259,7 @@
             "id": "SA-06",
             "role": "Super Admin",
             "module": "Master Wilayah",
-            "description": "Kelola wilayah: nama, batas poligon peta (tidak tumpang tindih), zona waktu, status; syarat aktivasi min 1 admin & 1 siaga.",
+            "description": "Kelola wilayah: nama, batas poligon peta atau preset GeoJSON 514 Kota/Kabupaten (anti-overlap), zona waktu, status; syarat aktivasi min 1 Admin Wilayah.",
             "priority": "Must",
             "brd_ref": "5.4, 4.16",
             "slice": "S1",
@@ -1267,12 +1267,12 @@
                 "F0"
             ],
             "acceptance_criteria": [
-                "Super Admin dapat membuat wilayah baru dengan menggambar poligon batas pada peta Leaflet.",
+                "Super Admin dapat membuat wilayah baru dengan memilih preset GeoJSON 514 Kota/Kabupaten Indonesia atau menggambar poligon batas pada peta Leaflet.",
                 "Sistem menolak penyimpanan jika poligon baru beririsan/tumpang tindih dengan poligon wilayah yang sudah ada.",
-                "Super Admin menentukan zona waktu wilayah (WIB/WITA/WIT).",
-                "Wilayah baru hanya dapat diaktifkan jika telah memiliki minimal 1 admin bertugas dan 1 admin siaga darurat."
+                "Sistem menentukan zona waktu wilayah (WIB/WITA/WIT) secara otomatis dari koordinat atau dapat disesuaikan.",
+                "Wilayah baru hanya dapat diaktifkan jika telah memiliki minimal 1 Admin Wilayah bertugas."
             ],
-            "verification": "Uji buat wilayah baru, gambar batas tumpang tindih (harus ditolak), pasang admin, lalu aktifkan wilayah.",
+            "verification": "Uji buat wilayah baru / pilih preset GeoJSON, gambar batas tumpang tindih (harus ditolak), pasang admin, lalu aktifkan wilayah.",
             "passes": true
         },
         {
@@ -1289,9 +1289,9 @@
             "acceptance_criteria": [
                 "Super Admin dapat mengakses seluruh menu operasional admin tanpa batasan wilayah tugas.",
                 "Super Admin dapat mengambil alih penanganan wilayah yang tidak memiliki admin.",
-                "Super Admin menerima notifikasi eskalasi darurat jika dalam 2 menit admin siaga wilayah belum merespons."
+                "Super Admin menerima notifikasi eskalasi darurat jika dalam 2 menit admin wilayah belum merespons."
             ],
-            "verification": "Simulasi alarm darurat tidak direspon admin siaga selama 2 menit, pastikan notifikasi eskalasi berbunyi di Super Admin.",
+            "verification": "Simulasi alarm darurat tidak direspon admin wilayah selama 2 menit, pastikan notifikasi eskalasi berbunyi di Super Admin.",
             "passes": false
         },
         {
@@ -1500,7 +1500,7 @@
             "id": "SYS-11",
             "role": "Sistem",
             "module": "Eskalasi Darurat Otomatis",
-            "description": "Meneruskan notifikasi tombol darurat ke Super Admin bila belum direspons admin siaga dalam 2 menit.",
+            "description": "Meneruskan notifikasi tombol darurat ke Super Admin bila belum direspons admin wilayah dalam 2 menit.",
             "priority": "Must",
             "brd_ref": "5.5, 4.12, 4.16",
             "slice": "S8",

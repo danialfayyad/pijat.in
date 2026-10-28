@@ -17,4 +17,6 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::get('/admins', [AdminAssignmentController::class, 'index'])->name('admins.index');
     Route::post('/admins/assign', [AdminAssignmentController::class, 'assign'])->name('admins.assign');
     Route::post('/admins/revoke', [AdminAssignmentController::class, 'revoke'])->name('admins.revoke');
+
+    Route::get('/catalog', fn () => redirect()->route('admin.catalog.index'))->name('catalog.index');
 });

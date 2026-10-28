@@ -183,7 +183,15 @@
                                     @else
                                         <form method="POST" action="{{ route('superadmin.regions.deactivate', $region) }}" class="inline-block">
                                             @csrf
-                                            <button type="submit" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-lg transition">
+                                            <button type="button" 
+                                                onclick="confirmAction({
+                                                    title: 'Nonaktifkan Wilayah?',
+                                                    message: 'Customer di wilayah ini tidak dapat membuat pesanan baru.',
+                                                    type: 'warning',
+                                                    confirmText: 'Nonaktifkan',
+                                                    form: this.closest('form')
+                                                })"
+                                                class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-lg transition cursor-pointer">
                                                 Nonaktifkan
                                             </button>
                                         </form>

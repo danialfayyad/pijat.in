@@ -77,22 +77,40 @@ class AdminAssignmentController extends Controller
     }
 
     /**
-     * Revoke an admin from a region.
+     * Revoke an admin from one or multiple regions simultaneously.
      */
     public function revoke(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'user_id' => ['required', 'exists:users,id'],
-            'region_id' => ['required', 'exists:regions,id'],
+            'region_id' => ['nullable', 'exists:regions,id'],
+            'region_ids' => ['nullable', 'array'],
+            'region_ids.*' => ['exists:regions,id'],
         ]);
 
         $admin = User::findOrFail($validated['user_id']);
-        $region = Region::findOrFail($validated['region_id']);
+
+        $regionIds = $validated['region_ids'] ?? [];
+        if (! empty($validated['region_id'])) {
+            $regionIds[] = $validated['region_id'];
+        }
+        $regionIds = array_unique(array_filter($regionIds));
+
+        if (empty($regionIds)) {
+            return back()->withErrors(['assignment' => 'Pilih sedikitnya satu wilayah yang ingin dicabut.']);
+        }
 
         try {
-            $this->regionService->revokeAdmin($admin, $region);
+            DB::transaction(function () use ($admin, $regionIds) {
+                foreach ($regionIds as $rId) {
+                    $region = Region::findOrFail($rId);
+                    $this->regionService->revokeAdmin($admin, $region);
+                }
+            });
 
-            return back()->with('status', "Penugasan admin {$admin->name} pada wilayah {$region->name} telah dicabut.");
+            $count = count($regionIds);
+
+            return back()->with('status', "Berhasil mencabut {$count} wilayah tugas dari admin {$admin->name}.");
         } catch (DomainException $e) {
             return back()->withErrors(['assignment' => $e->getMessage()]);
         }

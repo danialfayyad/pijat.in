@@ -1,7 +1,7 @@
-<!-- Left Sidebar (Desktop - Bright Emerald Gradient) -->
-<aside class="hidden lg:flex lg:flex-col lg:w-64 bg-gradient-to-b from-emerald-600 via-emerald-700 to-teal-800 text-white shrink-0 min-h-screen border-r border-emerald-500/30 shadow-xl">
+<!-- Left Sidebar (Desktop - Bright Emerald Gradient, Fixed/Sticky) -->
+<aside class="hidden lg:flex lg:flex-col lg:w-64 bg-gradient-to-b from-emerald-600 via-emerald-700 to-teal-800 text-white shrink-0 sticky top-0 h-screen border-r border-emerald-500/30 shadow-xl z-30">
     <!-- Brand / Logo -->
-    <div class="h-20 flex items-center px-6 border-b border-white/15 bg-white/10 backdrop-blur-xs">
+    <div class="h-20 shrink-0 flex items-center px-6 border-b border-white/15 bg-white/10 backdrop-blur-xs">
         <a href="{{ route('dashboard') }}" class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-xl bg-white text-emerald-700 flex items-center justify-center shadow-md">
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -37,6 +37,14 @@
                 Penugasan Admin
             </a>
 
+            <a href="{{ route('admin.catalog.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.catalog.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.catalog.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                Katalog Layanan
+            </a>
+
         @elseif (Auth::user()->isAdmin())
             <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
                 Menu Operasional
@@ -57,6 +65,16 @@
                 </svg>
                 Verifikasi Mitra
             </a>
+
+            @if (Auth::user()->canAccessMenu('KATALOG'))
+                <a href="{{ route('admin.catalog.index') }}" 
+                   class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.catalog.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                    <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.catalog.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    Katalog Layanan
+                </a>
+            @endif
         @else
             <a href="{{ route('dashboard') }}" 
                class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('dashboard') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
@@ -68,8 +86,8 @@
         @endif
     </nav>
 
-    <!-- Bottom User Profile Card -->
-    <div class="p-4 border-t border-white/15 bg-black/15 backdrop-blur-xs">
+    <!-- Bottom User Profile Card (Fixed at Bottom) -->
+    <div class="shrink-0 p-4 border-t border-white/15 bg-black/15 backdrop-blur-xs">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3 overflow-hidden">
                 <div class="w-9 h-9 rounded-full bg-white text-emerald-800 font-bold flex items-center justify-center shrink-0 text-sm shadow">

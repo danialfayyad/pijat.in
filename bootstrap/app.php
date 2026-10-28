@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAdminHasMenuPermission;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\VerifyAdminRegionAccess;
 use Illuminate\Foundation\Application;
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
             'admin.region' => VerifyAdminRegionAccess::class,
+            'admin.menu' => EnsureAdminHasMenuPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
