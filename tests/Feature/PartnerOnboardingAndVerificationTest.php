@@ -326,3 +326,65 @@ test('updating bank account in mitra profile triggers re-verification (MIT-20)',
     expect($mitra->fresh()->status)->toBe(UserStatus::MenungguVerifikasi)
         ->and($bank->fresh()->is_verified)->toBeFalse();
 });
+
+test('mitra onboarding renders active cities list and rejects mismatch between selected region and pin coordinates', function () {
+    $regionService = app(RegionService::class);
+    $jember = $regionService->createRegion(
+        'Kabupaten Jember',
+        [[113.5, -8.4], [113.8, -8.4], [113.8, -8.1], [113.5, -8.1], [113.5, -8.4]]
+    );
+    $admin = User::factory()->create(['role' => Role::Admin]);
+    $regionService->assignAdmin($admin, $jember);
+    $regionService->activateRegion($jember);
+
+    $surabaya = $regionService->createRegion(
+        'Kota Surabaya',
+        [[112.6, -7.2], [112.8, -7.2], [112.8, -7.4], [112.6, -7.4], [112.6, -7.2]]
+    );
+    $regionService->assignAdmin($admin, $surabaya);
+    $regionService->activateRegion($surabaya);
+
+    $mitra = User::factory()->mitra()->belumLengkap()->create();
+
+    // 1. Check onboarding page renders available active cities
+    $response = $this->actingAs($mitra)->get(route('mitra.onboarding'));
+    $response->assertOk()
+        ->assertSee('Kabupaten Jember')
+        ->assertSee('Kota Surabaya')
+        ->assertSee('Wilayah Layanan');
+
+    // 2. Reject mismatch: selected region is Surabaya, but coordinates are in Jember (-8.2, 113.6)
+    $mismatchResponse = $this->actingAs($mitra)->post(route('mitra.onboarding.store'), [
+        'nik' => '3509012345670001',
+        'region_id' => $surabaya->id,
+        'latitude' => -8.25,
+        'longitude' => 113.65, // In Jember, not Surabaya
+        'address_text' => 'Jl. Kalimantan No. 1 Jember',
+        'bank_name' => 'BCA',
+        'account_number' => '5432167890',
+        'account_holder_name' => $mitra->name,
+        'ktp_file' => UploadedFile::fake()->image('ktp.jpg'),
+        'selfie_file' => UploadedFile::fake()->image('selfie.jpg'),
+        'sop_agreement' => '1',
+    ]);
+
+    $mismatchResponse->assertSessionHasErrors('latitude');
+
+    // 3. Valid: selected region is Jember and coordinates are in Jember
+    $validResponse = $this->actingAs($mitra)->post(route('mitra.onboarding.store'), [
+        'nik' => '3509012345670001',
+        'region_id' => $jember->id,
+        'latitude' => -8.25,
+        'longitude' => 113.65,
+        'address_text' => 'Jl. Kalimantan No. 1 Jember',
+        'bank_name' => 'BCA',
+        'account_number' => '5432167890',
+        'account_holder_name' => $mitra->name,
+        'ktp_file' => UploadedFile::fake()->image('ktp.jpg'),
+        'selfie_file' => UploadedFile::fake()->image('selfie.jpg'),
+        'sop_agreement' => '1',
+    ]);
+
+    $validResponse->assertRedirect(route('mitra.status'));
+    expect($mitra->fresh()->partnerProfile->region_id)->toBe($jember->id);
+});

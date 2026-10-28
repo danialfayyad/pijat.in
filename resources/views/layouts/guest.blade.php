@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 @php($isLoginPage = request()->routeIs('login'))
-@php($isRegisterPage = request()->routeIs('register'))
+@php($isRegisterPage = request()->routeIs('register', 'mitra.register'))
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">

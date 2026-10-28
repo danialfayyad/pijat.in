@@ -1,25 +1,18 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-                    Langkah 2: Kelengkapan Berkas Mitra
-                </span>
-                <h2 class="text-xl font-bold text-slate-800 leading-tight mt-1.5">
-                    Formulir Pendaftaran & Verifikasi Kemitraan
-                </h2>
-            </div>
-            <div class="text-right text-xs text-slate-400">
-                SOP Kemitraan Versi 2.2
-            </div>
-        </div>
-    </x-slot>
-
+<x-pwa-layout title="Kelengkapan Berkas - Pijat.In" headerTitle="Pendaftaran Mitra">
     <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <div class="py-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <div class="py-2 space-y-4">
+        <div class="mb-1">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
+                Langkah 2: Kelengkapan Berkas
+            </span>
+            <h2 class="text-base font-extrabold text-slate-900 leading-tight mt-1">
+                Verifikasi Dokumen Kemitraan
+            </h2>
+            <p class="text-xs text-slate-500">Isi data dan lampirkan dokumen sesuai identitas KTP asli.</p>
+        </div>
 
         @if ($user->isDitolak())
             <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 shadow-xs flex items-start space-x-3">
@@ -101,25 +94,135 @@
                 </div>
             </div>
 
-            <!-- Card 2: Lokasi Domisili & Pin Peta Spasial -->
-            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-6 space-y-5">
+            <!-- Card 2: Lokasi Domisili & Wilayah Layanan (Pilih Kota yang Tersedia) -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-6 space-y-5"
+                 x-data="{
+                    searchQuery: '',
+                    selectedRegionId: '{{ old('region_id', $partnerProfile?->region_id ?? '') }}',
+                    regions: @js($activeRegions),
+                    get filteredRegions() {
+                        if (!this.searchQuery.trim()) return this.regions;
+                        const q = this.searchQuery.toLowerCase();
+                        return this.regions.filter(r => r.name.toLowerCase().includes(q));
+                    },
+                    selectRegion(region) {
+                        this.selectedRegionId = region.id;
+                        if (window.onMitraRegionSelected) {
+                            window.onMitraRegionSelected(region);
+                        }
+                    },
+                    clearRegion() {
+                        this.selectedRegionId = '';
+                        if (window.onMitraRegionCleared) {
+                            window.onMitraRegionCleared();
+                        }
+                    },
+                    getSelectedRegionName() {
+                        const r = this.regions.find(x => x.id == this.selectedRegionId);
+                        return r ? r.name : '';
+                    }
+                 }">
                 <div class="flex items-center space-x-3 border-b border-slate-100 pb-3">
                     <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-sm">
                         2
                     </div>
                     <div>
-                        <h3 class="font-bold text-slate-800 text-sm">Alamat Domisili & Wilayah Layanan</h3>
-                        <p class="text-xs text-slate-500">Klik peta untuk menetapkan titik lokasi domisili Anda (wajib di wilayah layanan aktif).</p>
+                        <h3 class="font-bold text-slate-800 text-sm">Wilayah Layanan & Alamat Domisili</h3>
+                        <p class="text-xs text-slate-500">Pilih kota layanan yang tersedia, lalu sematkan titik domisili Anda.</p>
                     </div>
                 </div>
 
+                <!-- Input Hidden region_id: x-effect ensures the DOM .value property is updated on form submit -->
+                <input type="hidden" name="region_id" id="region_id"
+                    x-effect="$el.value = selectedRegionId">
+
+                <!-- 1. Cari Kota / Wilayah Layanan -->
                 <div>
-                    <div id="map" class="w-full h-72 rounded-xl border border-slate-200 overflow-hidden shadow-inner z-0"></div>
-                    <p class="text-[11px] text-slate-400 mt-1.5 flex items-center">
-                        <svg class="w-3.5 h-3.5 mr-1 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                    <label for="search_city" class="block text-xs font-semibold text-slate-700 mb-1">
+                        1. Cari Kota / Wilayah Layanan
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="search_city" x-model="searchQuery" 
+                            placeholder="Ketik nama kota (cth: Surabaya, Malang, Bandung)..."
+                            class="w-full text-xs rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 placeholder-slate-400 pl-8 py-2.5">
+                        <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <button type="button" x-show="searchQuery" @click="searchQuery = ''" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 text-xs">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Klik Kota untuk Memilih Sekaligus -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-semibold text-slate-700">2. Klik Kota untuk Memilih Wilayah Operasional:</span>
+                        <button type="button" x-show="selectedRegionId" @click="clearRegion()" class="text-slate-400 hover:text-rose-600 text-xs font-medium">
+                            Batal Pilih
+                        </button>
+                    </div>
+
+                    <!-- Grid Chips Kota -->
+                    <div class="max-h-48 overflow-y-auto p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <template x-for="r in filteredRegions" :key="r.id">
+                            <div @click="selectRegion(r)"
+                                 class="p-2.5 rounded-xl border cursor-pointer select-none transition flex items-center justify-between text-xs"
+                                 :class="{
+                                     'bg-emerald-600 text-white font-bold border-emerald-600 shadow-xs': selectedRegionId == r.id,
+                                     'bg-white text-slate-700 border-slate-200 hover:border-emerald-300': selectedRegionId != r.id
+                                 }">
+                                <div class="truncate mr-1">
+                                    <span x-text="r.name" class="block truncate"></span>
+                                    <span class="text-[10px] block font-normal" 
+                                          :class="selectedRegionId == r.id ? 'text-emerald-100' : 'text-slate-400'"
+                                          x-text="r.timezone || 'WIB'"></span>
+                                </div>
+                                <span class="text-sm font-bold shrink-0" 
+                                      :class="selectedRegionId == r.id ? 'text-white' : 'text-slate-300'" 
+                                      x-text="selectedRegionId == r.id ? '✓' : '+'"></span>
+                            </div>
+                        </template>
+
+                        <div x-show="filteredRegions.length === 0 && regions.length > 0" class="col-span-full py-4 text-center text-xs text-slate-400">
+                            Tidak ada kota layanan yang sesuai pencarian "<span x-text="searchQuery"></span>".
+                        </div>
+
+                        <div x-show="regions.length === 0" class="col-span-full py-4 text-center text-xs text-amber-700 bg-amber-50 rounded-lg border border-amber-200">
+                            Saat ini belum ada kota layanan yang berstatus aktif. Silakan hubungi admin.
+                        </div>
+                    </div>
+
+                    <!-- Footer Status Pemilihan Kota -->
+                    <div class="text-xs pt-1 flex items-center justify-between">
+                        <div>
+                            <span x-show="!selectedRegionId" class="text-slate-400 italic">Belum ada kota yang dipilih.</span>
+                            <span x-show="selectedRegionId" class="text-emerald-700 font-semibold flex items-center">
+                                <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+                                <span>Kota Terpilih: <strong x-text="getSelectedRegionName()"></strong></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Peta Interaktif & Penempatan Pin Domisili -->
+                <div class="space-y-2 pt-2 border-t border-slate-100">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-semibold text-slate-700">
+                            3. Titik Lokasi Domisili (Peta Spasial)
+                        </label>
+                        <span class="text-[11px] text-emerald-600 font-medium" x-show="selectedRegionId">
+                            Peta otomatis diarahkan ke kota terpilih
+                        </span>
+                    </div>
+
+                    <div id="map" class="w-full h-64 rounded-xl border border-slate-200 overflow-hidden shadow-inner z-0"></div>
+                    
+                    <p class="text-[11px] text-slate-400 flex items-center">
+                        <svg class="w-3.5 h-3.5 mr-1 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                         </svg>
-                        Klik pada peta di atas untuk memindahkan pin lokasi domisili Anda.
+                        Klik peta atau seret pin untuk menentukan titik alamat tempat tinggal Anda.
                     </p>
                 </div>
 
@@ -219,7 +322,7 @@
 
             <!-- Submit Button -->
             <div class="text-right">
-                <button type="submit" class="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition inline-flex items-center space-x-2">
+                <button type="submit" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition inline-flex items-center justify-center space-x-2">
                     <span>Kirim Berkas Pendaftaran</span>
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
@@ -230,20 +333,24 @@
 
     </div>
 
-    <!-- Script Leaflet Interactive Marker Pin -->
+    <!-- Script Leaflet Interactive Marker Pin & Region Auto-Centering -->
     <script>
+        let map = null;
+        let marker = null;
+        let regionPolygonLayer = null;
+
         document.addEventListener('DOMContentLoaded', function () {
             const initialLat = parseFloat(document.getElementById('lat').value) || -6.9175;
             const initialLng = parseFloat(document.getElementById('lng').value) || 107.6191;
 
-            const map = L.map('map').setView([initialLat, initialLng], 12);
+            map = L.map('map').setView([initialLat, initialLng], 12);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 18,
                 attribution: '© OpenStreetMap'
             }).addTo(map);
 
-            let marker = L.marker([initialLat, initialLng], {
+            marker = L.marker([initialLat, initialLng], {
                 draggable: true
             }).addTo(map);
 
@@ -261,6 +368,55 @@
                 marker.setLatLng(e.latlng);
                 updateInputs(e.latlng.lat, e.latlng.lng);
             });
+
+            // When a region is selected from the chips
+            window.onMitraRegionSelected = function(region) {
+                if (!region || !region.geojson) return;
+
+                if (regionPolygonLayer) {
+                    map.removeLayer(regionPolygonLayer);
+                }
+
+                regionPolygonLayer = L.geoJSON(region.geojson, {
+                    style: {
+                        color: '#059669',
+                        fillColor: '#10b981',
+                        fillOpacity: 0.25,
+                        weight: 2
+                    }
+                }).addTo(map);
+
+                const bounds = regionPolygonLayer.getBounds();
+                map.fitBounds(bounds, { padding: [20, 20] });
+
+                const center = bounds.getCenter();
+                marker.setLatLng(center);
+                updateInputs(center.lat, center.lng);
+            };
+
+            window.onMitraRegionCleared = function() {
+                if (regionPolygonLayer) {
+                    map.removeLayer(regionPolygonLayer);
+                    regionPolygonLayer = null;
+                }
+            };
+
+            // Check if a region is pre-selected on load (e.g. after validation error / edit)
+            const activeRegions = @js($activeRegions);
+            const preselectedId = @js(old('region_id', $partnerProfile?->region_id ?? ''));
+
+            if (preselectedId && activeRegions && activeRegions.length > 0) {
+                const preselected = activeRegions.find(r => r.id == preselectedId);
+                if (preselected) {
+                    window.onMitraRegionSelected(preselected);
+                }
+            } else if (activeRegions && activeRegions.length === 1) {
+                // If there's only 1 active region, auto select it for convenience
+                const auto = activeRegions[0];
+                // Update Alpine state via x-effect by setting element value directly (Alpine handles reactivity)
+                document.getElementById('region_id').value = auto.id;
+                window.onMitraRegionSelected(auto);
+            }
         });
     </script>
-</x-app-layout>
+</x-pwa-layout>

@@ -6,6 +6,7 @@ use App\Enums\UserStatus;
 use App\Models\BankAccount;
 use App\Models\ComplianceAgreement;
 use App\Models\PartnerProfile;
+use App\Models\Region;
 use App\Models\User;
 use DomainException;
 use Illuminate\Http\UploadedFile;
@@ -46,6 +47,12 @@ class PartnerOnboardingService
 
         if (! $activeRegion) {
             throw new DomainException('Titik domisili berada di luar wilayah layanan aktif pijat.in.');
+        }
+
+        if (! empty($data['region_id']) && (int) $data['region_id'] !== $activeRegion->id) {
+            $selectedRegion = Region::find($data['region_id']);
+            $regionName = $selectedRegion ? $selectedRegion->name : 'wilayah terpilih';
+            throw new DomainException("Titik koordinat yang Anda sematkan berada di luar batas wilayah {$regionName}.");
         }
 
         return DB::transaction(function () use ($user, $data, $latitude, $longitude, $activeRegion) {
