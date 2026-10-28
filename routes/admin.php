@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PartnerVerificationController;
 use App\Http\Controllers\Admin\ServiceCatalogController;
 use Illuminate\Support\Facades\Route;
@@ -12,6 +13,11 @@ Route::middleware(['auth', 'role:admin,superadmin', 'admin.region'])->prefix('ad
     Route::get('/mitra/{mitra}', [PartnerVerificationController::class, 'show'])->name('mitra.show');
     Route::post('/mitra/{mitra}/approve', [PartnerVerificationController::class, 'approve'])->name('mitra.approve');
     Route::post('/mitra/{mitra}/reject', [PartnerVerificationController::class, 'reject'])->name('mitra.reject');
+
+    // Operational Order Monitoring & Intervention (ADM-04)
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
 });
 
 // Global Service Catalog routes (permission: KATALOG)

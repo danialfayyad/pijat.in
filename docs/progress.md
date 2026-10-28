@@ -33,13 +33,22 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 ---
 
 ## 3. Slice Aktif Saat Ini
-- **Slice**: `S3` (Porsi Admin & Super Admin: `ADM-10` Katalog Layanan) $\rightarrow$ **Selesai Penuh**.
+- **Slice**: `ADM-04` & `ADM-05` (Pemantauan Pesanan Wilayah & Penanganan Order Nyangkut / Stuck) $\rightarrow$ **Selesai Penuh**.
 - **Hasil Sesi Ini**:
-  1. CRUD Katalog Layanan & Durasi Paket (60, 90, 120 menit) tanpa add-on (sesuai DEC-01).
-  2. Pembersihan header katalog: Header minimalis (judul + badge jumlah layanan), penghapusan banner kebijakan yang terlalu ramai.
-  3. Pemisahan katalog aktif dan nonaktif: Filter `?status=aktif` vs `?status=nonaktif`, stat card interaktif dengan direct link, tombol redirect "Lihat Katalog Nonaktif" dan "← Kembali ke Katalog Aktif" dengan badge counter dinamis.
-  4. Proteksi otorisasi menu server-side `admin.menu:KATALOG` (Super Admin otomatis lolos, Admin Wilayah wajib memiliki permission `KATALOG`).
-  5. 11/11 Feature tests di `tests/Feature/Admin/ServiceCatalogTest.php` lulus 100%, 65/65 seluruh test suite aplikasi berstatus hijau.
+  1. **Enums & Skema Database**: Dibuat `OrderStatus` (9 state alur pesanan), `OrderType` (Instan, Terjadwal), tabel `orders` dengan koordinat spasial MySQL `SRID 4326`, serta `order_status_histories`.
+  2. **Model Eloquent & Scoping**: Scope wilayah (`inRegions`), scope aktif (`active`), deteksi order macet (`stuck`/`isStuck` >30m instan atau <2 jam terjadwal tanpa mitra), dan relasi linimasa status.
+  3. **Antarmuka Pemantauan Pesanan (`admin.orders.index`)**:
+     - Filter tab status: *Semua*, *Aktif*, *Macet* (dengan ping indicator animasi), *Selesai*, dan *Dibatalkan*.
+     - Header kartu tabel terintegrasi filter multi-wilayah tugas admin dan kotak pencarian real-time (kode pesanan, nama pemesan, penerima, dan mitra).
+  4. **Antarmuka Rincian & Linimasa Pesanan (`admin.orders.show`)**:
+     - Rincian layanan & finansial, mitra penanggung jawab, pemesan, penerima, dan alamat layanan.
+     - Linimasa riwayat status (*status history timeline*) kronologis lengkap dengan identitas aktor (Customer/Mitra/Admin/Sistem) dan catatan.
+     - Modal intervensi pembatalan admin dengan alasan wajib diisi (min 5 karakter) dan garansi alokasi refund 100% pelanggan.
+     - **Kepatuhan Ketat BRD 5.3**: Tidak ada tombol penugasan manual mitra (matching sepenuhnya otomatis oleh sistem).
+  5. **Pengujian Menyeluruh (Pest)**:
+     - 15/15 Feature tests di `tests/Feature/Admin/OrderMonitoringTest.php` lulus 100%.
+     - **80/80 total test suite aplikasi berstatus hijau (pass)** dengan 296 assertions.
+     - Format kode bersih dan rapi via Laravel Pint.
 
 ---
 

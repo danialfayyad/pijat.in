@@ -179,6 +179,22 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasMany<Order, $this>
+     */
+    public function ordersAsCustomer(): HasMany
+    {
+        return $this->hasMany(Order::class, 'customer_id');
+    }
+
+    /**
+     * @return HasMany<Order, $this>
+     */
+    public function ordersAsMitra(): HasMany
+    {
+        return $this->hasMany(Order::class, 'mitra_id');
+    }
+
+    /**
      * Check if admin can access a specific menu code.
      */
     public function canAccessMenu(string $menuCode): bool

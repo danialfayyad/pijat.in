@@ -74,10 +74,18 @@
                                class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.admins.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Penugasan Admin
                             </a>
+                            <a href="{{ route('admin.orders.index') }}" 
+                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.orders.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Pesanan Wilayah
+                            </a>
                         @elseif (Auth::user()->isAdmin())
                             <a href="{{ route('admin.dashboard') }}" 
                                class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.dashboard') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Dashboard Wilayah
+                            </a>
+                            <a href="{{ route('admin.orders.index') }}" 
+                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.orders.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Pesanan Wilayah
                             </a>
                         @else
                             <a href="{{ route('dashboard') }}" 

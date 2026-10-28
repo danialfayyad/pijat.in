@@ -9,15 +9,13 @@ Pijat.in is presented as a massage and wellness marketplace. The public landing 
 ## Current implementation
 
 - Laravel 13.38, PHP 8.4, Blade, Breeze 2.4.2 (Blade auth scaffolding), Tailwind CSS, Alpine.js, and Vite.
-- `GET /` renders the public marketing page in `resources/views/welcome.blade.php`. It describes six massage services and the customer/therapist value proposition. Many calls to action are anchor links or placeholders; there is no booking flow or mobile app integration in this repository yet.
-- Breeze email/password authentication is shared across roles. The login page uses a PWA-safe, mobile-first custom layout based on the supplied 430 × 932 reference; the other guest auth pages keep the Breeze layout. Login throttles after five attempts. Password reset, email verification endpoints, password confirmation, logout, and account profile editing are scaffolded.
-- Public registration collects NIK, name, gender, optional date of birth, email, phone, and password; it assigns `pelanggan` on the server, signs the new user in, then redirects to the customer dashboard. NIK is stored as a unique 16-digit string. Apply the registration-details migration before using the expanded form. Never accept a privileged role from registration input.
-- Successful login redirects to a role-specific dashboard. `/dashboard` also dispatches an authenticated user based on their role.
-- Role dashboards are placeholders rendered by `resources/views/role-dashboard.blade.php`; they are not separate feature areas yet.
-- Role middleware returns HTTP 403 when an authenticated user lacks an allowed role. `admin.dashboard` currently allows both `admin` and `superadmin`; the other three dashboard routes each allow only their named role.
-- Authenticated users can update name/email, change password, and delete their own account. Profile validation does not expose role changes.
-- `DatabaseSeeder` creates `Test User` (`test@example.com`) and calls `RoleLoginSeeder`. The latter provisions local/testing demo accounts for all four roles; it intentionally does nothing in other environments.
-- Demo login email addresses are `superadmin@pijatin.test`, `admin@pijatin.test`, `pelanggan@pijatin.test`, and `mitra@pijatin.test`. The shared local/testing demo password is `password`.
+- `GET /` renders the public marketing page in `resources/views/welcome.blade.php`.
+- Regional Master & Multi-Admin Assignment (S1 / SA-06, ADM-15): 514 Kota/Kabupaten Indonesia GeoJSON boundary presets, spatial MySQL SRID 4326, region assignment with emergency handling duty.
+- Partner Onboarding & Document Verification (S2 / MTR-01, ADM-02, ADM-03): NIK, e-KTP, selfie, bank account lock, regional admin verification queue, re-verification safeguards.
+- Service Catalog & Pricing (S3 / ADM-10): Services and duration packages (60/90/120 minutes) without add-ons, active/inactive catalog separation, server-side `admin.menu:KATALOG` permission protection.
+- Regional Order Monitoring & Intervention (ADM-04, ADM-05): Scoped by admin assigned regions, status filtering (Active, Stuck, Completed, Cancelled), full order details & status history timeline, admin cancellation intervention with mandatory reason & 100% customer refund guarantee. Strictly adheres to BRD 5.3 (no manual partner assignment buttons).
+- Custom global Alpine.js confirmation modal component (`<x-confirm-dialog />`) with centered icons, to-the-point copy, and distinct variant themes (`danger`, `warning`, `info`).
+- All 80 unit & feature tests in Pest passing (296 assertions) with Pint style formatting compliant.
 
 ## Role model and authentication map
 
