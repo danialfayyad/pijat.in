@@ -20,6 +20,7 @@ class Order extends Model
         'order_code',
         'order_type',
         'customer_id',
+        'customer_address_id',
         'mitra_id',
         'region_id',
         'service_id',
@@ -28,12 +29,16 @@ class Order extends Model
         'duration_minutes',
         'total_price',
         'commission_percent',
+        'recipient_type',
         'recipient_name',
         'recipient_gender',
         'recipient_phone',
         'service_address_text',
         'service_coordinate',
         'scheduled_start_time',
+        'medical_notes',
+        'risk_agreement_version',
+        'consent_timestamp',
         'status',
         'cancellation_reason',
         'cancelled_by_id',
@@ -55,8 +60,18 @@ class Order extends Model
             'total_price' => 'decimal:2',
             'commission_percent' => 'decimal:2',
             'scheduled_start_time' => 'datetime',
+            'consent_timestamp' => 'datetime',
+            'medical_notes' => 'encrypted',
             'reschedule_count' => 'integer',
         ];
+    }
+
+    /**
+     * @return BelongsTo<CustomerAddress, $this>
+     */
+    public function customerAddress(): BelongsTo
+    {
+        return $this->belongsTo(CustomerAddress::class, 'customer_address_id');
     }
 
     /**
@@ -186,6 +201,19 @@ class Order extends Model
     public function canBeCancelledByAdmin(): bool
     {
         return ! $this->status->isTerminal();
+    }
+
+    /**
+     * Get medical notes with privacy guard for partner views.
+     * Hidden during broadcast/offers, revealed only after partner assignment/acceptance.
+     */
+    public function getMedicalNotesForPartner(): ?string
+    {
+        if (in_array($this->status, [OrderStatus::MencariMitra, OrderStatus::MenungguPembayaran], true)) {
+            return null;
+        }
+
+        return $this->medical_notes;
     }
 
     /**

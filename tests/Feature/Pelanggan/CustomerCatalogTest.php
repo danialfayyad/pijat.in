@@ -102,4 +102,3 @@ test('accessing inactive service detail returns 404', function () {
 
     $response->assertNotFound();
 });
-
