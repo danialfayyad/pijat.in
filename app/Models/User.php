@@ -9,13 +9,14 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'nik', 'gender', 'date_of_birth', 'email', 'phone', 'role', 'status', 'password', 'phone_verified_at', 'rejection_reason', 'rejection_code'])]
+#[Fillable(['name', 'nik', 'gender', 'date_of_birth', 'email', 'phone', 'role', 'status', 'region_id', 'password', 'phone_verified_at', 'rejection_reason', 'rejection_code'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -102,6 +103,30 @@ class User extends Authenticatable
     public function isDitolak(): bool
     {
         return $this->hasStatus(UserStatus::Ditolak);
+    }
+
+    /**
+     * @return BelongsTo<Region, $this>
+     */
+    public function region(): BelongsTo
+    {
+        return $this->belongsTo(Region::class);
+    }
+
+    /**
+     * @return HasMany<CustomerAddress, $this>
+     */
+    public function customerAddresses(): HasMany
+    {
+        return $this->hasMany(CustomerAddress::class);
+    }
+
+    /**
+     * @return HasOne<CustomerAddress, $this>
+     */
+    public function primaryAddress(): HasOne
+    {
+        return $this->hasOne(CustomerAddress::class)->where('is_primary', true);
     }
 
     /**

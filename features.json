@@ -60,7 +60,7 @@
                 "Tidak ada komponen add-on atau opsi penambahan durasi di luar paket katalog."
             ],
             "verification": "Buka halaman katalog di frontend PWA Customer dan validasi durasi & harga sesuai database.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-04",
@@ -99,7 +99,7 @@
                 "Alamat pertama yang berhasil disimpan otomatis ditandai sebagai is_primary (Alamat Utama) dan menetapkan region_id akun customer."
             ],
             "verification": "Uji simpan alamat di dalam wilayah aktif (sukses jadi utama) dan di luar wilayah aktif (ditolak).",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-06",
@@ -446,7 +446,7 @@
                 "Pesanan yang sedang berjalan tidak terpengaruh dan tetap terikat pada wilayah pesanannya."
             ],
             "verification": "Ubah alamat utama ke wilayah lain, pastikan region_id akun customer berpindah instan.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-01",

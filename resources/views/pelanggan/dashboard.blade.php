@@ -9,12 +9,12 @@
                 <h2 class="text-lg font-black text-slate-900 leading-tight">{{ auth()->user()->name }}</h2>
             </div>
             <div class="text-right">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <a href="{{ route('pelanggan.addresses.index') }}" class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition">
                     <svg class="w-3 h-3 mr-1 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                     </svg>
-                    Kota Bandung
-                </span>
+                    {{ auth()->user()->region?->name ?? 'Pilih Alamat' }}
+                </a>
             </div>
         </div>
 
@@ -36,7 +36,12 @@
             </div>
 
             <div class="mt-4 pt-3 border-t border-white/15 flex items-center justify-between text-[11px] text-emerald-100/90 relative z-10">
-                <span>Alamat Utama: <strong>Jl. Asia Afrika</strong></span>
+                <a href="{{ route('pelanggan.addresses.index') }}" class="hover:underline flex items-center space-x-1">
+                    <span>Alamat: <strong>{{ auth()->user()->primaryAddress ? (auth()->user()->primaryAddress->label . ' (' . Str::limit(auth()->user()->primaryAddress->address_text, 22) . ')') : 'Atur Alamat Utama' }}</strong></span>
+                    <svg class="w-3 h-3 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
                 <span class="text-[10px] bg-emerald-800/60 px-2 py-0.5 rounded-md font-mono">Bebas Biaya Admin</span>
             </div>
         </div>
@@ -57,69 +62,60 @@
         <!-- Layanan Pijat Pilihan -->
         <div class="space-y-3 pt-1">
             <div class="flex items-center justify-between">
-                <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Katalog Layanan</h3>
-                <span class="text-[11px] font-semibold text-emerald-600">Tarif Tetap</span>
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Katalog Layanan</h3>
+                    <p class="text-[11px] text-slate-400">Pilihan paket pijat & refleksi tarif tetap</p>
+                </div>
+                <a href="{{ route('pelanggan.catalog.index') }}" class="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline">
+                    Lihat Semua
+                </a>
             </div>
 
-            <!-- Service Item 1 -->
-            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between hover:border-emerald-300 transition">
-                <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg shadow-inner">
-                        💆
+            @forelse ($services as $service)
+                @php
+                    $icons = [
+                        'full-body-massage' => '💆',
+                        'hot-stone-massage' => '🔥',
+                        'thai-massage' => '🧘',
+                        'deep-tissue-massage' => '💪',
+                        'swedish-massage' => '🌿',
+                        'traditional-massage' => '🍵',
+                    ];
+                    $icon = $icons[$service->slug] ?? '💆';
+                    $lowestPrice = $service->activePackages->min('price');
+                    $durations = $service->activePackages->pluck('duration_minutes')->join(' / ');
+                @endphp
+                <a href="{{ route('pelanggan.catalog.show', $service) }}" 
+                    class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between hover:border-emerald-300 transition group block">
+                    <div class="flex items-center space-x-3 pr-2">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-xl shadow-inner shrink-0 group-hover:scale-105 transition">
+                            {{ $icon }}
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs text-slate-900 group-hover:text-emerald-700 transition">{{ $service->name }}</h4>
+                            <p class="text-[11px] text-slate-500 line-clamp-1 mt-0.5">{{ $service->description }}</p>
+                            @if ($durations)
+                                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md mt-1.5 inline-block">
+                                    {{ $durations }} Menit
+                                </span>
+                            @endif
+                        </div>
                     </div>
-                    <div>
-                        <h4 class="font-bold text-xs text-slate-900">Pijat Tradisional Tubuh</h4>
-                        <p class="text-[11px] text-slate-500">Meredakan pegal, lelah & melancarkan sirkulasi</p>
-                        <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md mt-1 inline-block">60 / 90 / 120 Menit</span>
+                    <div class="text-right shrink-0">
+                        @if ($lowestPrice)
+                            <span class="text-[10px] text-slate-400 block font-medium">Mulai dari</span>
+                            <span class="text-xs font-black text-slate-900 block">Rp {{ number_format($lowestPrice, 0, ',', '.') }}</span>
+                        @endif
+                        <span class="mt-1 px-3 py-1 bg-emerald-600 group-hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg shadow-xs transition inline-block">
+                            Pilih
+                        </span>
                     </div>
+                </a>
+            @empty
+                <div class="text-center py-8 bg-white rounded-2xl border border-slate-200 p-4">
+                    <p class="text-xs text-slate-400">Belum ada layanan aktif yang tersedia saat ini.</p>
                 </div>
-                <div class="text-right">
-                    <span class="text-xs font-black text-slate-900 block">Rp 100.000</span>
-                    <button class="mt-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg shadow-xs transition">
-                        Pesan
-                    </button>
-                </div>
-            </div>
-
-            <!-- Service Item 2 -->
-            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between hover:border-emerald-300 transition">
-                <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-lg shadow-inner">
-                        🦶
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-xs text-slate-900">Refleksi Kaki & Tangan</h4>
-                        <p class="text-[11px] text-slate-500">Titik akupresur untuk relaksasi organ vital</p>
-                        <span class="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md mt-1 inline-block">60 Menit</span>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <span class="text-xs font-black text-slate-900 block">Rp 80.000</span>
-                    <button class="mt-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg shadow-xs transition">
-                        Pesan
-                    </button>
-                </div>
-            </div>
-
-            <!-- Service Item 3 -->
-            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between hover:border-emerald-300 transition">
-                <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-lg shadow-inner">
-                        🌿
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-xs text-slate-900">Pijat Aromaterapi Relaksasi</h4>
-                        <p class="text-[11px] text-slate-500">Essential oil alami menenangkan pikiran & otot</p>
-                        <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md mt-1 inline-block">90 Menit</span>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <span class="text-xs font-black text-slate-900 block">Rp 140.000</span>
-                    <button class="mt-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg shadow-xs transition">
-                        Pesan
-                    </button>
-                </div>
-            </div>
+            @endforelse
         </div>
 
     </div>
