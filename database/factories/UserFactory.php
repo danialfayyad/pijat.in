@@ -48,6 +48,14 @@ class UserFactory extends Factory
         ]);
     }
 
+    public function customer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => Role::Pelanggan,
+            'status' => UserStatus::Terverifikasi,
+        ]);
+    }
+
     public function mitra(): static
     {
         return $this->state(fn (array $attributes) => [

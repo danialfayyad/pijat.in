@@ -33,6 +33,24 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 ---
 
 ## 3. Slice Aktif Saat Ini
+
+- **Slice**: `ADM-04` & `ADM-05` (Pemantauan Pesanan Wilayah & Penanganan Order Nyangkut / Stuck) $\rightarrow$ **Selesai Penuh**.
+- **Hasil Sesi Ini**:
+  1. **Enums & Skema Database**: Dibuat `OrderStatus` (9 state alur pesanan), `OrderType` (Instan, Terjadwal), tabel `orders` dengan koordinat spasial MySQL `SRID 4326`, serta `order_status_histories`.
+  2. **Model Eloquent & Scoping**: Scope wilayah (`inRegions`), scope aktif (`active`), deteksi order macet (`stuck`/`isStuck` >30m instan atau <2 jam terjadwal tanpa mitra), dan relasi linimasa status.
+  3. **Antarmuka Pemantauan Pesanan (`admin.orders.index`)**:
+     - Filter tab status: *Semua*, *Aktif*, *Macet* (dengan ping indicator animasi), *Selesai*, dan *Dibatalkan*.
+     - Header kartu tabel terintegrasi filter multi-wilayah tugas admin dan kotak pencarian real-time (kode pesanan, nama pemesan, penerima, dan mitra).
+  4. **Antarmuka Rincian & Linimasa Pesanan (`admin.orders.show`)**:
+     - Rincian layanan & finansial, mitra penanggung jawab, pemesan, penerima, dan alamat layanan.
+     - Linimasa riwayat status (*status history timeline*) kronologis lengkap dengan identitas aktor (Customer/Mitra/Admin/Sistem) dan catatan.
+     - Modal intervensi pembatalan admin dengan alasan wajib diisi (min 5 karakter) dan garansi alokasi refund 100% pelanggan.
+     - **Kepatuhan Ketat BRD 5.3**: Tidak ada tombol penugasan manual mitra (matching sepenuhnya otomatis oleh sistem).
+  5. **Pengujian Menyeluruh (Pest)**:
+     - 15/15 Feature tests di `tests/Feature/Admin/OrderMonitoringTest.php` lulus 100%.
+     - **80/80 total test suite aplikasi berstatus hijau (pass)** dengan 296 assertions.
+     - Format kode bersih dan rapi via Laravel Pint.
+
 - **Slice**: `S3` (Porsi Customer: `CUS-03` Katalog Layanan PWA, `CUS-05` Manajemen Alamat, & `CUS-23` Perpindahan Domisili) $\rightarrow$ **Selesai**.
 - **Hasil Sesi Ini**:
   1. **Katalog Layanan PWA Customer (`CUS-03`)**:
@@ -47,6 +65,7 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
      - Antarmuka PWA Pelanggan (`resources/views/pelanggan/addresses/`): Daftar alamat tersimpan, form tambah/ubah dengan peta Leaflet interaktif, pencarian chip kota operasional.
      - 8/8 Feature tests di `tests/Feature/Pelanggan/CustomerAddressTest.php` lulus 100%.
   3. Seluruh 79 test suite aplikasi berstatus hijau (pass), format kode bersih via Laravel Pint.
+
 
 ---
 

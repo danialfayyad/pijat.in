@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
+use App\Models\PartnerProfile;
 use App\Models\Region;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -34,11 +36,13 @@ class AdminDashboardController extends Controller
             }
         }
 
+        $regionIds = $selectedRegion ? [$selectedRegion->id] : $assignedRegions->pluck('id')->all();
+
         // Operational metrics (ADM-01)
         $metrics = [
-            'active_partners_count' => 0,
-            'orders_in_progress' => 0,
-            'stuck_orders_count' => 0,
+            'active_partners_count' => PartnerProfile::whereIn('region_id', $regionIds)->where('is_active', true)->count(),
+            'orders_in_progress' => Order::inRegions($regionIds)->active()->count(),
+            'stuck_orders_count' => Order::inRegions($regionIds)->stuck()->count(),
             'new_complaints_count' => 0,
             'daily_revenue' => 0,
         ];
