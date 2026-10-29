@@ -79,7 +79,7 @@
                 "Jenis kelamin penerima layanan terkunci menjadi acuan penugasan mitra (aturan sesama gender)."
             ],
             "verification": "Simulasi form order penerima layanan berbeda gender dari customer, pastikan tersimpan di pesanan.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-05",
@@ -118,7 +118,7 @@
                 "Waktu mulai dan estimasi selesai (mulai + durasi) harus berada di dalam rentang jam operasional (08:00 - 21:00 waktu setempat wilayah alamat layanan)."
             ],
             "verification": "Uji pemilihan waktu di luar jam operasional (ditolak) dan waktu valid (diterima).",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-07",
@@ -137,7 +137,7 @@
                 "Catatan medis tidak tampil pada tawaran awal mitra dan hanya dapat dilihat setelah mitra menerima pesanan."
             ],
             "verification": "Uji submit pesanan tanpa centang risiko (gagal) dan dengan catatan medis (terenkripsi di DB).",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-08",
@@ -313,7 +313,7 @@
                 "Daftar mutasi menampilkan seluruh riwayat top-up, pembayaran, dan refund."
             ],
             "verification": "Uji top-up customer dengan alamat utama vs tanpa alamat utama (harus diminta simpan alamat).",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-17",
@@ -1404,7 +1404,7 @@
                 "Check constraint database memastikan saldo dompet customer tidak pernah bernilai negatif."
             ],
             "verification": "Kirim webhook palsu (harus 401/403) dan uji transaksi debit melebihi saldo (harus gagal rollback).",
-            "passes": false
+            "passes": true
         },
         {
             "id": "SYS-06",
@@ -1458,7 +1458,7 @@
                 "Setiap onboarding mitra menyimpan agreement_version dan terms_consent_timestamp."
             ],
             "verification": "Periksa baris data pesanan dan mitra di database, pastikan versi dokumen hukum tercatat.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "SYS-09",
