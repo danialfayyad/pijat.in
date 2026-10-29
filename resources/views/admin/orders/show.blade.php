@@ -98,157 +98,149 @@
             </div>
         @endif
 
-        <!-- 2 KONTAINER UTAMA SEJAJAR -->
+        <!-- 2 KONTAINER UTAMA: OPERASIONAL LAPANGAN & STRUK FINANSIAL -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 
-            <!-- KONTAINER 1: Rincian Layanan & Lokasi -->
+            <!-- KONTAINER 1: Pelaksanaan & Lokasi Layanan (Fulfillment) -->
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col justify-between">
                 <div>
                     <!-- Header Kartu -->
-                    <div class="p-5 border-b border-slate-100 flex items-center space-x-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-bold text-slate-800">Layanan & Finansial</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Paket durasi, tarif transaksi, dan jadwal pelaksanaan.</p>
-                        </div>
-                    </div>
-
-                    <!-- Isi Layanan & Finansial -->
-                    <div class="p-5 grid grid-cols-2 gap-4 text-xs">
-                        <div class="col-span-2">
-                            <span class="text-slate-400 block text-[11px] font-medium">Layanan Dipilih</span>
-                            <div class="font-bold text-slate-800 text-sm mt-0.5">{{ $order->service_name }}</div>
-                            @if ($order->servicePackage)
-                                <span class="text-slate-500 text-[11px] block mt-0.5">{{ $order->servicePackage->name }}</span>
-                            @endif
-                        </div>
-
-                        <div>
-                            <span class="text-slate-400 block text-[11px] font-medium">Durasi Pijat</span>
-                            <div class="font-bold text-slate-800 text-sm mt-0.5">{{ $order->duration_minutes }} Menit</div>
-                        </div>
-
-                        <div>
-                            <span class="text-slate-400 block text-[11px] font-medium">Total Tarif Layanan</span>
-                            <div class="font-bold text-emerald-700 text-base mt-0.5">{{ $order->formatted_price }}</div>
-                        </div>
-
-                        <div>
-                            <span class="text-slate-400 block text-[11px] font-medium">Bagi Hasil / Komisi</span>
-                            <div class="font-semibold text-slate-700 text-sm mt-0.5">{{ (float) $order->commission_percent }}%</div>
-                        </div>
-
-                        <div>
-                            <span class="text-slate-400 block text-[11px] font-medium">Jadwal Mulai</span>
-                            <div class="font-semibold text-slate-800 text-xs mt-0.5">
-                                @if ($order->scheduled_start_time)
-                                    {{ $order->scheduled_start_time->translatedFormat('d F Y, H:i') }} WIB
-                                @else
-                                    Segera (Instan)
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Bagian Bawah: Alamat & Wilayah -->
-                <div class="p-5 border-t border-slate-100 bg-slate-50/60">
-                    <div class="flex items-center justify-between mb-1.5">
-                        <div class="flex items-center space-x-1.5 text-xs font-bold text-slate-800">
-                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <span>Alamat Layanan</span>
-                        </div>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Pelaksanaan & Lokasi</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                             {{ $order->region->name }}
                         </span>
                     </div>
-                    <p class="text-xs text-slate-600 leading-relaxed">
-                        {{ $order->service_address_text }}
-                    </p>
-                </div>
-            </div>
 
-            <!-- KONTAINER 2: Data Pelanggan & Mitra Terapis -->
-            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col justify-between">
-                <div>
-                    <!-- Header Kartu -->
-                    <div class="p-5 border-b border-slate-100 flex items-center space-x-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                        </div>
+                    <!-- Penerima & Alamat Layanan -->
+                    <div class="p-6 space-y-4">
                         <div>
-                            <h3 class="text-sm font-bold text-slate-800">Pelanggan & Mitra</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Identitas pemesan, penerima manfaat, dan mitra terapis.</p>
-                        </div>
-                    </div>
-
-                    <!-- Isi Data Pemesan & Penerima -->
-                    <div class="p-5 space-y-3 text-xs">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <span class="text-slate-400 block text-[11px] font-medium">Nama Penerima</span>
-                                <div class="font-bold text-slate-800 mt-0.5">
-                                    {{ $order->recipient_name }}
-                                    @if ($order->recipient_gender)
-                                        <span class="text-slate-500 font-normal text-[11px]">({{ ucfirst($order->recipient_gender) }})</span>
-                                    @endif
-                                </div>
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Penerima Layanan</div>
+                            <div class="text-base font-bold text-slate-900 mt-0.5">
+                                {{ $order->recipient_name }}
+                                @if ($order->recipient_gender)
+                                    <span class="text-xs font-normal text-slate-500">({{ ucfirst($order->recipient_gender) }})</span>
+                                @endif
                             </div>
-                            <div>
-                                <span class="text-slate-400 block text-[11px] font-medium">Kontak Penerima</span>
-                                <div class="font-mono text-slate-700 font-semibold mt-0.5">{{ $order->recipient_phone }}</div>
+                            <div class="text-xs font-mono font-medium text-slate-600 mt-0.5">
+                                {{ $order->recipient_phone }}
                             </div>
                         </div>
 
-                        @if ($order->customer)
-                            <div class="pt-2.5 border-t border-slate-100">
-                                <span class="text-slate-400 block text-[11px] font-medium">Akun Pemesan</span>
-                                <div class="font-semibold text-slate-800">{{ $order->customer->name }}</div>
-                                <div class="text-slate-400 text-[11px] mt-0.5">{{ $order->customer->phone }} • {{ $order->customer->email }}</div>
+                        <!-- Alamat Tujuan -->
+                        <div class="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/70 text-xs leading-relaxed">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Alamat Lengkap</span>
+                            <p class="text-slate-700">{{ $order->service_address_text }}</p>
+                        </div>
+
+                        @if ($order->customer && $order->customer->name !== $order->recipient_name)
+                            <div class="text-xs text-slate-400 pt-1">
+                                Dipesan oleh akun: <strong class="text-slate-600 font-semibold">{{ $order->customer->name }}</strong> ({{ $order->customer->phone }})
                             </div>
                         @endif
                     </div>
                 </div>
 
-                <!-- Bagian Bawah: Mitra Penanggung Jawab -->
-                <div class="p-5 border-t border-slate-100 bg-slate-50/60">
-                    <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider mb-2">Mitra Terapis Penanggung Jawab</span>
+                <!-- Bagian Bawah: Terapis Pelaksana -->
+                <div class="p-6 border-t border-slate-100 bg-slate-50/40">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3">Terapis Penanggung Jawab</div>
 
                     @if ($order->mitra)
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm uppercase">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="w-11 h-11 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm uppercase shrink-0">
                                 {{ substr($order->mitra->name, 0, 1) }}
                             </div>
-                            <div>
-                                <h4 class="font-bold text-slate-800 text-xs">{{ $order->mitra->name }}</h4>
-                                <p class="text-xs text-slate-500 font-mono">{{ $order->mitra->phone }}</p>
+                            <div class="text-xs">
+                                <div class="font-bold text-slate-900 text-sm">{{ $order->mitra->name }}</div>
+                                <div class="font-mono text-slate-500 mt-0.5">{{ $order->mitra->phone }}</div>
                                 @if ($order->mitra->partnerProfile)
-                                    <div class="text-[10px] text-slate-400 mt-0.5">
-                                        Status: <span class="text-emerald-700 font-semibold">{{ ucfirst($order->mitra->partnerProfile->status) }}</span>
+                                    <div class="text-[11px] text-emerald-700 font-semibold mt-0.5">
+                                        Mitra Terverifikasi • {{ ucfirst($order->mitra->partnerProfile->status) }}
                                     </div>
                                 @endif
                             </div>
                         </div>
                     @else
-                        <div class="p-3 rounded-xl bg-amber-50/80 border border-amber-200/80 text-amber-900 text-xs">
-                            <div class="flex items-center space-x-1.5 font-bold text-amber-800">
-                                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                <span>Belum Ada Mitra Ditugaskan</span>
+                        <div class="flex items-start space-x-3 p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 mt-1.5 shrink-0 animate-pulse"></span>
+                            <div>
+                                <div class="font-bold text-amber-900">Menunggu Konfirmasi Mitra</div>
+                                <p class="text-slate-600 mt-0.5 leading-relaxed text-[11px]">
+                                    Sistem sedang menyiarkan pesanan secara otomatis ke mitra terdekat di wilayah {{ $order->region->name }}.
+                                </p>
                             </div>
-                            <p class="mt-1 text-slate-600 text-[11px] leading-relaxed">
-                                Sedang disiarkan ke mitra terdekat di wilayah <strong>{{ $order->region->name }}</strong>.
-                            </p>
                         </div>
                     @endif
+                </div>
+            </div>
+
+            <!-- KONTAINER 2: Rincian Layanan & Struk Finansial (Invoice Breakdown) -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col justify-between">
+                <div>
+                    <!-- Header Kartu -->
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Layanan & Transaksi</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                            {{ $order->order_type->label() }}
+                        </span>
+                    </div>
+
+                    <!-- Ringkasan Paket & Waktu -->
+                    <div class="p-6 border-b border-slate-100 space-y-3">
+                        <div>
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Layanan Dipilih</div>
+                            <div class="text-base font-bold text-slate-900 mt-0.5">{{ $order->service_name }}</div>
+                            @if ($order->servicePackage)
+                                <div class="text-xs text-slate-500 mt-0.5">{{ $order->servicePackage->name }}</div>
+                            @endif
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-xs pt-2">
+                            <div>
+                                <span class="text-slate-400 block text-[11px]">Durasi Layanan</span>
+                                <span class="font-semibold text-slate-800">{{ $order->duration_minutes }} Menit</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block text-[11px]">Jadwal Pelaksanaan</span>
+                                <span class="font-semibold text-slate-800">
+                                    @if ($order->scheduled_start_time)
+                                        {{ $order->scheduled_start_time->translatedFormat('d F Y, H:i') }} WIB
+                                    @else
+                                        Segera (Instan)
+                                    @endif
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bagian Bawah: Struk Rincian Finansial -->
+                <div class="p-6 bg-slate-50/40 text-xs space-y-2.5">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Rincian Finansial</div>
+
+                    <div class="flex items-center justify-between text-slate-600">
+                        <span>Tarif Layanan (Bruto)</span>
+                        <span class="font-mono font-semibold text-slate-800">{{ $order->formatted_price }}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between text-slate-500">
+                        <span>Komisi Platform ({{ (float) $order->commission_percent }}%)</span>
+                        <span class="font-mono text-slate-600">
+                            - Rp {{ number_format($order->total_price * ($order->commission_percent / 100), 0, ',', '.') }}
+                        </span>
+                    </div>
+
+                    <div class="flex items-center justify-between text-emerald-700 font-semibold pt-1 border-t border-slate-200/80">
+                        <span>Hak Bersih Mitra</span>
+                        <span class="font-mono font-bold">
+                            Rp {{ number_format($order->total_price - ($order->total_price * ($order->commission_percent / 100)), 0, ',', '.') }}
+                        </span>
+                    </div>
+
+                    <div class="mt-3 pt-3 border-t-2 border-slate-200 flex items-baseline justify-between">
+                        <span class="text-xs font-bold text-slate-800">Total Tarif Pesanan</span>
+                        <span class="text-base font-extrabold text-slate-900 font-mono">{{ $order->formatted_price }}</span>
+                    </div>
                 </div>
             </div>
 
