@@ -130,6 +130,22 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasOne<Wallet, $this>
+     */
+    public function wallet(): HasOne
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
+    /**
+     * Retrieve existing wallet or initialize a zero-balance wallet atomically.
+     */
+    public function getOrCreateWallet(): Wallet
+    {
+        return $this->wallet()->firstOrCreate([], ['balance' => 0, 'currency' => 'IDR']);
+    }
+
+    /**
      * @return HasOne<PartnerProfile, $this>
      */
     public function partnerProfile(): HasOne

@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-slate-900">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ $title ?? config('app.name', 'Pijat.In') }}</title>
@@ -57,17 +57,6 @@
             <div class="flex items-center space-x-2">
                 @if (isset($headerAction))
                     {{ $headerAction }}
-                @else
-                    @auth
-                        <form method="POST" action="{{ route('logout') }}" class="inline">
-                            @csrf
-                            <button type="submit" title="Keluar Akun" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-rose-50 hover:text-rose-600 flex items-center justify-center text-slate-500 transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                </svg>
-                            </button>
-                        </form>
-                    @endauth
                 @endif
             </div>
         </header>
@@ -81,72 +70,73 @@
         @auth
             @if (Auth::user()->isMitra() && Auth::user()->isTerverifikasi())
                 <!-- Mitra Verified Dock -->
-                <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 py-1.5 shadow-lg flex items-center justify-around">
+                <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 py-2 shadow-lg flex items-center justify-around" aria-label="Navigasi Utama Mitra">
                     <a href="{{ route('mitra.dashboard') }}" 
-                        class="flex flex-col items-center py-1 px-3 rounded-xl transition {{ request()->routeIs('mitra.dashboard') ? 'text-emerald-600 font-bold' : 'text-slate-400 hover:text-slate-600 font-medium' }}">
-                        <svg class="w-5 h-5 mb-0.5 {{ request()->routeIs('mitra.dashboard') ? 'text-emerald-600' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('mitra.dashboard') ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900 font-medium' }}">
+                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('mitra.dashboard') ? 'text-emerald-700' : 'text-slate-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
-                        <span class="text-[10px]">Beranda</span>
-                    </a>
-
-                    <a href="{{ route('mitra.dashboard') }}#orders" 
-                        class="flex flex-col items-center py-1 px-3 rounded-xl transition text-slate-400 hover:text-slate-600 font-medium">
-                        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                        <span class="text-[10px]">Pesanan</span>
-                    </a>
-
-                    <a href="{{ route('mitra.dashboard') }}#wallet" 
-                        class="flex flex-col items-center py-1 px-3 rounded-xl transition text-slate-400 hover:text-slate-600 font-medium">
-                        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                        </svg>
-                        <span class="text-[10px]">Dompet</span>
+                        <span class="text-[11px] leading-none">Beranda</span>
                     </a>
 
                     <a href="{{ route('mitra.profile') }}" 
-                        class="flex flex-col items-center py-1 px-3 rounded-xl transition {{ request()->routeIs('mitra.profile') ? 'text-emerald-600 font-bold' : 'text-slate-400 hover:text-slate-600 font-medium' }}">
-                        <svg class="w-5 h-5 mb-0.5 {{ request()->routeIs('mitra.profile') ? 'text-emerald-600' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('mitra.profile') ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900 font-medium' }}">
+                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('mitra.profile') ? 'text-emerald-700' : 'text-slate-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
-                        <span class="text-[10px]">Profil</span>
+                        <span class="text-[11px] leading-none">Profil & Bank</span>
+                    </a>
+
+                    <a href="{{ route('mitra.status') }}" 
+                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('mitra.status') ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900 font-medium' }}">
+                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('mitra.status') ? 'text-emerald-700' : 'text-slate-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-[11px] leading-none">Status</span>
                     </a>
                 </nav>
             @elseif (Auth::user()->isPelanggan())
                 <!-- Pelanggan Dock -->
-                <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 py-1.5 shadow-lg flex items-center justify-around">
+                <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 py-2 shadow-lg flex items-center justify-around" aria-label="Navigasi Utama Pelanggan">
                     <a href="{{ route('pelanggan.dashboard') }}" 
-                        class="flex flex-col items-center py-1 px-3 rounded-xl transition {{ request()->routeIs('pelanggan.dashboard') ? 'text-emerald-600 font-bold' : 'text-slate-400 hover:text-slate-600 font-medium' }}">
-                        <svg class="w-5 h-5 mb-0.5 {{ request()->routeIs('pelanggan.dashboard') ? 'text-emerald-600' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('pelanggan.dashboard') ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900 font-medium' }}">
+                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('pelanggan.dashboard') ? 'text-emerald-700' : 'text-slate-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
-                        <span class="text-[10px]">Beranda</span>
+                        <span class="text-[11px] leading-none">Beranda</span>
                     </a>
 
-                    <a href="{{ route('pelanggan.dashboard') }}#orders" 
-                        class="flex flex-col items-center py-1 px-3 rounded-xl transition text-slate-400 hover:text-slate-600 font-medium">
-                        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    <a href="{{ route('pelanggan.catalog.index') }}" 
+                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('pelanggan.catalog.*') ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900 font-medium' }}">
+                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('pelanggan.catalog.*') ? 'text-emerald-700' : 'text-slate-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
-                        <span class="text-[10px]">Pesanan</span>
+                        <span class="text-[11px] leading-none">Layanan</span>
                     </a>
 
-                    <a href="{{ route('pelanggan.dashboard') }}#wallet" 
-                        class="flex flex-col items-center py-1 px-3 rounded-xl transition text-slate-400 hover:text-slate-600 font-medium">
-                        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <a href="{{ route('pelanggan.wallet.index') }}" 
+                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('pelanggan.wallet.*') ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900 font-medium' }}">
+                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('pelanggan.wallet.*') ? 'text-emerald-700' : 'text-slate-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
-                        <span class="text-[10px]">Dompet</span>
+                        <span class="text-[11px] leading-none">Dompet</span>
+                    </a>
+
+                    <a href="{{ route('pelanggan.addresses.index') }}" 
+                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('pelanggan.addresses.*') ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900 font-medium' }}">
+                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('pelanggan.addresses.*') ? 'text-emerald-700' : 'text-slate-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span class="text-[11px] leading-none">Alamat</span>
                     </a>
 
                     <a href="{{ route('profile.edit') }}" 
-                        class="flex flex-col items-center py-1 px-3 rounded-xl transition {{ request()->routeIs('profile.*') ? 'text-emerald-600 font-bold' : 'text-slate-400 hover:text-slate-600 font-medium' }}">
-                        <svg class="w-5 h-5 mb-0.5 {{ request()->routeIs('profile.*') ? 'text-emerald-600' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('profile.*') ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900 font-medium' }}">
+                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('profile.*') ? 'text-emerald-700' : 'text-slate-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
-                        <span class="text-[10px]">Akun</span>
+                        <span class="text-[11px] leading-none">Akun</span>
                     </a>
                 </nav>
             @endif

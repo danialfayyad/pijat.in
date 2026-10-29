@@ -101,4 +101,5 @@ test('accessing inactive service detail returns 404', function () {
         ->get(route('pelanggan.catalog.show', $this->inactiveService));
 
     $response->assertNotFound();
+
 });

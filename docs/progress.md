@@ -20,8 +20,8 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 | **F0** | Fondasi Arsitektur, Kontrak, & Skema Inti | Selesai | 27 Okt 2026 | 27 Okt 2026 | Seluruh kontrak dibekukan, CLAUDE.md dan features.json dibuat |
 | **S1** | Setup Master Wilayah & Penugasan Admin | Selesai | 27 Okt 2026 | 27 Okt 2026 | 10/10 tests pass (RegionAndAdminScopingTest), 41/41 total suite pass, Pint clean, 514 Kota/Kabupaten GeoJSON preset terintegrasi |
 | **S2** | Onboarding, Verifikasi Dokumen, & Profil Mitra | Selesai | 27 Okt 2026 | 27 Okt 2026 | 11/11 tests pass (PartnerOnboardingAndVerificationTest), 53/53 total suite pass, Pint clean, registrasi NIK/KTP/selfie, pin domisili Leaflet di wilayah aktif, antrean verifikasi admin wilayah, proteksi rekening & safeguard re-verifikasi selesai |
-| **S3** | Customer, Alamat Utama, Katalog, & Dompet Top-up | Sedang Berjalan (ADM-10, CUS-03, CUS-05, CUS-23 Selesai) | 27 Okt 2026 | - | 24/24 tests pass (ServiceCatalogTest + CustomerAddressTest + CustomerCatalogTest), 79/79 total suite pass, Pint clean; CRUD Katalog Layanan Admin & PWA Customer tanpa add-on selesai; Manajemen Alamat Customer PWA, pin peta Leaflet, validasi spasial ST_Contains wilayah aktif, alamat pertama otomatis jadi alamat utama, dan perpindahan domisili instan selesai |
-| **S4** | Pemesanan Terjadwal, Matching FCFS, & Jadwal Mitra | Belum Dimulai | - | - | Tergantung S2, S3 |
+| **S3** | Customer, Alamat Utama, Katalog, & Dompet Top-up | Selesai | 27 Okt 2026 | 28 Okt 2026 | 25/25 tests pass (ServiceCatalogTest, CustomerAddressTest, CustomerCatalogTest, CustomerWalletTest), 100/100 total suite pass, Pint clean; CRUD Katalog Layanan Admin & PWA Customer tanpa add-on selesai; Manajemen Alamat Customer PWA, pin peta Leaflet, validasi spasial ST_Contains wilayah aktif, alamat pertama otomatis jadi alamat utama, dan perpindahan domisili instan selesai; Skema Dompet, mutasi transaksi ledger atomik, pencegahan saldo negatif, top-up mandiri teratribusi wilayah (DEC-02), dan webhook Xendit selesai |
+| **S4** | Pemesanan Terjadwal, Matching FCFS, & Jadwal Mitra | Sedang Berjalan | 28 Okt 2026 | - | Items 1, 2, 3 (CUS-04, CUS-06, CUS-07, SYS-08) Selesai: 10/10 tests pass (OrderBookingTest), 110/110 total suite pass, Pint clean |
 | **S5** | Pemesanan Instan, Penawaran Sekuensial 60s, & Lock | Belum Dimulai | - | - | Tergantung S2, S3 |
 | **S6** | Pelaksanaan Layanan, Tracking OTW, Tiba 50m, Selesai | Belum Dimulai | - | - | Tergantung S2, S4, S5 |
 | **S7** | Pembatalan, Reschedule, Refund, & Potongan Kompensasi| Belum Dimulai | - | - | Tergantung S6 |
@@ -32,7 +32,31 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 
 ---
 
-## 3. Slice Aktif Saat Ini
+### 3. Slice Aktif Saat Ini
+
+- **Slice**: `S4` (Pemesanan Pelanggan Bagian 1: `CUS-04`, `CUS-06`, `CUS-07`, `SYS-08`) $\rightarrow$ **Selesai (Bagian 1)**.
+- **Hasil Sesi Ini**:
+  1. **Pemilihan Penerima Layanan (`CUS-04`)**:
+     - Pengguna dapat memilih memesan untuk "Diri Sendiri" atau "Orang Lain".
+     - Jika untuk diri sendiri, data nama, nomor telepon, dan gender otomatis terkunci dari profil pelanggan.
+     - Jika untuk orang lain, input nama lengkap, telepon/WhatsApp, dan pilihan jenis kelamin (Pria/Wanita) wajib diisi.
+     - Jenis kelamin penerima layanan terkunci menjadi acuan penugasan mitra (aturan ketat sesama gender).
+  2. **Pemilihan Waktu & Jam Operasional (`CUS-06`)**:
+     - Opsi pesanan Instan (Sekarang) atau Terjadwal.
+     - Pemesanan terjadwal divalidasi minimal 3 jam dari sekarang dan maksimal 7 hari ke depan.
+     - Validasi jam operasional wilayah (08:00 - 21:00 waktu setempat): Waktu mulai $\ge$ 08:00 dan waktu selesai (mulai + durasi paket) tidak boleh melebihi 21:00.
+  3. **Persetujuan Risiko & Catatan Medis Terenkripsi (`CUS-07`, `SYS-08`)**:
+     - Checkbox persetujuan risiko wajib dicentang dengan modal/teks SOP profesional (v1.0).
+     - Kolom catatan kondisi medis opsional tersimpan dalam kondisi terenkripsi di database menggunakan cast Eloquent `encrypted`.
+     - Data catatan medis terenkripsi terlindungi dan tidak ditampilkan kepada mitra pada penawaran awal broadcast.
+     - Rekaman audit mencatat `risk_agreement_version = 'v1.0'` dan `consent_timestamp` pada tabel `orders`.
+  4. **Antarmuka Pemesanan PWA Pelanggan**:
+     - Dibuat `resources/views/pelanggan/orders/create.blade.php` & `show.blade.php` dengan palet Emerald Green & Clean White, tap target $\ge$ 44px, tanpa em dash, dan bersih dari pola AI slop.
+     - Tombol "Pesan Layanan Sekarang" di katalog paket terhubung langsung ke checkout order.
+  5. **Pengujian & Kualitas Kode**:
+     - 10/10 feature tests di `tests/Feature/Pelanggan/OrderBookingTest.php` lulus 100%.
+     - **110/110 total test suite aplikasi berstatus hijau (pass)** dengan 469 assertions.
+     - Format kode diformat bersih via Laravel Pint.
 
 - **Slice**: `ADM-04` & `ADM-05` (Pemantauan Pesanan Wilayah & Penanganan Order Nyangkut / Stuck) $\rightarrow$ **Selesai Penuh**.
 - **Hasil Sesi Ini**:
@@ -89,8 +113,8 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 ---
 
 ## 6. Hal yang Perlu Diperhatikan Sesi Berikutnya
-- Porsi **Manajemen Alamat (`CUS-05`, `CUS-23`)**, **Katalog Layanan PWA Pelanggan (`CUS-03`)**, dan **Katalog Layanan Admin (`ADM-10`)** telah selesai dengan 79/79 test berstatus hijau.
-- Modul S3 berikutnya yang siap dikerjakan:
-  1. **CUS-16 / SYS-05 (Dompet Pelanggan & Transaksi Ledger Atomik)**: Tabel dompet, ledger mutasi saldo, proteksi saldo negatif, dan prasyarat kepemilikan Alamat Utama sebelum top-up (DEC-02).
-  2. **CUS-09 / SYS-05 (Integrasi Top-up & Simulasi Webhook Xendit)**: Form top-up saldo di PWA, invoice pending maks 15 menit, verifikasi signature webhook, dan penambahan saldo otomatis.
+- **Slice 3 (S3)** telah selesai sepenuhnya dengan 25 unit/feature test berstatus hijau dan total 100/100 test suite aplikasi berstatus pass.
+- Modul operasional berikutnya yang siap dikerjakan:
+  1. **Slice 4 (S4)**: Pemesanan Terjadwal, Matching FCFS, & Jadwal Ketersediaan Mitra (`CUS-04`, `CUS-06`, `CUS-07`, `MIT-04`).
+  2. **Slice 5 (S5)**: Pemesanan Instan, Penawaran Sekuensial 60s, & Slot Lock 5 Menit (`CUS-06`, `CUS-08`, `MIT-05`).
 
