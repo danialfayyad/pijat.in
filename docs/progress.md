@@ -94,6 +94,31 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
   3. Seluruh 79 test suite aplikasi berstatus hijau (pass), format kode bersih via Laravel Pint.
 
 
+- **Slice**: `S8 - Batch 2` (**Pusat Laporan Aduan Pelanggan & Mitra**: `ADM-08` + Master Kategori Super Admin) $\rightarrow$ **Selesai**.
+- **Slice**: `S8 - Batch 3 & 4` (**Sistem Poin Sanksi, Monitoring Akun, Peninjauan Banding `ADM-07`, & Penebusan Bintang 5**) $\rightarrow$ **Selesai Penuh**.
+- **Hasil Sesi Ini**:
+  1. **Transformasi Sistem Poin Sanksi & Penebusan Performa ([DEC-12])**:
+     - Menggantikan sistem manual SP dengan akumulasi poin sanksi dinamis. Bobot poin diatur pada master kategori aduan Super Admin (15 - 50 poin), dengan opsi input manual pada kategori "Keluhan Lainnya".
+     - Penegakan sanksi otomatis berdasarkan ambang batas (*threshold*):
+       - 30 Poin: Peringatan tertulis sistem
+       - 60 Poin: Pembekuan sementara (*suspend*) 3 hari kerja
+       - 100 Poin: Pembekuan sementara (*suspend*) 7 hari kerja
+       - 150 Poin: Pemblokiran akun permanen (*banned*)
+     - Buku besar audit trail mutasi poin lengkap pada tabel `penalty_ledgers`.
+  2. **Monitoring Panel Poin Sanksi & Akun Pengguna (`ADM-06`)**:
+     - Controller `PenaltyMonitoringController` dengan scoping wilayah tugas admin.
+     - Metrik ringkasan 1x4, tab filter status (*Semua*, *Peringatan*, *Tersuspend*, *Diblokir*), filter peran, pencarian cepat, dan detail audit pengguna dengan modal penyesuaian poin manual.
+  3. **Peninjauan Berkas Banding Sanksi (`ADM-07`)**:
+     - Migrasi dan model `penalty_appeals` dengan relasi ke pengguna, wilayah, kasus aduan, dan peninjau.
+     - Controller `PenaltyAppealController` (`index`, `show`, `approve`, `reject`).
+     - Alur persetujuan banding: Mengembalikan poin pengguna via `PenaltyService::reverseAppeal()`, memulihkan status akun dari pembekuan jika poin kembali di bawah ambang batas sanksi, dan mencatat log audit lengkap.
+  4. **Penebusan Poin Otomatis Berbasis Performa (Rating Bintang 5)**:
+     - Migrasi dan model `order_ratings`.
+     - `OrderRatingService`: Setiap pesanan yang diselesaikan dan diberi rating 5 bintang oleh pelanggan secara otomatis mengurangi 1 poin sanksi mitra (hingga batas bawah 0).
+  5. **Pengujian & Kualitas Kode**:
+     - Seluruh 134/134 test suite aplikasi berstatus hijau (pass) dengan 553 assertions.
+     - Kode terformat bersih via Laravel Pint dan build frontend sukses.
+
 ---
 
 ## 4. Daftar Keputusan Arsitektur Terkini (Decisions Log)
@@ -107,11 +132,16 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 - **[DEC-08] Pemisahan Tampilan Katalog Aktif & Nonaktif**: Halaman katalog memisahkan data layanan aktif (tersedia dipesan) dan nonaktif (diarsipkan/ditutup sementara). Navigasi dilakukan melalui stat card interaktif dan tombol redirect cepat (`Lihat Katalog Nonaktif` dan `Kembali ke Katalog Aktif`) dengan badge penghitung layanan secara real-time.
 - **[DEC-09] Modal Dialog Konfirmasi Interaktif Global (`<x-confirm-dialog />`)**: Menggantikan `window.confirm()` browser bawaan dengan modal dialog Alpine.js custom yang elegan dan konsisten. Desain terpusat (*centered circular icon with soft ring accent*), teks *to-the-point* tanpa badge berulang, serta mendukung varian kondisi `danger` (merah), `warning` (kuning/amber), dan `info/success` (hijau). Diterapkan pada Hapus Layanan, Nonaktifkan Layanan, Nonaktifkan Paket Durasi, Cabut Wilayah Penugasan Admin, dan Nonaktifkan Wilayah Layanan.
 - **[DEC-10] Standarisasi Header Bersih & Filter Wilayah Tabel**: Menghapus teks teknis modul (seperti `Modul Verifikasi Mitra (ADM-02)`) dan banner duplikasi data pada header dashboard admin. Filter multi-wilayah dipindahkan langsung ke header card tabel masing-masing agar relevan dan ergonomis.
+
+- **[DEC-11] Penghapusan Fitur Siaga Darurat (Panic Button / SOS)**: Sesuai arahan pengguna, modul Siaga Darurat (`ADM-13` dan elemen darurat `SA-07`) dihapus. Penanganan keluhan, komplain kualitas, maupun laporan kendala di lapangan dipusatkan melalui modul Pusat Laporan Aduan Pelanggan & Mitra (`ADM-08`).
+- **[DEC-12] Sistem Demerit Points & Penebusan Performa Otomatis**: Menggantikan sistem manual Surat Peringatan (SP 1, SP 2, SP 3) dengan akumulasi poin sanksi otomatis terukur (Ambang: 30 = Peringatan, 60 = Suspend 3 Hari, 100 = Suspend 7 Hari, 150 = Banned Permanen). Mitra dapat menebus poin pelanggaran secara adil melalui performa kerja nyata (setiap menyelesaikan pesanan dengan rating 5 bintang memotong 1 poin sanksi). Tersedia mekanisme pengajuan banding (`ADM-07`) dengan pengunggahan surat pernyataan yang ditinjau oleh Admin Wilayah.
+
 - **[DEC-11] Kebebasan Memilih Preferensi Gender Terapis (Opsi A)**: Sesuai kesepakatan produk terbaru, aturan restriksi kaku sesama jenis kelamin (*rigid same-gender lock*) dihapus. Pelanggan kini diberikan kebebasan penuh saat membuat pesanan (`orders/create`) untuk memilih preferensi terapis yang diinginkan (`preferred_gender`):
   1. `pria` (Khusus Terapis Pria)
   2. `wanita` (Khusus Terapis Wanita)
   3. `bebas` (Siapa Saja / Terapis Terdekat yang Tersedia - Paling Cepat)
   Pencarian instan (`InstantOrderMatchingService`) dan bursa pesanan terjadwal (`MitraOrderController@scheduled`) sepenuhnya menyaring kandidat mitra berdasarkan preferensi pelanggan ini, sehingga mitra pria maupun wanita dapat menerima pesanan pelanggan lintas gender jika pelanggan memilih opsi `bebas` atau gender yang bersangkutan.
+
 
 ---
 

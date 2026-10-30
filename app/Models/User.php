@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'nik', 'gender', 'date_of_birth', 'email', 'phone', 'role', 'status', 'region_id', 'password', 'phone_verified_at', 'rejection_reason', 'rejection_code'])]
+#[Fillable(['name', 'nik', 'gender', 'date_of_birth', 'email', 'phone', 'role', 'status', 'region_id', 'password', 'phone_verified_at', 'rejection_reason', 'rejection_code', 'penalty_points', 'suspended_until'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -38,6 +38,8 @@ class User extends Authenticatable
             'role' => Role::class,
             'status' => UserStatus::class,
             'date_of_birth' => 'date',
+            'penalty_points' => 'integer',
+            'suspended_until' => 'datetime',
         ];
     }
 
@@ -237,8 +239,23 @@ class User extends Authenticatable
     }
 
     /**
-     * Count completed orders as a partner.
+
+     * @return HasMany<Complaint, $this>
      */
+    public function complaintsAsTarget(): HasMany
+    {
+        return $this->hasMany(Complaint::class, 'target_id');
+    }
+
+    /**
+     * @return HasMany<Complaint, $this>
+     */
+    public function complaintsAsComplainant(): HasMany
+    {
+        return $this->hasMany(Complaint::class, 'complainant_id');
+
+
+    }
     public function completedOrdersCount(): int
     {
         return $this->ordersAsMitra()->where('status', OrderStatus::Selesai)->count();
@@ -250,6 +267,7 @@ class User extends Authenticatable
     public function partnerRating(): float
     {
         return 5.0;
+
     }
 
     /**
@@ -282,5 +300,23 @@ class User extends Authenticatable
         }
 
         return $this->canAccessRegion($regionId);
+    }
+
+    /**
+     * Check if user is currently suspended.
+     */
+    public function isSuspended(): bool
+    {
+        return $this->suspended_until !== null && $this->suspended_until->isFuture();
+    }
+
+    /**
+     * Get penalty ledgers for this user.
+     *
+     * @return HasMany<PenaltyLedger, $this>
+     */
+    public function penaltyLedgers(): HasMany
+    {
+        return $this->hasMany(PenaltyLedger::class);
     }
 }

@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\ComplaintController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PartnerVerificationController;
+use App\Http\Controllers\Admin\PenaltyAppealController;
+use App\Http\Controllers\Admin\PenaltyMonitoringController;
 use App\Http\Controllers\Admin\ServiceCatalogController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +21,29 @@ Route::middleware(['auth', 'role:admin,superadmin', 'admin.region'])->prefix('ad
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+
+    // Complaint Center / Laporan Aduan (ADM-08)
+    Route::get('/complaints', [ComplaintController::class, 'index'])->name('complaints.index');
+    Route::get('/complaints/{complaint}', [ComplaintController::class, 'show'])->name('complaints.show');
+    Route::post('/complaints/{complaint}/process', [ComplaintController::class, 'process'])->name('complaints.process');
+    Route::post('/complaints/{complaint}/resolve', [ComplaintController::class, 'resolve'])->name('complaints.resolve');
+    Route::post('/complaints/{complaint}/reject', [ComplaintController::class, 'reject'])->name('complaints.reject');
+
+    // Demerit Points & Penalty Monitoring (ADM-06)
+    Route::get('/penalties', [PenaltyMonitoringController::class, 'index'])->name('penalties.index');
+    Route::get('/penalties/{user}', [PenaltyMonitoringController::class, 'show'])->name('penalties.show');
+    Route::post('/penalties/{user}/adjust', [PenaltyMonitoringController::class, 'adjust'])->name('penalties.adjust');
+
+    // Penalty Appeals Review (ADM-07)
+    Route::get('/appeals', [PenaltyAppealController::class, 'index'])->name('appeals.index');
+    Route::get('/appeals/{appeal}', [PenaltyAppealController::class, 'show'])->name('appeals.show');
+    Route::post('/appeals/{appeal}/approve', [PenaltyAppealController::class, 'approve'])->name('appeals.approve');
+    Route::post('/appeals/{appeal}/reject', [PenaltyAppealController::class, 'reject'])->name('appeals.reject');
+
+    // Demerit Points & Penalty Monitoring (ADM-06)
+    Route::get('/penalties', [PenaltyMonitoringController::class, 'index'])->name('penalties.index');
+    Route::get('/penalties/{user}', [PenaltyMonitoringController::class, 'show'])->name('penalties.show');
+    Route::post('/penalties/{user}/adjust', [PenaltyMonitoringController::class, 'adjust'])->name('penalties.adjust');
 });
 
 // Global Service Catalog routes (permission: KATALOG)

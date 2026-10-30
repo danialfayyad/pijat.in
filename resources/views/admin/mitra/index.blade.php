@@ -18,9 +18,7 @@
                 <div>
                     <div class="flex items-center space-x-2.5">
                         <h3 class="font-bold text-slate-800 text-base">Menunggu Validasi Dokumen</h3>
-                        <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                            {{ $pendingPartners->count() }} Permohonan
-                        </span>
+                        <span class="text-xs text-slate-400 font-medium">({{ $pendingPartners->count() }} permohonan)</span>
                     </div>
                     <p class="text-xs text-slate-500 mt-0.5">Target SLA Peninjauan: 1 x 24 jam sejak pengajuan.</p>
                 </div>
@@ -58,36 +56,27 @@
                         @forelse ($pendingPartners as $mitra)
                             <tr class="hover:bg-slate-50/60 transition">
                                 <td class="px-5 py-3.5 font-semibold text-slate-800">
-                                    <div class="flex items-center space-x-2">
-                                        <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs uppercase">
-                                            {{ substr($mitra->name, 0, 1) }}
-                                        </div>
-                                        <span>{{ $mitra->name }}</span>
-                                    </div>
+                                    {{ $mitra->name }}
                                 </td>
                                 <td class="px-5 py-3.5">
-                                    <div class="font-mono text-slate-700">{{ $mitra->nik ?? '-' }}</div>
+                                    <div class="font-mono text-slate-700 text-xs">{{ $mitra->nik ?? '-' }}</div>
                                     <div class="text-[11px] text-slate-400">{{ $mitra->phone }}</div>
                                 </td>
-                                <td class="px-5 py-3.5">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        {{ $mitra->partnerProfile?->region?->name ?? 'Wilayah Tidak Ditemukan' }}
-                                    </span>
+                                <td class="px-5 py-3.5 text-slate-600 font-medium whitespace-nowrap">
+                                    {{ $mitra->partnerProfile?->region?->name ?? 'Wilayah Tidak Ditemukan' }}
                                 </td>
-                                <td class="px-5 py-3.5 font-mono text-[11px]">
-                                    {{ $mitra->primaryBankAccount?->bank_name ?? '-' }}
-                                    <span class="text-slate-400 block">{{ $mitra->primaryBankAccount?->account_number }}</span>
+                                <td class="px-5 py-3.5 text-[11px]">
+                                    <span class="font-semibold text-slate-700">{{ $mitra->primaryBankAccount?->bank_name ?? '-' }}</span>
+                                    <span class="text-slate-400 font-mono block">{{ $mitra->primaryBankAccount?->account_number }}</span>
                                 </td>
-                                <td class="px-5 py-3.5 text-slate-400 text-[11px]">
+                                <td class="px-5 py-3.5 text-slate-400 text-[11px] whitespace-nowrap">
                                     {{ $mitra->updated_at->diffForHumans() }}
                                 </td>
-                                <td class="px-5 py-3.5 text-right">
+                                <td class="px-5 py-3.5 text-right whitespace-nowrap">
                                     <a href="{{ route('admin.mitra.show', $mitra) }}" 
-                                        class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow-xs transition inline-flex items-center space-x-1">
+                                        class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-1">
                                         <span>Periksa Berkas</span>
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7m0 0l-7 7m7-7H3"/>
-                                        </svg>
+                                        <span>&rarr;</span>
                                     </a>
                                 </td>
                             </tr>

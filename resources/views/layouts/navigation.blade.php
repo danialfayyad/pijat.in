@@ -19,6 +19,9 @@
                         <x-nav-link :href="route('superadmin.admins.index')" :active="request()->routeIs('superadmin.admins.*')">
                             {{ __('Penugasan Admin') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('superadmin.complaint-categories.index')" :active="request()->routeIs('superadmin.complaint-categories.*')">
+                            {{ __('Kategori Aduan') }}
+                        </x-nav-link>
                     @elseif (Auth::user()->isAdmin())
                         <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
                             {{ __('Dashboard Wilayah') }}

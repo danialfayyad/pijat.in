@@ -24,23 +24,17 @@
         <!-- Filter Status Tabs -->
         <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['tab' => 'semua', 'page' => 1])) }}"
-               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center space-x-2 {{ $tab === 'semua' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80' }}">
-                <span>Semua</span>
-                <span class="px-1.5 py-0.5 rounded-full text-[10px] {{ $tab === 'semua' ? 'bg-emerald-700/80 text-white' : 'bg-slate-100 text-slate-600' }}">
-                    {{ $totalCount }}
-                </span>
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $tab === 'semua' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+                Semua
             </a>
 
             <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['tab' => 'aktif', 'page' => 1])) }}"
-               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center space-x-2 {{ $tab === 'aktif' ? 'bg-blue-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80' }}">
-                <span>Pesanan Aktif</span>
-                <span class="px-1.5 py-0.5 rounded-full text-[10px] {{ $tab === 'aktif' ? 'bg-blue-700/80 text-white' : 'bg-slate-100 text-slate-600' }}">
-                    {{ $activeCount }}
-                </span>
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $tab === 'aktif' ? 'bg-blue-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+                Pesanan Aktif
             </a>
 
             <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['tab' => 'macet', 'page' => 1])) }}"
-               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center space-x-2 {{ $tab === 'macet' ? 'bg-amber-500 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80' }}">
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center space-x-2 {{ $tab === 'macet' ? 'bg-amber-500 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
                 <span class="relative flex h-2 w-2">
                     @if ($stuckCount > 0)
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
@@ -48,25 +42,16 @@
                     <span class="relative inline-flex rounded-full h-2 w-2 {{ $tab === 'macet' ? 'bg-white' : 'bg-amber-500' }}"></span>
                 </span>
                 <span>Pesanan Macet</span>
-                <span class="px-1.5 py-0.5 rounded-full text-[10px] {{ $tab === 'macet' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-700 font-bold border border-amber-200' }}">
-                    {{ $stuckCount }}
-                </span>
             </a>
 
             <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['tab' => 'selesai', 'page' => 1])) }}"
-               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center space-x-2 {{ $tab === 'selesai' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80' }}">
-                <span>Selesai</span>
-                <span class="px-1.5 py-0.5 rounded-full text-[10px] {{ $tab === 'selesai' ? 'bg-emerald-700/80 text-white' : 'bg-slate-100 text-slate-600' }}">
-                    {{ $completedCount }}
-                </span>
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $tab === 'selesai' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+                Selesai
             </a>
 
             <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['tab' => 'batal', 'page' => 1])) }}"
-               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center space-x-2 {{ $tab === 'batal' ? 'bg-rose-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80' }}">
-                <span>Dibatalkan</span>
-                <span class="px-1.5 py-0.5 rounded-full text-[10px] {{ $tab === 'batal' ? 'bg-rose-700/80 text-white' : 'bg-slate-100 text-slate-600' }}">
-                    {{ $cancelledCount }}
-                </span>
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $tab === 'batal' ? 'bg-rose-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+                Dibatalkan
             </a>
         </div>
 
@@ -169,34 +154,28 @@
                                 <!-- Mitra Terapis -->
                                 <td class="px-5 py-3.5">
                                     @if ($order->mitra)
-                                        <div class="flex items-center space-x-2">
-                                            <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-[10px] uppercase">
-                                                {{ substr($order->mitra->name, 0, 1) }}
-                                            </div>
-                                            <span class="font-semibold text-slate-800">{{ $order->mitra->name }}</span>
-                                        </div>
+                                        <span class="font-medium text-slate-800">{{ $order->mitra->name }}</span>
                                     @else
                                         <span class="text-slate-400 font-medium">-</span>
                                     @endif
                                 </td>
 
                                 <!-- Wilayah -->
-                                <td class="px-5 py-3.5">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                                        {{ $order->region->name }}
-                                    </span>
+                                <td class="px-5 py-3.5 text-slate-600 font-medium whitespace-nowrap">
+                                    {{ $order->region->name }}
                                 </td>
 
                                 <!-- Status -->
                                 <td class="px-5 py-3.5 whitespace-nowrap">
-                                    <div class="flex flex-col items-start gap-1">
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold border {{ $order->status->badgeClasses() }}">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700">
+                                            <span class="w-1.5 h-1.5 rounded-full {{ $order->status->dotClass() }}"></span>
                                             {{ $order->status->label() }}
                                         </span>
 
                                         @if ($order->isStuck())
-                                            <span class="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-ping"></span>
+                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
                                                 <span>Macet</span>
                                             </span>
                                         @endif
@@ -204,13 +183,11 @@
                                 </td>
 
                                 <!-- Aksi -->
-                                <td class="px-5 py-3.5 text-right">
+                                <td class="px-5 py-3.5 text-right whitespace-nowrap">
                                     <a href="{{ route('admin.orders.show', $order) }}"
-                                       class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition inline-flex items-center space-x-1">
+                                       class="text-xs font-semibold text-slate-700 hover:text-emerald-700 hover:underline inline-flex items-center gap-1">
                                         <span>Detail</span>
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7m0 0l-7 7m7-7H3"/>
-                                        </svg>
+                                        <span>&rarr;</span>
                                     </a>
                                 </td>
                             </tr>

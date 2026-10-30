@@ -27,6 +27,9 @@ class DatabaseSeeder extends Seeder
             RoleLoginSeeder::class,
             ServiceCatalogSeeder::class,
             OrderSeeder::class,
+            ComplaintCategorySeeder::class,
+            ComplaintSeeder::class,
+            PenaltySeeder::class,
         ]);
     }
 }
