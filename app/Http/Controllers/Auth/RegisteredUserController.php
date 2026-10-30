@@ -33,7 +33,6 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'nik' => ['required', 'digits:16', Rule::unique(User::class, 'nik')],
             'name' => ['required', 'string', 'max:255'],
             'gender' => ['required', Rule::in(['laki-laki', 'perempuan'])],
             'date_of_birth' => ['nullable', 'date', 'before:today'],
@@ -43,7 +42,6 @@ class RegisteredUserController extends Controller
         ]);
 
         $user = User::create([
-            'nik' => $request->nik,
             'name' => $request->name,
             'gender' => $request->gender,
             'date_of_birth' => $request->date_of_birth,

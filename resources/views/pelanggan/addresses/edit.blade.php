@@ -99,27 +99,20 @@
                     @enderror
                 </div>
 
-                <!-- Coordinates Hidden/Readonly -->
-                <div class="grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-500 mb-0.5">Latitude</label>
-                        <input type="text" id="lat" name="latitude" value="{{ old('latitude', $address->latitude) }}" readonly
-                            class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 font-mono text-xs text-slate-700">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-500 mb-0.5">Longitude</label>
-                        <input type="text" id="lng" name="longitude" value="{{ old('longitude', $address->longitude) }}" readonly
-                            class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 font-mono text-xs text-slate-700">
-                    </div>
-                </div>
+                <!-- Coordinates Hidden -->
+                <input type="hidden" id="lat" name="latitude" value="{{ old('latitude', $address->latitude) }}">
+                <input type="hidden" id="lng" name="longitude" value="{{ old('longitude', $address->longitude) }}">
 
                 <!-- Alamat Lengkap & Patokan -->
                 <div class="space-y-3 pt-2 border-t border-slate-100">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">
-                            Alamat Lengkap <span class="text-rose-500">*</span>
-                        </label>
-                        <textarea name="address_text" rows="2" required placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, kecamatan..."
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-semibold text-slate-700">
+                                Alamat Lengkap <span class="text-rose-500">*</span>
+                            </label>
+                            <span id="geo-status" class="text-[11px] text-emerald-700 font-medium">Otomatis terisi saat pin peta dipindahkan</span>
+                        </div>
+                        <textarea id="address_text" name="address_text" rows="2" required placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, kecamatan..."
                             class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-emerald-600 focus:ring-emerald-600">{{ old('address_text', $address->address_text) }}</textarea>
                         @error('address_text') <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p> @enderror
                     </div>
@@ -179,9 +172,40 @@
                 draggable: true
             }).addTo(map);
 
+            let geocodeTimeout = null;
+            function reverseGeocode(lat, lng) {
+                const addressInput = document.getElementById('address_text');
+                const geoStatus = document.getElementById('geo-status');
+                if (!addressInput) return;
+
+                if (geoStatus) {
+                    geoStatus.textContent = 'Mendeteksi alamat...';
+                }
+
+                clearTimeout(geocodeTimeout);
+                geocodeTimeout = setTimeout(() => {
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data && data.display_name) {
+                                addressInput.value = data.display_name;
+                                if (geoStatus) {
+                                    geoStatus.textContent = '✓ Alamat diperbarui dari peta';
+                                }
+                            } else {
+                                if (geoStatus) geoStatus.textContent = 'Otomatis terisi saat pin peta dipindahkan';
+                            }
+                        })
+                        .catch(() => {
+                            if (geoStatus) geoStatus.textContent = 'Otomatis terisi saat pin peta dipindahkan';
+                        });
+                }, 400);
+            }
+
             function updateInputs(lat, lng) {
                 document.getElementById('lat').value = lat.toFixed(6);
                 document.getElementById('lng').value = lng.toFixed(6);
+                reverseGeocode(lat, lng);
             }
 
             marker.on('dragend', function (e) {

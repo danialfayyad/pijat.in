@@ -18,6 +18,11 @@ class OrderBookingService
 {
     public const RISK_AGREEMENT_VERSION = 'v1.0';
 
+    public function __construct(
+        protected InstantOrderMatchingService $matchingService,
+        protected WalletService $walletService,
+    ) {}
+
     /**
      * Validate and create an order from customer booking request.
      *
@@ -46,17 +51,27 @@ class OrderBookingService
         if ($recipientType === 'myself') {
             $recipientName = $customer->name;
             $recipientPhone = $customer->phone ?? ($data['recipient_phone'] ?? '');
-            $recipientGender = strtolower((string) $customer->gender);
+            $rawGender = strtolower(trim((string) $customer->gender));
+            $recipientGender = match ($rawGender) {
+                'laki-laki', 'pria', 'l' => 'pria',
+                'perempuan', 'wanita', 'p' => 'wanita',
+                default => null,
+            };
 
-            if (! in_array($recipientGender, ['pria', 'wanita'], true)) {
+            if (! $recipientGender) {
                 throw ValidationException::withMessages([
-                    'recipient_gender' => 'Profil Anda belum memiliki data jenis kelamin yang valid (pria/wanita).',
+                    'recipient_gender' => 'Profil akun Anda belum memiliki data jenis kelamin yang valid (Laki-laki / Perempuan). Silakan perbarui profil Anda terlebih dahulu.',
                 ]);
             }
         } else {
             $recipientName = trim((string) ($data['recipient_name'] ?? ''));
             $recipientPhone = trim((string) ($data['recipient_phone'] ?? ''));
-            $recipientGender = strtolower(trim((string) ($data['recipient_gender'] ?? '')));
+            $rawGender = strtolower(trim((string) ($data['recipient_gender'] ?? '')));
+            $recipientGender = match ($rawGender) {
+                'laki-laki', 'pria', 'l' => 'pria',
+                'perempuan', 'wanita', 'p' => 'wanita',
+                default => null,
+            };
 
             $recipientErrors = [];
             if ($recipientName === '') {
@@ -67,8 +82,8 @@ class OrderBookingService
                 $recipientErrors['recipient_phone'] = 'Nomor telepon penerima layanan wajib diisi.';
             }
 
-            if (! in_array($recipientGender, ['pria', 'wanita'], true)) {
-                $recipientErrors['recipient_gender'] = 'Pilih jenis kelamin penerima layanan (pria/wanita).';
+            if (! $recipientGender) {
+                $recipientErrors['recipient_gender'] = 'Pilih jenis kelamin penerima layanan (Laki-laki / Perempuan).';
             }
 
             if (! empty($recipientErrors)) {
@@ -76,12 +91,32 @@ class OrderBookingService
             }
         }
 
-        // 2. Validate Order Type & Time (CUS-06)
+        // 2. Validate Order Type & Time (CUS-06 & CUS-08)
         $orderTypeInput = $data['order_type'] ?? 'terjadwal';
         $orderType = $orderTypeInput === 'instan' ? OrderType::Instan : OrderType::Terjadwal;
         $scheduledStartTime = null;
 
-        if ($orderType === OrderType::Terjadwal) {
+        $preferredGender = strtolower(trim((string) ($data['preferred_gender'] ?? 'bebas')));
+        if (! in_array($preferredGender, ['pria', 'wanita', 'bebas'], true)) {
+            $preferredGender = 'bebas';
+        }
+
+        if ($orderType === OrderType::Instan) {
+            // Check available online partners within 5 km respecting preferred gender (CUS-08)
+            $hasPartner = $this->matchingService->hasAvailablePartners(
+                (float) $address->latitude,
+                (float) $address->longitude,
+                $preferredGender,
+                (int) $address->region_id,
+                (int) $package->service_id
+            );
+
+            if (! $hasPartner) {
+                throw ValidationException::withMessages([
+                    'order_type' => 'Saat ini tidak ada mitra terapis online yang tersedia di sekitar lokasi Anda (radius 5 km). Silakan beralih ke pemesanan Terjadwal.',
+                ]);
+            }
+        } else {
             $scheduledDate = $data['scheduled_date'] ?? null;
             $scheduledTime = $data['scheduled_time'] ?? null;
 
@@ -151,6 +186,7 @@ class OrderBookingService
             $recipientName,
             $recipientPhone,
             $recipientGender,
+            $preferredGender,
             $orderType,
             $scheduledStartTime,
             $medicalNotes
@@ -178,6 +214,7 @@ class OrderBookingService
                 'recipient_type' => $recipientType,
                 'recipient_name' => $recipientName,
                 'recipient_gender' => $recipientGender,
+                'preferred_gender' => $preferredGender,
                 'recipient_phone' => $recipientPhone,
                 'service_address_text' => $fullAddress,
                 'service_coordinate' => ['lat' => (float) $address->latitude, 'lng' => (float) $address->longitude],
@@ -197,6 +234,35 @@ class OrderBookingService
                 'actor_role' => 'pelanggan',
                 'note' => 'Pesanan baru dibuat oleh pelanggan.',
             ]);
+
+            // Automatic payment via wallet balance if sufficient (CUS-09)
+            $wallet = $customer->getOrCreateWallet();
+            if ((float) $wallet->balance >= (float) $package->price) {
+                $this->walletService->debit(
+                    $customer,
+                    (float) $package->price,
+                    'order_payment',
+                    (string) $order->id,
+                    'Pembayaran pesanan '.$order->order_code,
+                    $address->region_id
+                );
+
+                $order->update(['status' => OrderStatus::MencariMitra]);
+
+                OrderStatusHistory::create([
+                    'order_id' => $order->id,
+                    'from_status' => OrderStatus::MenungguPembayaran->value,
+                    'to_status' => OrderStatus::MencariMitra->value,
+                    'actor_id' => $customer->id,
+                    'actor_role' => 'pelanggan',
+                    'note' => 'Pembayaran lunas via Saldo Dompet. Pesanan masuk antrean pencarian mitra.',
+                ]);
+
+                // For instant order, start 60s sequential offer dispatch (SYS-01 & MIT-05)
+                if ($orderType === OrderType::Instan) {
+                    $this->matchingService->dispatchNextOffer($order);
+                }
+            }
 
             return $order;
         });

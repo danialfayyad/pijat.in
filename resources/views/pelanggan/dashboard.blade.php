@@ -50,7 +50,79 @@
             </div>
         </div>
 
-        <!-- Strict Gender Safety Banner (DEC-05 / BRD Rule) -->
+        @if ($activeOrders->isNotEmpty())
+            <!-- Pesanan Berjalan / Menunggu Pembayaran -->
+            <div class="space-y-3 pt-1">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Pesanan Sedang Berjalan</h3>
+                    </div>
+                    <a href="{{ route('pelanggan.orders.index') }}" class="min-h-[44px] inline-flex items-center text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer">
+                        Semua Riwayat
+                    </a>
+                </div>
+
+                <div class="space-y-2.5">
+                    @foreach ($activeOrders as $activeOrder)
+                        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:border-slate-300 transition space-y-3">
+                            <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                                <div class="flex items-center space-x-2 text-xs">
+                                    <span class="font-mono text-slate-400 font-bold text-[11px]">{{ $activeOrder->order_code }}</span>
+                                    <span class="text-slate-300">•</span>
+                                    <span class="font-medium text-slate-600">
+                                        @if ($activeOrder->order_type->value === 'instan')
+                                            <span class="text-emerald-700 font-semibold">Pesanan Instan</span>
+                                        @else
+                                            {{ $activeOrder->scheduled_start_time?->translatedFormat('d M Y, H:i') }} WIB
+                                        @endif
+                                    </span>
+                                </div>
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold shrink-0 {{ $activeOrder->status->badgeClasses() }}">
+                                    {{ $activeOrder->status->label() }}
+                                </span>
+                            </div>
+
+                            <div class="space-y-1">
+                                <h4 class="text-sm font-extrabold text-slate-900 leading-snug">{{ $activeOrder->service_name }}</h4>
+                                <div class="text-xs text-slate-500 flex items-center space-x-2">
+                                    <span>{{ $activeOrder->duration_minutes }} Menit</span>
+                                    <span class="text-slate-300">•</span>
+                                    <span>Terapis: {{ ucfirst($activeOrder->preferred_gender ?? 'Bebas') }}</span>
+                                </div>
+                            </div>
+
+                            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                                <div>
+                                    <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">Total Tagihan</span>
+                                    <span class="font-black text-slate-900 font-mono text-base leading-tight">Rp {{ number_format($activeOrder->total_price, 0, ',', '.') }}</span>
+                                </div>
+
+                                @if ($activeOrder->status === \App\Enums\OrderStatus::MenungguPembayaran)
+                                    <a href="{{ route('pelanggan.orders.show', $activeOrder) }}" 
+                                       class="min-h-[40px] px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-bold text-xs shadow-xs transition flex items-center space-x-1.5 cursor-pointer">
+                                        <span>Bayar Sekarang</span>
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </a>
+                                @else
+                                    <a href="{{ route('pelanggan.orders.show', $activeOrder) }}" 
+                                       class="min-h-[40px] px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-bold text-xs shadow-xs transition flex items-center space-x-1.5 cursor-pointer">
+                                        <span>Lacak & Rincian</span>
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+        <!-- Bebas Preferensi Gender Terapis (Opsi A) -->
         <div class="bg-emerald-50/90 border border-emerald-200 rounded-2xl p-4 flex items-start space-x-3.5">
             <div class="w-9 h-9 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -58,9 +130,9 @@
                 </svg>
             </div>
             <div class="text-xs">
-                <span class="font-bold text-emerald-950 block leading-tight">Protokol Keamanan Sesama Gender</span>
+                <span class="font-bold text-emerald-950 block leading-tight">Pilihan Bebas Preferensi Terapis</span>
                 <p class="text-[11px] text-emerald-800 leading-relaxed mt-1">
-                    Terapis yang melayani Anda dipastikan bergender sama demi kenyamanan dan rasa aman maksimal.
+                    Anda bebas memilih preferensi terapis pria, wanita, atau siapa saja demi kenyamanan maksimal.
                 </p>
             </div>
         </div>

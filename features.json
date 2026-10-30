@@ -156,7 +156,7 @@
                 "Jika tidak ada mitra online yang memenuhi syarat, sistem menampilkan modal informasi dan menawarkan opsi beralih ke jadwal terjadwal."
             ],
             "verification": "Simulasi kondisi 0 mitra online di wilayah layanan, pastikan prompt beralih ke terjadwal muncul.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-09",
@@ -196,7 +196,7 @@
                 "Saat OTW, estimasi waktu kedatangan mitra tampil dan posisi diperbarui setiap 30 detik."
             ],
             "verification": "Verifikasi tampilan tracking pada status Mencari Mitra, Dijadwalkan, OTW di PWA Customer.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-11",
@@ -527,7 +527,7 @@
                 "Lokasi koordinat mitra diperbarui ke server setiap 5 menit saat Online."
             ],
             "verification": "Uji aktivasi status Online pada akun belum terverifikasi (gagal) dan terverifikasi (sukses).",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-05",
@@ -547,7 +547,7 @@
                 "Jika mitra menekan Terima, status pesanan menjadi DIJADWALKAN dan alamat lengkap layanan terbuka."
             ],
             "verification": "Simulasi pengiriman tawaran instan ke mitra terdekat, uji terima dalam 60s dan timeout 60s.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-06",
@@ -566,7 +566,7 @@
                 "Jika pesanan sudah diambil mitra lain, sistem menampilkan notifikasi bahwa pesanan telah terisi."
             ],
             "verification": "Simulasi 2 mitra mengambil 1 pesanan terjadwal secara bersamaan; pastikan hanya 1 yang berhasil.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-07",
@@ -585,7 +585,7 @@
                 "Catatan kondisi medis penerima (jika ada) terbuka dan dapat dibaca mitra di layar ini."
             ],
             "verification": "Buka menu Jadwal Saya setelah mengambil pesanan, pastikan catatan medis tampil.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-08",
@@ -603,7 +603,7 @@
                 "Sistem tidak akan menawarkan pesanan atau menampilkan pesanan di bursa jika layanannya dinonaktifkan oleh mitra."
             ],
             "verification": "Nonaktifkan Layanan X di profil mitra, pastikan pesanan dengan Layanan X tidak ditawarkan.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-09",
@@ -1329,7 +1329,7 @@
                 "Mitra yang menolak tidak ditawari kembali untuk pesanan yang sama."
             ],
             "verification": "Simulasi penawaran sekuensial instan di backend, verifikasi perpindahan tawaran setelah 60 detik timeout.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "SYS-02",

@@ -25,21 +25,8 @@
                     </span>
                     <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">Berkas Anda Sedang Ditinjau</h3>
                     <p class="text-xs text-slate-600 mt-2 max-w-md mx-auto leading-relaxed">
-                        Terima kasih telah melengkapi data pendaftaran. Tim Admin Wilayah kami sedang memvalidasi keaslian dokumen KTP, foto selfie, dan rekening bank Anda.
+                        Hasil verifikasi akan diperbarui otomatis di halaman ini dalam 1 x 24 Jam.
                     </p>
-                </div>
-
-                <!-- SLA 24 Hours Box -->
-                <div class="p-4 rounded-xl bg-emerald-50/80 border border-emerald-200 max-w-md mx-auto flex items-center space-x-3 text-left">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-xs">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="text-xs font-bold text-emerald-950">Target SLA Peninjauan: 1 x 24 Jam</div>
-                        <div class="text-xs text-emerald-800">Hasil verifikasi akan diperbarui otomatis di halaman ini.</div>
-                    </div>
                 </div>
 
                 <!-- Application Summary -->
@@ -73,49 +60,64 @@
             </div>
 
         @elseif ($user->isDitolak())
-            <!-- Rejected Card with Repair Button (MIT-03) -->
-            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-6 text-center space-y-5">
-                <div class="w-16 h-16 mx-auto rounded-2xl bg-rose-50 text-rose-700 border border-rose-200 flex items-center justify-center">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </div>
+            <!-- Rejected Card with Clean Human Feedback -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-6 space-y-5">
+                <!-- Status Icon & Title -->
+                <div class="text-center">
+                    <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-rose-50 text-rose-600 ring-8 ring-rose-50/70 flex items-center justify-center">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
 
-                <div>
-                    <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-900 border border-rose-200 mb-2">
-                        Pendaftaran Ditolak
+                    <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200 mb-2">
+                        Pendaftaran Perlu Perbaikan
                     </span>
-                    <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">Berkas Belum Memenuhi Syarat</h3>
+                    <h3 class="text-lg font-bold text-slate-900 tracking-tight">Berkas Belum Memenuhi Syarat</h3>
                     <p class="text-xs text-slate-600 mt-2 max-w-md mx-auto leading-relaxed">
-                        Admin wilayah menemukan ketidaksesuaian pada dokumen yang Anda kirimkan. Anda dapat memperbaikinya sekarang.
+                        {{ $user->rejection_reason ?? 'Dokumen KTP atau rekening tidak terbaca jelas.' }}
                     </p>
                 </div>
 
-                <!-- Rejection Reason Alert Box -->
-                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 max-w-md mx-auto text-left space-y-1">
-                    <div class="text-xs font-bold uppercase tracking-wider text-rose-800">Alasan Penolakan dari Admin:</div>
-                    <div class="text-xs font-semibold text-rose-950">
-                        {{ $user->rejection_reason ?? 'Dokumen KTP atau rekening tidak terbaca jelas.' }}
+                <!-- Ringkasan Data Terdaftar -->
+                <div class="bg-slate-50 rounded-xl p-4 text-left text-xs space-y-2.5 border border-slate-200/80">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                        Data Pendaftaran Terakhir:
+                    </div>
+                    <div class="flex justify-between pb-2 border-b border-slate-200/60">
+                        <span class="text-slate-600">Nama Pemohon:</span>
+                        <span class="font-bold text-slate-900">{{ $user->name }}</span>
+                    </div>
+                    <div class="flex justify-between pb-2 border-b border-slate-200/60">
+                        <span class="text-slate-600">NIK:</span>
+                        <span class="font-mono text-slate-900">{{ substr($user->nik, 0, 6) . '******' . substr($user->nik, -4) }}</span>
+                    </div>
+                    <div class="flex justify-between pb-2 border-b border-slate-200/60">
+                        <span class="text-slate-600">Wilayah Layanan:</span>
+                        <span class="font-semibold text-emerald-800">{{ $user->partnerProfile?->region?->name ?? 'Terdeteksi' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-600">Rekening Pencairan:</span>
+                        <span class="font-mono text-slate-900">{{ $user->primaryBankAccount?->bank_name }} ({{ $user->primaryBankAccount?->account_number }})</span>
                     </div>
                 </div>
 
-                <div>
-                    <a href="{{ route('mitra.onboarding') }}" 
-                        class="min-h-[48px] px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-sm transition inline-flex items-center justify-center space-x-2 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                        </svg>
-                        <span>Perbaiki Data & Unggah Ulang Berkas</span>
-                    </a>
-                </div>
-
-                <div class="pt-2">
-                    <form method="POST" action="{{ route('logout') }}">
+                <!-- Tombol Aksi: Kiri Keluar, Kanan Unggah Ulang -->
+                <div class="pt-1 flex items-center space-x-3">
+                    <form method="POST" action="{{ route('logout') }}" class="w-1/2">
                         @csrf
-                        <button type="submit" class="min-h-[44px] text-xs font-semibold text-slate-500 hover:text-slate-800 transition cursor-pointer">
+                        <button type="submit" class="w-full min-h-[46px] py-2.5 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs rounded-xl shadow-2xs transition flex items-center justify-center cursor-pointer">
                             Keluar dari Akun
                         </button>
                     </form>
+
+                    <a href="{{ route('mitra.onboarding') }}" 
+                        class="w-1/2 min-h-[46px] py-2.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                        </svg>
+                        <span>Unggah Ulang</span>
+                    </a>
                 </div>
             </div>
         @endif

@@ -23,10 +23,14 @@ Route::middleware(['auth', 'role:pelanggan'])->prefix('pelanggan')->name('pelang
     Route::post('/addresses/{address}/primary', [AddressController::class, 'setPrimary'])->name('addresses.set-primary');
     Route::delete('/addresses/{address}', [AddressController::class, 'destroy'])->name('addresses.destroy');
 
-    // Customer Orders & Booking (Slice 4: CUS-04, CUS-06, CUS-07, SYS-08)
+    // Customer Orders & Booking (Slice 4 & 5: CUS-04, CUS-06, CUS-07, CUS-08, SYS-08)
+    Route::get('/orders', [OrderBookingController::class, 'index'])->name('orders.index');
+    Route::get('/orders/check-instant', [OrderBookingController::class, 'checkInstantAvailability'])->name('orders.check-instant');
     Route::get('/orders/create', [OrderBookingController::class, 'create'])->name('orders.create');
     Route::post('/orders', [OrderBookingController::class, 'store'])->name('orders.store');
     Route::get('/orders/{order}', [OrderBookingController::class, 'show'])->name('orders.show');
+    Route::post('/orders/{order}/pay', [OrderBookingController::class, 'payWithWallet'])->name('orders.pay');
+    Route::post('/orders/{order}/cancel', [OrderBookingController::class, 'cancel'])->name('orders.cancel');
 
     // Customer Wallet & Top-up (CUS-16, SYS-05)
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
