@@ -147,37 +147,31 @@
                     <tbody class="divide-y divide-slate-100">
                         @forelse ($regions as $region)
                             <tr class="hover:bg-slate-50/60 transition">
-                                <td class="px-5 py-3.5 font-semibold text-slate-800 flex items-center">
-                                    <span class="w-2 h-2 rounded-full mr-2 {{ $region->status === 'aktif' ? 'bg-emerald-500' : 'bg-slate-300' }}"></span>
+                                <td class="px-5 py-3.5 font-semibold text-slate-800">
                                     {{ $region->name }}
                                 </td>
                                 <td class="px-5 py-3.5 text-slate-500 font-mono text-[11px]">
                                     {{ $region->timezone }}
                                 </td>
                                 <td class="px-5 py-3.5">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium {{ $region->admin_assignments_count > 0 ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-600' }}">
-                                        {{ $region->admin_assignments_count }} Admin
+                                    <span class="font-bold text-slate-800 text-xs">{{ $region->admin_assignments_count }}</span>
+                                    <span class="text-slate-400 text-xs">Admin</span>
+                                </td>
+                                <td class="px-5 py-3.5 whitespace-nowrap">
+                                    <span class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $region->status === 'aktif' ? 'bg-emerald-500' : 'bg-slate-300' }}"></span>
+                                        {{ $region->status === 'aktif' ? 'Aktif' : 'Nonaktif' }}
                                     </span>
                                 </td>
-                                <td class="px-5 py-3.5">
-                                    @if ($region->status === 'aktif')
-                                        <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            Aktif
-                                        </span>
-                                    @else
-                                        <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                                            Nonaktif
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="px-5 py-3.5 text-right space-x-1.5">
+                                <td class="px-5 py-3.5 text-right whitespace-nowrap">
                                     @if ($region->status === 'nonaktif')
                                         <form method="POST" action="{{ route('superadmin.regions.activate', $region) }}" class="inline-block">
                                             @csrf
                                             <button type="submit" 
-                                                class="px-2.5 py-1 text-xs font-semibold rounded-lg transition shadow-xs {{ ($region->admin_assignments_count >= 1) ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}"
+                                                class="text-xs font-semibold {{ ($region->admin_assignments_count >= 1) ? 'text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer' : 'text-slate-300 cursor-not-allowed' }}"
                                                 {{ ($region->admin_assignments_count >= 1) ? '' : 'disabled title=Belum memiliki minimal 1 admin bertugas' }}>
-                                                Aktifkan
+                                                <span>Aktifkan</span>
+                                                <span>&rarr;</span>
                                             </button>
                                         </form>
                                     @else
@@ -191,8 +185,9 @@
                                                     confirmText: 'Nonaktifkan',
                                                     form: this.closest('form')
                                                 })"
-                                                class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-lg transition cursor-pointer">
-                                                Nonaktifkan
+                                                class="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer">
+                                                <span>Nonaktifkan</span>
+                                                <span>&rarr;</span>
                                             </button>
                                         </form>
                                     @endif

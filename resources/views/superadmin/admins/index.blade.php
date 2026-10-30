@@ -312,28 +312,25 @@
                                     {{ $admin->email }}
                                 </td>
                                 <td class="px-5 py-3.5">
-                                    <div class="flex flex-wrap items-center gap-1.5">
+                                    <div class="flex flex-wrap items-center gap-1 text-xs">
                                         @forelse ($admin->assignedRegions->take(3) as $assigned)
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200/60">
-                                                {{ $assigned->name }}
-                                            </span>
+                                            <span class="text-slate-700 font-medium">{{ $assigned->name }}@if(!$loop->last && ($loop->index < 2 || $admin->assignedRegions->count() <= 3)),@endif</span>
                                         @empty
                                             <span class="text-slate-400 italic">Belum ada wilayah binaan</span>
                                         @endforelse
 
                                         @if ($admin->assignedRegions->count() > 3)
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <span class="text-slate-400 text-[11px]">
                                                 +{{ $admin->assignedRegions->count() - 3 }} lainnya
                                             </span>
                                         @endif
                                     </div>
                                 </td>
-                                <td class="px-5 py-3.5 text-center font-medium text-slate-700">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold {{ $admin->assignedRegions->count() > 0 ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-500' }}">
-                                        {{ $admin->assignedRegions->count() }} Kota
-                                    </span>
+                                <td class="px-5 py-3.5 text-center">
+                                    <span class="font-bold text-slate-800 text-xs">{{ $admin->assignedRegions->count() }}</span>
+                                    <span class="text-slate-400 text-xs">Kota</span>
                                 </td>
-                                <td class="px-5 py-3.5 text-right">
+                                <td class="px-5 py-3.5 text-right whitespace-nowrap">
                                     <button type="button" 
                                         id="btn-kelola-wilayah-{{ $admin->id }}"
                                         @click="openManageModal({
@@ -342,11 +339,9 @@
                                             email: '{{ addslashes($admin->email) }}',
                                             regions: @js($admin->assignedRegions->map->only(['id', 'name', 'status']))
                                         })"
-                                        class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 font-semibold rounded-xl text-xs border border-slate-200 hover:border-emerald-300 shadow-2xs transition">
-                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                        </svg>
-                                        <span>Edit</span>
+                                        class="text-xs font-semibold text-slate-700 hover:text-emerald-700 hover:underline inline-flex items-center gap-1 cursor-pointer">
+                                        <span>Kelola Wilayah</span>
+                                        <span>&rarr;</span>
                                     </button>
                                 </td>
                             </tr>

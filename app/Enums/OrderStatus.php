@@ -44,6 +44,21 @@ enum OrderStatus: string
         };
     }
 
+    public function dotClass(): string
+    {
+        return match ($this) {
+            self::MenungguPembayaran => 'bg-slate-400',
+            self::MencariMitra => 'bg-blue-500 animate-pulse',
+            self::Dijadwalkan => 'bg-indigo-500',
+            self::MenujuLokasi => 'bg-purple-500',
+            self::Tiba => 'bg-cyan-500',
+            self::SedangBerlangsung => 'bg-amber-500',
+            self::Selesai => 'bg-emerald-500',
+            self::Dibatalkan => 'bg-rose-500',
+            self::Kedaluwarsa => 'bg-slate-400',
+        };
+    }
+
     public function isTerminal(): bool
     {
         return in_array($this, [self::Selesai, self::Dibatalkan, self::Kedaluwarsa]);

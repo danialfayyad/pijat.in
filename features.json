@@ -939,7 +939,7 @@
                 "Admin dapat membatalkan pesanan macet dengan menginput alasan wajib; dana customer kembali 100% otomatis."
             ],
             "verification": "Uji pembatalan pesanan macet oleh admin wilayah pesanan dan pastikan pengembalian dana 100%.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "ADM-05",
@@ -994,7 +994,7 @@
                 "ID penerbit SP, ID peninjau, dan keputusan wajib tercatat lengkap di log audit."
             ],
             "verification": "Setujui banding SP dari panel admin dan verifikasi log audit mencatat seluruh aktor.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "ADM-08",
@@ -1013,7 +1013,7 @@
                 "Aduan yang terbukti palsu menghasilkan opsi penerbitan SP kepada pelapor."
             ],
             "verification": "Uji penyelesaian aduan dengan putusan refund penuh, periksa mutasi saldo tertahan mitra ditarik.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "ADM-09",
