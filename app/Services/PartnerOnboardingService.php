@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\DB;
 class PartnerOnboardingService
 {
     public function __construct(
-        protected RegionService $regionService
+        protected RegionService $regionService,
+        protected ImageCompressionService $imageCompressionService
     ) {}
 
     /**
@@ -120,12 +121,20 @@ class PartnerOnboardingService
     }
 
     /**
-     * Toggle partner active / resting status.
+     * Toggle partner active / resting status (MIT-04).
      */
-    public function toggleOnlineStatus(User $user, bool $isActive): PartnerProfile
-    {
+    public function toggleOnlineStatus(
+        User $user,
+        bool $isActive,
+        ?float $latitude = null,
+        ?float $longitude = null
+    ): PartnerProfile {
         if (! $user->isTerverifikasi()) {
             throw new DomainException('Hanya mitra yang telah terverifikasi yang dapat mengubah status aktif menerima pesanan.');
+        }
+
+        if ($user->status === UserStatus::Ditangguhkan) {
+            throw new DomainException('Akun Anda sedang ditangguhkan. Tidak dapat mengaktifkan status online.');
         }
 
         $profile = $user->partnerProfile;
@@ -133,18 +142,28 @@ class PartnerOnboardingService
             throw new DomainException('Profil mitra tidak ditemukan.');
         }
 
-        $profile->update(['is_active' => $isActive]);
+        $updateData = ['is_active' => $isActive];
+
+        if ($isActive) {
+            if ($latitude !== null && $longitude !== null) {
+                $pointWkt = sprintf('POINT(%F %F)', $longitude, $latitude);
+                $updateData['current_coordinate'] = DB::raw("ST_GeomFromText('{$pointWkt}', 4326, 'axis-order=long-lat')");
+            }
+            $updateData['last_active_at'] = now();
+        }
+
+        $profile->update($updateData);
 
         return $profile;
     }
 
     /**
-     * Store file or return path string.
+     * Store file with automatic image compression or return path string.
      */
     protected function storeFile(UploadedFile|string|null $file, string $directory): string
     {
         if ($file instanceof UploadedFile) {
-            return $file->store($directory, 'local');
+            return $this->imageCompressionService->compressAndStore($file, $directory);
         }
 
         return (string) $file;

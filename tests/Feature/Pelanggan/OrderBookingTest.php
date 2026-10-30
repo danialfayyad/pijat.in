@@ -103,7 +103,29 @@ test('CUS-04: pemesanan untuk diri sendiri otomatis mengunci data & gender pelan
     expect($order->recipient_name)->toBe($this->customer->name);
     expect($order->recipient_phone)->toBe($this->customer->phone);
     expect($order->recipient_gender)->toBe('pria');
+    expect($order->preferred_gender)->toBe('bebas');
     expect($order->order_type)->toBe(OrderType::Terjadwal);
+});
+
+test('Opsi A: pelanggan dapat memilih preferensi gender terapis (pria, wanita, atau bebas)', function () {
+    $validDate = Carbon::now('Asia/Jakarta')->addDays(1)->format('Y-m-d');
+
+    // Pelanggan pria memilih terapis wanita
+    $response = $this->actingAs($this->customer)->post(route('pelanggan.orders.store'), [
+        'package_id' => $this->package60->id,
+        'customer_address_id' => $this->address->id,
+        'recipient_type' => 'myself',
+        'preferred_gender' => 'wanita',
+        'order_type' => 'terjadwal',
+        'scheduled_date' => $validDate,
+        'scheduled_time' => '10:00',
+        'risk_agreement' => '1',
+    ]);
+
+    $response->assertRedirect();
+    $order = Order::latest()->first();
+    expect($order->recipient_gender)->toBe('pria');
+    expect($order->preferred_gender)->toBe('wanita');
 });
 
 test('CUS-04: pemesanan untuk orang lain wajib mengisi nama, telepon, dan gender penerima', function () {
@@ -272,4 +294,115 @@ test('CUS-07: catatan medis terenkripsi di database dan didekripsi saat diakses 
     // Catatan medis hanya tampil saat mitra sudah menerima/dijadwalkan
     $order->status = OrderStatus::Dijadwalkan;
     expect($order->getMedicalNotesForPartner())->toBe($secretNotes);
+});
+
+test('pelanggan dapat melihat daftar riwayat pesanan (aktif dan selesai)', function () {
+    $activeOrder = Order::create([
+        'order_code' => 'ORD-ACTIVE-01',
+        'order_type' => OrderType::Terjadwal,
+        'customer_id' => $this->customer->id,
+        'customer_address_id' => $this->address->id,
+        'region_id' => $this->region->id,
+        'service_id' => $this->service->id,
+        'service_package_id' => $this->package60->id,
+        'service_name' => 'Pijat Tradisional (60 Menit)',
+        'duration_minutes' => 60,
+        'total_price' => 100000,
+        'recipient_name' => 'Ahmad',
+        'recipient_gender' => 'pria',
+        'service_address_text' => 'Jl. Kaliurang No. 10',
+        'service_coordinate' => ['lat' => -8.1720, 'lng' => 113.7000],
+        'status' => OrderStatus::MenungguPembayaran,
+    ]);
+
+    $pastOrder = Order::create([
+        'order_code' => 'ORD-PAST-02',
+        'order_type' => OrderType::Terjadwal,
+        'customer_id' => $this->customer->id,
+        'customer_address_id' => $this->address->id,
+        'region_id' => $this->region->id,
+        'service_id' => $this->service->id,
+        'service_package_id' => $this->package60->id,
+        'service_name' => 'Pijat Tradisional (60 Menit)',
+        'duration_minutes' => 60,
+        'total_price' => 100000,
+        'recipient_name' => 'Ahmad',
+        'recipient_gender' => 'pria',
+        'service_address_text' => 'Jl. Kaliurang No. 10',
+        'service_coordinate' => ['lat' => -8.1720, 'lng' => 113.7000],
+        'status' => OrderStatus::Selesai,
+    ]);
+
+    $response = $this->actingAs($this->customer)->get(route('pelanggan.orders.index'));
+
+    $response->assertOk();
+    $response->assertSee('ORD-ACTIVE-01');
+    $response->assertSee('ORD-PAST-02');
+    $response->assertSee('Menunggu Pembayaran');
+    $response->assertSee('Bayar Sekarang');
+    $response->assertSee('Batalkan');
+});
+
+test('pelanggan dapat membatalkan pesanan yang belum dibayar', function () {
+    $order = Order::create([
+        'order_code' => 'ORD-CANCEL-01',
+        'customer_id' => $this->customer->id,
+        'service_id' => $this->service->id,
+        'service_package_id' => $this->package60->id,
+        'service_name' => 'Pijat Tradisional (60 Menit)',
+        'duration_minutes' => 60,
+        'region_id' => $this->region->id,
+        'customer_address_id' => $this->address->id,
+        'order_type' => OrderType::Terjadwal,
+        'scheduled_start_time' => Carbon::now()->addHours(4),
+        'scheduled_end_time' => Carbon::now()->addHours(5),
+        'total_price' => 100000,
+        'recipient_name' => 'Budi',
+        'recipient_phone' => '081234567890',
+        'recipient_gender' => 'pria',
+        'service_address_text' => 'Jl. Kaliurang No. 10',
+        'service_coordinate' => ['lat' => -8.1720, 'lng' => 113.7000],
+        'status' => OrderStatus::MenungguPembayaran,
+    ]);
+
+    $response = $this->actingAs($this->customer)
+        ->post(route('pelanggan.orders.cancel', $order), [
+            'reason' => 'Ingin mengubah jadwal layanan',
+        ]);
+
+    $response->assertRedirect(route('pelanggan.orders.index'));
+    expect($order->fresh()->status)->toBe(OrderStatus::Dibatalkan);
+});
+
+test('pelanggan dapat membatalkan pesanan mencari mitra dan mendapat refund saldo 100%', function () {
+    $order = Order::create([
+        'order_code' => 'ORD-CANCEL-02',
+        'customer_id' => $this->customer->id,
+        'service_id' => $this->service->id,
+        'service_package_id' => $this->package60->id,
+        'service_name' => 'Pijat Tradisional (60 Menit)',
+        'duration_minutes' => 60,
+        'region_id' => $this->region->id,
+        'customer_address_id' => $this->address->id,
+        'order_type' => OrderType::Instan,
+        'total_price' => 150000,
+        'recipient_name' => 'Budi',
+        'recipient_phone' => '081234567890',
+        'recipient_gender' => 'pria',
+        'service_address_text' => 'Jl. Kaliurang No. 10',
+        'service_coordinate' => ['lat' => -8.1720, 'lng' => 113.7000],
+        'status' => OrderStatus::MencariMitra,
+    ]);
+
+    $wallet = $this->customer->getOrCreateWallet();
+    $initialBalance = $wallet->fresh()->balance;
+
+    $response = $this->actingAs($this->customer)
+        ->post(route('pelanggan.orders.cancel', $order), [
+            'reason' => 'Menunggu terlalu lama',
+        ]);
+
+    $response->assertRedirect(route('pelanggan.orders.index'));
+    expect($order->fresh()->status)->toBe(OrderStatus::Dibatalkan);
+    expect((float) $wallet->fresh()->balance)->toBe((float) $initialBalance + 150000);
 });

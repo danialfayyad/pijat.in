@@ -32,6 +32,7 @@ class Order extends Model
         'recipient_type',
         'recipient_name',
         'recipient_gender',
+        'preferred_gender',
         'recipient_phone',
         'service_address_text',
         'service_coordinate',
@@ -128,6 +129,14 @@ class Order extends Model
     public function statusHistories(): HasMany
     {
         return $this->hasMany(OrderStatusHistory::class)->orderBy('created_at', 'asc');
+    }
+
+    /**
+     * @return HasMany<OrderDispatch, $this>
+     */
+    public function dispatches(): HasMany
+    {
+        return $this->hasMany(OrderDispatch::class);
     }
 
     /**

@@ -32,15 +32,15 @@ enum OrderStatus: string
     public function badgeClasses(): string
     {
         return match ($this) {
-            self::MenungguPembayaran => 'bg-slate-100 text-slate-700 border-slate-200',
-            self::MencariMitra => 'bg-blue-50 text-blue-700 border-blue-200',
-            self::Dijadwalkan => 'bg-indigo-50 text-indigo-700 border-indigo-200',
-            self::MenujuLokasi => 'bg-purple-50 text-purple-700 border-purple-200',
-            self::Tiba => 'bg-cyan-50 text-cyan-700 border-cyan-200',
-            self::SedangBerlangsung => 'bg-amber-50 text-amber-700 border-amber-200',
-            self::Selesai => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-            self::Dibatalkan => 'bg-rose-50 text-rose-700 border-rose-200',
-            self::Kedaluwarsa => 'bg-slate-100 text-slate-500 border-slate-200',
+            self::MenungguPembayaran => 'bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/20',
+            self::MencariMitra => 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20',
+            self::Dijadwalkan => 'bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-600/20',
+            self::MenujuLokasi => 'bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-600/20',
+            self::Tiba => 'bg-cyan-50 text-cyan-700 ring-1 ring-inset ring-cyan-600/20',
+            self::SedangBerlangsung => 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20',
+            self::Selesai => 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20',
+            self::Dibatalkan => 'bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20',
+            self::Kedaluwarsa => 'bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20',
         };
     }
 

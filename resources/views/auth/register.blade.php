@@ -2,12 +2,6 @@
     <form class="register-form" method="POST" action="{{ route('register') }}" x-data="{ showPassword: false, showConfirmation: false }">
         @csrf
 
-        <div class="register-field-group">
-            <label class="register-label" for="nik">NIK KTP<span>*</span></label>
-            <input class="register-input" id="nik" name="nik" type="text" inputmode="numeric" maxlength="16" value="{{ old('nik') }}" required autocomplete="off">
-            <x-input-error :messages="$errors->get('nik')" class="register-error" />
-        </div>
-
         <div class="register-field-group register-name-group">
             <label class="register-label" for="name">Nama lengkap<span>*</span></label>
             <input class="register-input" id="name" name="name" type="text" value="{{ old('name') }}" required autofocus autocomplete="name">

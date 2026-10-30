@@ -31,6 +31,7 @@
 
         <form action="{{ route('mitra.profile.update') }}" method="POST" class="space-y-5">
             @csrf
+            <input type="hidden" name="services_submitted" value="1">
 
             <!-- Identitas Pribadi -->
             <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-4">
@@ -83,10 +84,46 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Pemilik Rekening</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Pemilik</label>
                         <input type="text" name="account_holder_name" value="{{ old('account_holder_name', $user->primaryBankAccount?->account_holder_name) }}"
                             class="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-emerald-600 focus:ring-emerald-600 transition">
                     </div>
+                </div>
+            </div>
+
+            <!-- Preferensi Layanan (MIT-08) -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-900">Preferensi Jenis Layanan</h3>
+                        <p class="text-[11px] text-slate-500">Pilih jenis layanan yang bersedia Anda layani (minimal 1 jenis layanan aktif).</p>
+                    </div>
+                </div>
+
+                @error('services')
+                    <p class="text-xs text-rose-600 font-semibold bg-rose-50 p-2.5 rounded-xl border border-rose-200">{{ $message }}</p>
+                @enderror
+
+                <div class="space-y-3">
+                    @forelse ($services as $service)
+                        @php
+                            $isEnabled = $user->partnerProfile ? $user->partnerProfile->isServiceEnabled($service->id) : true;
+                        @endphp
+                        <label class="flex items-start justify-between p-3.5 rounded-xl border border-slate-200/90 hover:border-emerald-300 bg-slate-50/50 hover:bg-emerald-50/20 transition cursor-pointer">
+                            <div class="pr-3">
+                                <span class="text-xs font-bold text-slate-900 block">{{ $service->name }}</span>
+                                @if ($service->description)
+                                    <span class="text-[11px] text-slate-500 block mt-0.5 leading-relaxed">{{ $service->description }}</span>
+                                @endif
+                            </div>
+                            <div class="flex items-center min-h-[24px]">
+                                <input type="checkbox" name="services[]" value="{{ $service->id }}" {{ $isEnabled ? 'checked' : '' }}
+                                    class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer">
+                            </div>
+                        </label>
+                    @empty
+                        <p class="text-xs text-slate-500 italic">Belum ada katalog layanan aktif di sistem.</p>
+                    @endforelse
                 </div>
             </div>
 

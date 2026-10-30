@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\OrderStatus;
 use App\Enums\Role;
 use App\Enums\UserStatus;
 use Database\Factories\UserFactory;
@@ -233,6 +234,22 @@ class User extends Authenticatable
     public function ordersAsMitra(): HasMany
     {
         return $this->hasMany(Order::class, 'mitra_id');
+    }
+
+    /**
+     * Count completed orders as a partner.
+     */
+    public function completedOrdersCount(): int
+    {
+        return $this->ordersAsMitra()->where('status', OrderStatus::Selesai)->count();
+    }
+
+    /**
+     * Get the partner's rating (default 5.0).
+     */
+    public function partnerRating(): float
+    {
+        return 5.0;
     }
 
     /**

@@ -2,19 +2,75 @@
     <div class="py-2 space-y-4"
          x-data="{
             selectedPackageId: {{ old('package_id', $package->id) }},
+            selectedAddressId: {{ old('customer_address_id', $defaultAddress->id) }},
             packages: @js($siblingPackages),
             recipientType: '{{ old('recipient_type', 'myself') }}',
             recipientGender: '{{ old('recipient_gender', $user->gender ?? 'pria') }}',
+            preferredGender: '{{ old('preferred_gender', 'bebas') }}',
             orderType: '{{ old('order_type', 'terjadwal') }}',
-            scheduledDate: '{{ old('scheduled_date', $minScheduleDate->format('Y-m-d')) }}',
-            scheduledTime: '{{ old('scheduled_time', $minScheduleDate->format('H:i')) }}',
+            todayDate: '{{ $todayDate }}',
             minDate: '{{ $minScheduleDate->format('Y-m-d') }}',
             maxDate: '{{ $maxScheduleDate->format('Y-m-d') }}',
+            minTimeToday: '{{ $minTimeToday }}',
+            isTodayBookable: {{ $isTodayBookable ? 'true' : 'false' }},
+            scheduledDate: '{{ old('scheduled_date', $defaultScheduleDate) }}',
+            scheduledTime: '{{ old('scheduled_time', $defaultScheduleTime) }}',
             showRiskModal: false,
+            showInstantUnavailableModal: false,
+            checkingInstant: false,
+            instantChecked: false,
+            instantAvailable: true,
+
+            selectPackage(id) {
+                this.selectedPackageId = id;
+                this.adjustTimeIfNeeded();
+            },
+
+            async selectOrderType(type) {
+                this.orderType = type;
+                if (type === 'instan') {
+                    await this.checkInstantAvailability();
+                }
+            },
+
+            async checkInstantAvailability() {
+                this.checkingInstant = true;
+                try {
+                    const gender = this.recipientType === 'myself' ? '{{ $user->gender ?? 'pria' }}' : this.recipientGender;
+                    const url = '{{ route('pelanggan.orders.check-instant') }}?address_id=' + this.selectedAddressId + '&preferred_gender=' + encodeURIComponent(this.preferredGender) + '&gender=' + encodeURIComponent(gender) + '&package_id=' + this.selectedPackageId;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    this.instantAvailable = !!data.available;
+                    this.instantChecked = true;
+                    if (!this.instantAvailable) {
+                        this.showInstantUnavailableModal = true;
+                    }
+                } catch (e) {
+                    console.error('Gagal mengecek ketersediaan mitra instan:', e);
+                } finally {
+                    this.checkingInstant = false;
+                }
+            },
             
             get currentPackage() {
                 return this.packages.find(p => p.id == this.selectedPackageId) || this.packages[0];
             },
+
+            get minTimeAllowed() {
+                if (this.scheduledDate === this.todayDate) {
+                    return this.minTimeToday;
+                }
+                return '08:00';
+            },
+
+            get maxTimeAllowed() {
+                const duration = this.currentPackage ? this.currentPackage.duration_minutes : 60;
+                const totalMinutes = (21 * 60) - duration;
+                const h = Math.floor(totalMinutes / 60);
+                const m = totalMinutes % 60;
+                return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+            },
+
             get estimatedEndTime() {
                 if (this.orderType !== 'terjadwal' || !this.scheduledTime) return '';
                 const parts = this.scheduledTime.split(':');
@@ -29,9 +85,39 @@
                 const mm = String(m).padStart(2, '0');
                 return hh + ':' + mm;
             },
+
+            get isStartTimeTooEarly() {
+                if (this.orderType !== 'terjadwal' || !this.scheduledTime) return false;
+                return this.scheduledTime < this.minTimeAllowed;
+            },
+
+            get isStartTimeTooLate() {
+                if (this.orderType !== 'terjadwal' || !this.scheduledTime) return false;
+                return this.scheduledTime > this.maxTimeAllowed;
+            },
+
             get isEndTimeOverLimit() {
                 const end = this.estimatedEndTime;
                 return end && end > '21:00';
+            },
+
+            get isTimeInvalid() {
+                return this.isStartTimeTooEarly || this.isStartTimeTooLate || this.isEndTimeOverLimit;
+            },
+
+            handleDateChange() {
+                if (this.scheduledDate === this.todayDate && !this.isTodayBookable) {
+                    this.scheduledDate = this.minDate;
+                }
+                this.adjustTimeIfNeeded();
+            },
+
+            adjustTimeIfNeeded() {
+                if (this.scheduledTime < this.minTimeAllowed) {
+                    this.scheduledTime = this.minTimeAllowed;
+                } else if (this.scheduledTime > this.maxTimeAllowed) {
+                    this.scheduledTime = this.maxTimeAllowed;
+                }
             }
          }">
 
@@ -39,6 +125,22 @@
             <h2 class="text-base font-extrabold text-slate-900 leading-tight">Konfirmasi Detail Pesanan</h2>
             <p class="text-xs text-slate-500">Lengkapi data penerima, waktu layanan, dan alamat kunjungan.</p>
         </div>
+
+        @if ($errors->any())
+            <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs shadow-xs space-y-1.5">
+                <div class="flex items-center space-x-2 font-bold text-rose-800">
+                    <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span>Mohon periksa kembali formulir Anda:</span>
+                </div>
+                <ul class="list-disc list-inside space-y-0.5 text-[11px] text-rose-700 pl-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <form action="{{ route('pelanggan.orders.store') }}" method="POST" class="space-y-4">
             @csrf
@@ -61,7 +163,7 @@
                     <label class="block text-xs font-semibold text-slate-700 mb-2">Pilih Durasi Sesi:</label>
                     <div class="grid grid-cols-{{ count($siblingPackages) > 2 ? '3' : '2' }} gap-2">
                         @foreach ($siblingPackages as $pkg)
-                            <button type="button" @click="selectedPackageId = {{ $pkg->id }}"
+                            <button type="button" @click="selectPackage({{ $pkg->id }})"
                                     class="min-h-[44px] p-2.5 rounded-xl border text-center transition cursor-pointer"
                                     :class="selectedPackageId == {{ $pkg->id }} ? 'bg-emerald-50 border-emerald-600 ring-1 ring-emerald-600 text-emerald-950 font-bold' : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'">
                                 <div class="text-xs font-bold leading-tight">{{ $pkg->duration_minutes }} Menit</div>
@@ -158,11 +260,9 @@
                         <span class="text-slate-600">Jenis Kelamin:</span>
                         <span class="font-bold text-slate-900 capitalize">{{ $user->gender ?? 'Belum ditentukan' }}</span>
                     </div>
-
-                    <!-- Gender Lock Notice -->
-                    <div class="mt-2 p-2.5 bg-emerald-50 rounded-lg border border-emerald-200 text-emerald-900 text-[11px] leading-relaxed">
-                        <strong>Aturan Sesama Gender:</strong> Mitra yang ditugaskan dijamin berjenis kelamin <strong>{{ $user->gender === 'wanita' ? 'Wanita' : 'Pria' }}</strong> sesuai profil akun Anda.
-                    </div>
+                    @error('recipient_gender')
+                        <p class="text-xs text-rose-600 font-semibold pt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- Mode: Orang Lain -->
@@ -204,11 +304,42 @@
                             </label>
                         </div>
                         @error('recipient_gender') <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p> @enderror
-
-                        <div class="mt-2 p-2.5 bg-amber-50 rounded-lg border border-amber-200 text-amber-950 text-[11px] leading-relaxed">
-                            <strong>Kunci Penugasan Mitra:</strong> Pilihan jenis kelamin ini mengunci mitra terapis yang ditugaskan agar selalu sesama gender.
-                        </div>
                     </div>
+                </div>
+
+                <!-- Preferensi Gender Terapis (Opsi A) -->
+                <div class="pt-3 border-t border-slate-100 space-y-2">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-900">
+                            Preferensi Gender Terapis <span class="text-rose-500">*</span>
+                        </label>
+                        <p class="text-[11px] text-slate-500">Pilih jenis kelamin mitra terapis yang Anda inginkan.</p>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <!-- Bebas / Siapa Saja -->
+                        <label class="min-h-[44px] p-2.5 rounded-xl border flex flex-col items-center justify-center text-center cursor-pointer transition"
+                               :class="preferredGender === 'bebas' ? 'bg-emerald-50 border-emerald-600 ring-1 ring-emerald-600 text-emerald-950 font-bold' : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'">
+                            <input type="radio" name="preferred_gender" value="bebas" x-model="preferredGender" @change="if(orderType === 'instan') checkInstantAvailability()" class="sr-only">
+                            <span class="text-xs font-bold">Bebas</span>
+                            <span class="text-[10px] text-emerald-700 font-semibold mt-0.5">Siapa Saja</span>
+                        </label>
+                        <!-- Pria -->
+                        <label class="min-h-[44px] p-2.5 rounded-xl border flex flex-col items-center justify-center text-center cursor-pointer transition"
+                               :class="preferredGender === 'pria' ? 'bg-emerald-50 border-emerald-600 ring-1 ring-emerald-600 text-emerald-950 font-bold' : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'">
+                            <input type="radio" name="preferred_gender" value="pria" x-model="preferredGender" @change="if(orderType === 'instan') checkInstantAvailability()" class="sr-only">
+                            <span class="text-xs font-bold">Pria</span>
+                            <span class="text-[10px] text-slate-500 mt-0.5">Terapis Pria</span>
+                        </label>
+                        <!-- Wanita -->
+                        <label class="min-h-[44px] p-2.5 rounded-xl border flex flex-col items-center justify-center text-center cursor-pointer transition"
+                               :class="preferredGender === 'wanita' ? 'bg-emerald-50 border-emerald-600 ring-1 ring-emerald-600 text-emerald-950 font-bold' : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'">
+                            <input type="radio" name="preferred_gender" value="wanita" x-model="preferredGender" @change="if(orderType === 'instan') checkInstantAvailability()" class="sr-only">
+                            <span class="text-xs font-bold">Wanita</span>
+                            <span class="text-[10px] text-slate-500 mt-0.5">Terapis Wanita</span>
+                        </label>
+                    </div>
+                    @error('preferred_gender') <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
 
@@ -220,7 +351,7 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
-                    <button type="button" @click="orderType = 'terjadwal'"
+                    <button type="button" @click="selectOrderType('terjadwal')"
                             class="min-h-[44px] py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center justify-center space-x-1.5"
                             :class="orderType === 'terjadwal' ? 'bg-white text-emerald-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -228,7 +359,7 @@
                         </svg>
                         <span>Terjadwal</span>
                     </button>
-                    <button type="button" @click="orderType = 'instan'"
+                    <button type="button" @click="selectOrderType('instan')"
                             class="min-h-[44px] py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center justify-center space-x-1.5"
                             :class="orderType === 'instan' ? 'bg-white text-emerald-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -247,6 +378,7 @@
                                 Tanggal Layanan <span class="text-rose-500">*</span>
                             </label>
                             <input type="date" name="scheduled_date" x-model="scheduledDate"
+                                @change="handleDateChange()"
                                 :min="minDate" :max="maxDate"
                                 class="w-full min-h-[44px] text-xs rounded-xl border-slate-200 focus:border-emerald-600 focus:ring-emerald-600 py-2">
                         </div>
@@ -255,7 +387,8 @@
                                 Jam Mulai <span class="text-rose-500">*</span>
                             </label>
                             <input type="time" name="scheduled_time" x-model="scheduledTime"
-                                min="08:00" max="20:00" step="900"
+                                @change="adjustTimeIfNeeded()"
+                                :min="minTimeAllowed" :max="maxTimeAllowed" step="900"
                                 class="w-full min-h-[44px] text-xs rounded-xl border-slate-200 focus:border-emerald-600 focus:ring-emerald-600 py-2">
                         </div>
                     </div>
@@ -268,7 +401,11 @@
                         </div>
                         <div class="flex items-center justify-between text-slate-600">
                             <span>Ketentuan Penjadwalan:</span>
-                            <span class="font-medium text-slate-800">Min. 3 jam s/d 7 hari</span>
+                            <span class="font-medium text-slate-800">Min. 3 jam dari sekarang (Maks. 7 hari)</span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-600">
+                            <span>Rentang Jam Mulai:</span>
+                            <span class="font-bold font-mono text-emerald-800" x-text="minTimeAllowed + ' - ' + maxTimeAllowed + ' ({{ $regionTz === 'Asia/Jakarta' ? 'WIB' : 'WITA' }})'"></span>
                         </div>
                         <div class="flex items-center justify-between text-slate-600 pt-1 border-t border-slate-200/60">
                             <span>Estimasi Selesai:</span>
@@ -276,17 +413,60 @@
                         </div>
                     </div>
 
-                    <div x-show="isEndTimeOverLimit" class="p-2.5 bg-rose-50 rounded-xl border border-rose-200 text-rose-700 text-xs font-semibold">
-                        Peringatan: Estimasi waktu selesai melebihi batas jam operasional 21:00. Mohon pilih jam mulai yang lebih awal.
+                    <div x-show="isStartTimeTooEarly" class="p-2.5 bg-rose-50 rounded-xl border border-rose-200 text-rose-700 text-xs font-semibold">
+                        Peringatan: Pemesanan terjadwal minimal 3 jam dari sekarang. Jam mulai paling awal untuk tanggal ini adalah pk. <span x-text="minTimeAllowed"></span>.
+                    </div>
+
+                    <div x-show="isStartTimeTooLate || isEndTimeOverLimit" class="p-2.5 bg-rose-50 rounded-xl border border-rose-200 text-rose-700 text-xs font-semibold">
+                        Peringatan: Estimasi waktu selesai melebihi batas jam operasional 21:00. Jam mulai paling lambat untuk paket <span x-text="currentPackage ? currentPackage.duration_minutes : 60"></span> menit adalah pk. <span x-text="maxTimeAllowed"></span>.
                     </div>
 
                     @error('scheduled_time') <p class="text-xs text-rose-600 font-semibold">{{ $message }}</p> @enderror
                 </div>
 
-                <!-- Mode: Instan -->
-                <div x-show="orderType === 'instan'" class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-950 space-y-1 leading-relaxed">
-                    <p class="font-bold">Pencarian Mitra Instan:</p>
-                    <p class="text-[11px] text-emerald-900">Sistem akan segera mencarikan mitra terapis terdekat yang tersedia di sekitar lokasi Anda setelah pembayaran diselesaikan.</p>
+                <!-- Mode: Instan (CUS-08) -->
+                <div x-show="orderType === 'instan'" class="space-y-2 pt-1">
+                    <!-- Loading check -->
+                    <div x-show="checkingInstant" class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center space-x-2.5 text-xs text-slate-600">
+                        <svg class="w-4 h-4 text-emerald-600 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        <span>Mengecek ketersediaan mitra terapis online terdekat...</span>
+                    </div>
+
+                    <!-- Available Notice -->
+                    <div x-show="!checkingInstant && instantChecked && instantAvailable" class="p-3.5 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-950 space-y-1">
+                        <div class="flex items-center space-x-1.5 font-bold text-emerald-900">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span>Mitra Terapis Tersedia</span>
+                        </div>
+                        <p class="text-[11px] text-emerald-800 leading-relaxed">
+                            Mitra terapis online yang sesuai preferensi Anda (radius 5 km) siap menerima pesanan. Sistem segera menghubungkan pesanan setelah pembayaran terkonfirmasi.
+                        </p>
+                    </div>
+
+                    <!-- Unavailable Warning Box -->
+                    <div x-show="!checkingInstant && instantChecked && !instantAvailable" class="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-950 space-y-2">
+                        <div class="flex items-center space-x-1.5 font-bold text-amber-900">
+                            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span>Mitra Online Tidak Ditemukan</span>
+                        </div>
+                        <p class="text-[11px] text-amber-800 leading-relaxed">
+                            Saat ini belum ada mitra terapis online dalam radius 5 km yang sesuai. Anda disarankan beralih ke jadwal Terjadwal.
+                        </p>
+                        <button type="button" @click="selectOrderType('terjadwal')" class="min-h-[40px] px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-xs transition">
+                            Beralih ke Terjadwal
+                        </button>
+                    </div>
+
+                    <!-- Fallback if not checked yet -->
+                    <div x-show="!checkingInstant && !instantChecked" class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-950 space-y-1 leading-relaxed">
+                        <p class="font-bold">Pencarian Mitra Instan:</p>
+                        <p class="text-[11px] text-emerald-900">Sistem akan segera mencarikan mitra terapis terdekat yang tersedia di sekitar lokasi Anda setelah pembayaran diselesaikan.</p>
+                    </div>
+
+                    @error('order_type') <p class="text-xs text-rose-600 font-semibold">{{ $message }}</p> @enderror
                 </div>
             </div>
 
@@ -308,13 +488,6 @@
                     <textarea name="medical_notes" rows="3"
                         placeholder="Contoh: Riwayat cedera bahu kanan, hindari tekanan kuat pada tulang leher, memiliki tekanan darah tinggi ringan..."
                         class="w-full text-xs rounded-xl border-slate-200 focus:border-emerald-600 focus:ring-emerald-600 p-3">{{ old('medical_notes') }}</textarea>
-                    
-                    <div class="mt-2 flex items-center space-x-2 text-[11px] text-slate-500">
-                        <svg class="w-3.5 h-3.5 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                        </svg>
-                        <span>Tersimpan dengan enkripsi di database; hanya dapat dilihat oleh mitra setelah pesanan disetujui.</span>
-                    </div>
                     @error('medical_notes') <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p> @enderror
                 </div>
 
@@ -358,9 +531,37 @@
                 </div>
             </div>
 
+            <!-- Modal Informasi Mitra Instan Belum Tersedia (CUS-08) -->
+            <div x-show="showInstantUnavailableModal" style="display: none;"
+                 class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+                <div @click.away="showInstantUnavailableModal = false" class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl border border-slate-200 text-center">
+                    <div class="w-12 h-12 mx-auto rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-extrabold text-slate-900">Mitra Online Belum Tersedia</h4>
+                        <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                            Saat ini belum ada mitra terapis online yang sesuai preferensi Anda (radius 5 km) di sekitar wilayah ini. Anda dapat beralih ke jadwal Terjadwal.
+                        </p>
+                    </div>
+                    <div class="space-y-2 pt-1">
+                        <button type="button" @click="selectOrderType('terjadwal'); showInstantUnavailableModal = false"
+                            class="w-full min-h-[44px] py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition">
+                            Beralih ke Terjadwal
+                        </button>
+                        <button type="button" @click="showInstantUnavailableModal = false"
+                            class="w-full min-h-[44px] py-2 rounded-xl border border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50 transition">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Submit CTA Button -->
             <div class="pt-2">
-                <button type="submit" :disabled="isEndTimeOverLimit"
+                <button type="submit" :disabled="orderType === 'terjadwal' && isTimeInvalid"
                     class="w-full min-h-[48px] py-3.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-xs shadow-sm transition flex items-center justify-center space-x-2 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
