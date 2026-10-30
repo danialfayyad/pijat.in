@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Mitra;
 
 use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
+use App\Models\PartnerServicePreference;
 use App\Models\Region;
+use App\Models\Service;
 use App\Services\RegionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,25 +21,26 @@ class MitraProfileController extends Controller
     ) {}
 
     /**
-     * Show partner profile and settings (MIT-20).
+     * Show partner profile and settings (MIT-20, MIT-08).
      */
     public function edit(Request $request): View
     {
         $user = $request->user()->load('partnerProfile.region', 'primaryBankAccount');
         $activeRegions = Region::active()->get(['id', 'name', 'timezone']);
+        $services = Service::where('is_active', true)->get();
 
-        return view('mitra.profile', compact('user', 'activeRegions'));
+        return view('mitra.profile', compact('user', 'activeRegions', 'services'));
     }
 
     /**
-     * Update partner profile information and handle re-verification safeguards (MIT-20).
+     * Update partner profile information and handle re-verification safeguards (MIT-20, MIT-08).
      */
     public function update(Request $request): RedirectResponse
     {
         $user = $request->user();
         $profile = $user->partnerProfile;
 
-        $validated = $request->validate([
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:25'],
             'password' => ['nullable', 'confirmed', Password::defaults()],
@@ -47,6 +50,16 @@ class MitraProfileController extends Controller
             'address_text' => ['nullable', 'string', 'max:500'],
             'latitude' => ['nullable', 'numeric'],
             'longitude' => ['nullable', 'numeric'],
+        ];
+
+        if ($request->has('services_submitted') || $request->has('services')) {
+            $rules['services'] = ['required', 'array', 'min:1'];
+            $rules['services.*'] = ['integer', 'exists:services,id'];
+        }
+
+        $validated = $request->validate($rules, [
+            'services.min' => 'Minimal 1 jenis layanan harus tetap aktif.',
+            'services.required' => 'Minimal 1 jenis layanan harus tetap aktif.',
         ]);
 
         $userData = [
@@ -86,6 +99,20 @@ class MitraProfileController extends Controller
                     'coordinate' => ['lat' => (float) $validated['latitude'], 'lng' => (float) $validated['longitude']],
                 ]);
                 $requiresReverification = true;
+            }
+        }
+
+        if ($profile && isset($validated['services'])) {
+            foreach (Service::where('is_active', true)->get() as $service) {
+                PartnerServicePreference::updateOrCreate(
+                    [
+                        'partner_profile_id' => $profile->id,
+                        'service_id' => $service->id,
+                    ],
+                    [
+                        'is_enabled' => in_array($service->id, $validated['services']),
+                    ]
+                );
             }
         }
 

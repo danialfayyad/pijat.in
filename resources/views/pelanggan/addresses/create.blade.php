@@ -40,15 +40,15 @@
                     <div class="flex items-center space-x-2 mb-2">
                         <template x-for="item in ['Rumah', 'Kantor', 'Apartemen', 'Kos']" :key="item">
                             <button type="button" @click="label = item"
-                                    class="px-3 py-1 rounded-lg text-xs font-bold border transition"
-                                    :class="label === item ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-emerald-300'">
+                                    class="min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center justify-center"
+                                    :class="label === item ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs' : 'bg-slate-50 text-slate-800 border-slate-200 hover:border-emerald-300'">
                                 <span x-text="item"></span>
                             </button>
                         </template>
                     </div>
                     <input type="text" name="label" x-model="label" required placeholder="Contoh: Rumah, Kantor..."
-                        class="w-full text-xs rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 py-2.5">
-                    @error('label') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
+                        class="w-full min-h-[44px] text-xs rounded-xl border-slate-200 focus:border-emerald-600 focus:ring-emerald-600 py-2.5">
+                    @error('label') <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- 1. Cari / Pilih Kota Layanan Aktif -->
@@ -59,20 +59,20 @@
                     <div class="relative">
                         <input type="text" id="search_city" x-model="searchQuery" 
                             placeholder="Cari kota layanan..."
-                            class="w-full text-xs rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 placeholder-slate-400 pl-8 py-2">
-                        <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="w-full min-h-[44px] text-xs rounded-xl border-slate-200 focus:border-emerald-600 focus:ring-emerald-600 placeholder-slate-400 pl-8 py-2">
+                        <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                     </div>
 
                     <!-- City Chips -->
-                    <div class="mt-2 flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1">
+                    <div class="mt-2 flex flex-wrap gap-2 max-h-36 overflow-y-auto p-1">
                         <template x-for="r in filteredRegions" :key="r.id">
                             <button type="button" @click="selectRegion(r)"
-                                    class="px-2.5 py-1 rounded-lg border text-xs font-medium transition flex items-center space-x-1"
-                                    :class="selectedRegionId == r.id ? 'bg-emerald-600 text-white border-emerald-600 font-bold' : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-300'">
+                                    class="min-h-[44px] px-3 py-2 rounded-xl border text-xs font-medium transition flex items-center space-x-1.5 cursor-pointer"
+                                    :class="selectedRegionId == r.id ? 'bg-emerald-700 text-white border-emerald-700 font-bold shadow-xs' : 'bg-white text-slate-800 border-slate-200 hover:border-emerald-300'">
                                 <span x-text="r.name"></span>
-                                <span x-show="selectedRegionId == r.id" class="text-[10px]">✓</span>
+                                <span x-show="selectedRegionId == r.id" class="text-xs">✓</span>
                             </button>
                         </template>
                     </div>
@@ -84,7 +84,7 @@
                         <label class="block text-xs font-semibold text-slate-700">
                             Titik Lokasi Pin Peta <span class="text-rose-500">*</span>
                         </label>
-                        <span class="text-[11px] text-emerald-600 font-medium">
+                        <span class="text-xs text-emerald-700 font-medium">
                             Ketuk peta atau seret pin
                         </span>
                     </div>
@@ -98,29 +98,22 @@
                     @enderror
                 </div>
 
-                <!-- Coordinates Hidden/Readonly -->
-                <div class="grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                        <label class="block text-[11px] font-medium text-slate-500 mb-0.5">Latitude</label>
-                        <input type="text" id="lat" name="latitude" value="{{ old('latitude', '-6.9175') }}" readonly
-                            class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 font-mono text-[11px] text-slate-600">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-medium text-slate-500 mb-0.5">Longitude</label>
-                        <input type="text" id="lng" name="longitude" value="{{ old('longitude', '107.6191') }}" readonly
-                            class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 font-mono text-[11px] text-slate-600">
-                    </div>
-                </div>
+                <!-- Coordinates Hidden -->
+                <input type="hidden" id="lat" name="latitude" value="{{ old('latitude', '-6.9175') }}">
+                <input type="hidden" id="lng" name="longitude" value="{{ old('longitude', '107.6191') }}">
 
                 <!-- Alamat Lengkap & Patokan -->
                 <div class="space-y-3 pt-2 border-t border-slate-100">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">
-                            Alamat Lengkap <span class="text-rose-500">*</span>
-                        </label>
-                        <textarea name="address_text" rows="2" required placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, kecamatan..."
-                            class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-emerald-500 focus:ring-emerald-500">{{ old('address_text') }}</textarea>
-                        @error('address_text') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-semibold text-slate-700">
+                                Alamat Lengkap <span class="text-rose-500">*</span>
+                            </label>
+                            <span id="geo-status" class="text-[11px] text-emerald-700 font-medium">Otomatis terisi saat pin peta dipindahkan</span>
+                        </div>
+                        <textarea id="address_text" name="address_text" rows="2" required placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, kecamatan..."
+                            class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-emerald-600 focus:ring-emerald-600">{{ old('address_text') }}</textarea>
+                        @error('address_text') <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
@@ -128,20 +121,20 @@
                             Patokan Lokasi (Opsional)
                         </label>
                         <input type="text" name="benchmark" value="{{ old('benchmark') }}" placeholder="Contoh: Sebelah minimarket, pagar hitam..."
-                            class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-emerald-500 focus:ring-emerald-500">
-                        @error('benchmark') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
+                            class="w-full min-h-[44px] px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-emerald-600 focus:ring-emerald-600">
+                        @error('benchmark') <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p> @enderror
                     </div>
 
                     @if ($user->customerAddresses()->exists())
-                        <div class="flex items-center space-x-2 pt-1">
+                        <div class="flex items-center space-x-2 pt-1 min-h-[44px]">
                             <input type="checkbox" id="is_primary" name="is_primary" value="1" {{ old('is_primary') ? 'checked' : '' }}
-                                class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
-                            <label for="is_primary" class="text-xs text-slate-700 select-none">
+                                class="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600 cursor-pointer">
+                            <label for="is_primary" class="text-xs text-slate-800 select-none cursor-pointer">
                                 Jadikan sebagai Alamat Utama
                             </label>
                         </div>
                     @else
-                        <p class="text-[11px] text-emerald-700 bg-emerald-50 p-2 rounded-lg border border-emerald-100">
+                        <p class="text-xs text-emerald-900 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
                             Alamat pertama Anda akan otomatis dijadikan sebagai <strong>Alamat Utama</strong>.
                         </p>
                     @endif
@@ -150,8 +143,8 @@
                 <!-- Submit Button -->
                 <div class="pt-2">
                     <button type="submit" 
-                        class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center space-x-1.5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="w-full min-h-[48px] py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-sm transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
                         <span>Simpan Alamat</span>
@@ -183,9 +176,40 @@
                 draggable: true
             }).addTo(map);
 
+            let geocodeTimeout = null;
+            function reverseGeocode(lat, lng) {
+                const addressInput = document.getElementById('address_text');
+                const geoStatus = document.getElementById('geo-status');
+                if (!addressInput) return;
+
+                if (geoStatus) {
+                    geoStatus.textContent = 'Mendeteksi alamat...';
+                }
+
+                clearTimeout(geocodeTimeout);
+                geocodeTimeout = setTimeout(() => {
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data && data.display_name) {
+                                addressInput.value = data.display_name;
+                                if (geoStatus) {
+                                    geoStatus.textContent = '✓ Alamat diperbarui dari peta';
+                                }
+                            } else {
+                                if (geoStatus) geoStatus.textContent = 'Otomatis terisi saat pin peta dipindahkan';
+                            }
+                        })
+                        .catch(() => {
+                            if (geoStatus) geoStatus.textContent = 'Otomatis terisi saat pin peta dipindahkan';
+                        });
+                }, 400);
+            }
+
             function updateInputs(lat, lng) {
                 document.getElementById('lat').value = lat.toFixed(6);
                 document.getElementById('lng').value = lng.toFixed(6);
+                reverseGeocode(lat, lng);
             }
 
             marker.on('dragend', function (e) {

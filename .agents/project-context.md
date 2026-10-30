@@ -15,7 +15,11 @@ Pijat.in is presented as a massage and wellness marketplace. The public landing 
 - Service Catalog & Pricing (S3 / ADM-10): Services and duration packages (60/90/120 minutes) without add-ons, active/inactive catalog separation, server-side `admin.menu:KATALOG` permission protection.
 - Regional Order Monitoring & Intervention (ADM-04, ADM-05): Scoped by admin assigned regions, status filtering (Active, Stuck, Completed, Cancelled), full order details & status history timeline, admin cancellation intervention with mandatory reason & 100% customer refund guarantee. Strictly adheres to BRD 5.3 (no manual partner assignment buttons).
 - Custom global Alpine.js confirmation modal component (`<x-confirm-dialog />`) with centered icons, to-the-point copy, and distinct variant themes (`danger`, `warning`, `info`).
-- All 80 unit & feature tests in Pest passing (296 assertions) with Pint style formatting compliant.
+- Order Booking & FCFS Scheduled Matching (S4 / CUS-04, CUS-06, CUS-07, MIT-06, MIT-07, MIT-08, CUS-10): Scheduled booking (H+3 jam s.d. 7 hari, 08:00 - 21:00), partner service preferences, FCFS scheduled order exchange with 10 km maximum operating radius validation (orders > 10 km are filtered from bursa and blocked on claim), encrypted medical notes, and real-time customer tracking.
+- Instant Order Matching & Sequential Dispatch (S5 / CUS-08, MIT-04, MIT-05, SYS-01): Sequential 60-second dispatch based on live coordinate proximity within 5 km, partner active toggle, and auto-fallback to scheduled order if no nearby partner is available.
+- Flexible Partner Gender Preference (DEC-11 / Opsi A): Rigid same-gender lock removed; customers choose therapist gender preference (`pria`, `wanita`, or `bebas`) during checkout.
+- Partner Order Details, Map & Live Road Routing: Partners can view full order details (`mitra.orders.show`), customer recipient info, medical notes, interactive Leaflet map with customer marker & live partner GPS marker, actual road route geometry (turn-by-turn road tracking via OSRM routing engine), driving distance (`X.X km (Jalur Jalan)`), estimated arrival time, Google Maps direct navigation link, and sequential service status updates (`Dijadwalkan` -> `MenujuLokasi` -> `Tiba` -> `SedangBerlangsung` -> `Selesai`).
+- All 142 unit & feature tests in Pest passing (638 assertions) with Pint style formatting compliant.
 
 ## Role model and authentication map
 

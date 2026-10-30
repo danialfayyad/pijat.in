@@ -79,7 +79,7 @@
                 "Jenis kelamin penerima layanan terkunci menjadi acuan penugasan mitra (aturan sesama gender)."
             ],
             "verification": "Simulasi form order penerima layanan berbeda gender dari customer, pastikan tersimpan di pesanan.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-05",
@@ -118,7 +118,7 @@
                 "Waktu mulai dan estimasi selesai (mulai + durasi) harus berada di dalam rentang jam operasional (08:00 - 21:00 waktu setempat wilayah alamat layanan)."
             ],
             "verification": "Uji pemilihan waktu di luar jam operasional (ditolak) dan waktu valid (diterima).",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-07",
@@ -137,7 +137,7 @@
                 "Catatan medis tidak tampil pada tawaran awal mitra dan hanya dapat dilihat setelah mitra menerima pesanan."
             ],
             "verification": "Uji submit pesanan tanpa centang risiko (gagal) dan dengan catatan medis (terenkripsi di DB).",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-08",
@@ -156,7 +156,7 @@
                 "Jika tidak ada mitra online yang memenuhi syarat, sistem menampilkan modal informasi dan menawarkan opsi beralih ke jadwal terjadwal."
             ],
             "verification": "Simulasi kondisi 0 mitra online di wilayah layanan, pastikan prompt beralih ke terjadwal muncul.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-09",
@@ -196,7 +196,7 @@
                 "Saat OTW, estimasi waktu kedatangan mitra tampil dan posisi diperbarui setiap 30 detik."
             ],
             "verification": "Verifikasi tampilan tracking pada status Mencari Mitra, Dijadwalkan, OTW di PWA Customer.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-11",
@@ -313,7 +313,7 @@
                 "Daftar mutasi menampilkan seluruh riwayat top-up, pembayaran, dan refund."
             ],
             "verification": "Uji top-up customer dengan alamat utama vs tanpa alamat utama (harus diminta simpan alamat).",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-17",
@@ -527,7 +527,7 @@
                 "Lokasi koordinat mitra diperbarui ke server setiap 5 menit saat Online."
             ],
             "verification": "Uji aktivasi status Online pada akun belum terverifikasi (gagal) dan terverifikasi (sukses).",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-05",
@@ -547,7 +547,7 @@
                 "Jika mitra menekan Terima, status pesanan menjadi DIJADWALKAN dan alamat lengkap layanan terbuka."
             ],
             "verification": "Simulasi pengiriman tawaran instan ke mitra terdekat, uji terima dalam 60s dan timeout 60s.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-06",
@@ -566,7 +566,7 @@
                 "Jika pesanan sudah diambil mitra lain, sistem menampilkan notifikasi bahwa pesanan telah terisi."
             ],
             "verification": "Simulasi 2 mitra mengambil 1 pesanan terjadwal secara bersamaan; pastikan hanya 1 yang berhasil.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-07",
@@ -585,7 +585,7 @@
                 "Catatan kondisi medis penerima (jika ada) terbuka dan dapat dibaca mitra di layar ini."
             ],
             "verification": "Buka menu Jadwal Saya setelah mengambil pesanan, pastikan catatan medis tampil.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-08",
@@ -603,7 +603,7 @@
                 "Sistem tidak akan menawarkan pesanan atau menampilkan pesanan di bursa jika layanannya dinonaktifkan oleh mitra."
             ],
             "verification": "Nonaktifkan Layanan X di profil mitra, pastikan pesanan dengan Layanan X tidak ditawarkan.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-09",
@@ -1329,7 +1329,7 @@
                 "Mitra yang menolak tidak ditawari kembali untuk pesanan yang sama."
             ],
             "verification": "Simulasi penawaran sekuensial instan di backend, verifikasi perpindahan tawaran setelah 60 detik timeout.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "SYS-02",
@@ -1404,7 +1404,7 @@
                 "Check constraint database memastikan saldo dompet customer tidak pernah bernilai negatif."
             ],
             "verification": "Kirim webhook palsu (harus 401/403) dan uji transaksi debit melebihi saldo (harus gagal rollback).",
-            "passes": false
+            "passes": true
         },
         {
             "id": "SYS-06",
@@ -1458,7 +1458,7 @@
                 "Setiap onboarding mitra menyimpan agreement_version dan terms_consent_timestamp."
             ],
             "verification": "Periksa baris data pesanan dan mitra di database, pastikan versi dokumen hukum tercatat.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "SYS-09",

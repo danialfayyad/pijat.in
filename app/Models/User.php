@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\OrderStatus;
 use App\Enums\Role;
 use App\Enums\UserStatus;
 use Database\Factories\UserFactory;
@@ -132,6 +133,22 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasOne<Wallet, $this>
+     */
+    public function wallet(): HasOne
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
+    /**
+     * Retrieve existing wallet or initialize a zero-balance wallet atomically.
+     */
+    public function getOrCreateWallet(): Wallet
+    {
+        return $this->wallet()->firstOrCreate([], ['balance' => 0, 'currency' => 'IDR']);
+    }
+
+    /**
      * @return HasOne<PartnerProfile, $this>
      */
     public function partnerProfile(): HasOne
@@ -222,6 +239,7 @@ class User extends Authenticatable
     }
 
     /**
+
      * @return HasMany<Complaint, $this>
      */
     public function complaintsAsTarget(): HasMany
@@ -235,6 +253,21 @@ class User extends Authenticatable
     public function complaintsAsComplainant(): HasMany
     {
         return $this->hasMany(Complaint::class, 'complainant_id');
+
+
+    }
+    public function completedOrdersCount(): int
+    {
+        return $this->ordersAsMitra()->where('status', OrderStatus::Selesai)->count();
+    }
+
+    /**
+     * Get the partner's rating (default 5.0).
+     */
+    public function partnerRating(): float
+    {
+        return 5.0;
+
     }
 
     /**

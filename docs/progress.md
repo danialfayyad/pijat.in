@@ -20,9 +20,9 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 | **F0** | Fondasi Arsitektur, Kontrak, & Skema Inti | Selesai | 27 Okt 2026 | 27 Okt 2026 | Seluruh kontrak dibekukan, CLAUDE.md dan features.json dibuat |
 | **S1** | Setup Master Wilayah & Penugasan Admin | Selesai | 27 Okt 2026 | 27 Okt 2026 | 10/10 tests pass (RegionAndAdminScopingTest), 41/41 total suite pass, Pint clean, 514 Kota/Kabupaten GeoJSON preset terintegrasi |
 | **S2** | Onboarding, Verifikasi Dokumen, & Profil Mitra | Selesai | 27 Okt 2026 | 27 Okt 2026 | 11/11 tests pass (PartnerOnboardingAndVerificationTest), 53/53 total suite pass, Pint clean, registrasi NIK/KTP/selfie, pin domisili Leaflet di wilayah aktif, antrean verifikasi admin wilayah, proteksi rekening & safeguard re-verifikasi selesai |
-| **S3** | Customer, Alamat Utama, Katalog, & Dompet Top-up | Sedang Berjalan (ADM-10, CUS-03, CUS-05, CUS-23 Selesai) | 27 Okt 2026 | - | 24/24 tests pass (ServiceCatalogTest + CustomerAddressTest + CustomerCatalogTest), 79/79 total suite pass, Pint clean; CRUD Katalog Layanan Admin & PWA Customer tanpa add-on selesai; Manajemen Alamat Customer PWA, pin peta Leaflet, validasi spasial ST_Contains wilayah aktif, alamat pertama otomatis jadi alamat utama, dan perpindahan domisili instan selesai |
-| **S4** | Pemesanan Terjadwal, Matching FCFS, & Jadwal Mitra | Belum Dimulai | - | - | Tergantung S2, S3 |
-| **S5** | Pemesanan Instan, Penawaran Sekuensial 60s, & Lock | Belum Dimulai | - | - | Tergantung S2, S3 |
+| **S3** | Customer, Alamat Utama, Katalog, & Dompet Top-up | Selesai | 27 Okt 2026 | 28 Okt 2026 | 25/25 tests pass (ServiceCatalogTest, CustomerAddressTest, CustomerCatalogTest, CustomerWalletTest), 100/100 total suite pass, Pint clean; CRUD Katalog Layanan Admin & PWA Customer tanpa add-on selesai; Manajemen Alamat Customer PWA, pin peta Leaflet, validasi spasial ST_Contains wilayah aktif, alamat pertama otomatis jadi alamat utama, dan perpindahan domisili instan selesai; Skema Dompet, mutasi transaksi ledger atomik, pencegahan saldo negatif, top-up mandiri teratribusi wilayah (DEC-02), dan webhook Xendit selesai |
+| **S4** | Pemesanan Terjadwal, Matching FCFS, & Jadwal Mitra | Selesai | 28 Okt 2026 | 29 Okt 2026 | 23/23 tests pass (OrderBookingTest: 10/10, PartnerServicePreferenceTest: 4/4, ScheduledOrderMatchingTest: 6/6, OrderTrackingTest: 3/3), 123/123 total suite pass, Pint clean; CUS-04, CUS-06, CUS-07, SYS-08, MIT-08, MIT-06, MIT-07, CUS-10 Selesai Penuh |
+| **S5** | Pemesanan Instan, Penawaran Sekuensial 60s, & Lock | Selesai | 29 Okt 2026 | 29 Okt 2026 | 6/6 tests pass (InstantOrderMatchingTest), 131/131 total suite pass, Pint clean; CUS-08, MIT-04, MIT-05, SYS-01 Selesai Penuh |
 | **S6** | Pelaksanaan Layanan, Tracking OTW, Tiba 50m, Selesai | Belum Dimulai | - | - | Tergantung S2, S4, S5 |
 | **S7** | Pembatalan, Reschedule, Refund, & Potongan Kompensasi| Belum Dimulai | - | - | Tergantung S6 |
 | **S8** | Tombol Darurat, Aduan 24 Jam, SP Bertingkat, Banding | Belum Dimulai | - | - | Tergantung S6, S7 |
@@ -32,7 +32,34 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 
 ---
 
-## 3. Slice Aktif Saat Ini
+### 3. Slice Aktif Saat Ini
+
+- **Slice**: `S4` (Pemesanan Terjadwal, Matching FCFS, & Jadwal Mitra) $\rightarrow$ **Selesai Penuh (100%)**.
+- **Hasil Sesi Ini**:
+  1. **Preferensi Layanan Mitra (`MIT-08`)**:
+     - Tabel `partner_service_preferences` dengan relasi ke `partner_profiles` dan `services`.
+     - Antarmuka preferensi jenis layanan di Profil Mitra (`resources/views/mitra/profile.blade.php`).
+     - Default: Seluruh layanan aktif secara otomatis.
+     - Validasi: Minimal 1 jenis layanan harus tetap aktif (dicegah menonaktifkan semua layanan).
+     - Filter bursa pesanan terintegrasi dengan preferensi layanan aktif mitra.
+  2. **Bursa Pesanan Terjadwal & Pengambilan FCFS (`MIT-06`)**:
+     - Rute `mitra.orders.scheduled` dan tampilan `resources/views/mitra/orders/scheduled.blade.php`.
+     - Filter otomatis: Wilayah operasional sama, sesama jenis kelamin mitra-penerima, jenis layanan aktif, dan bebas bentrok jadwal.
+     - Pengambilan pesanan berbasis FCFS (*First Come, First Served*) dengan database transaction lock (`lockForUpdate`) untuk mencegah perebutan pesanan (race conditions).
+     - Notifikasi kesalahan jika pesanan telah terisi oleh mitra lain.
+  3. **Menu Jadwal Saya & Dekripsi Catatan Medis (`MIT-07`)**:
+     - Rute `mitra.orders.my-schedule` dan tampilan `resources/views/mitra/orders/my-schedule.blade.php`.
+     - Menampilkan seluruh pesanan berstatus Dijadwalkan yang menjadi tanggung jawab mitra, lengkap dengan waktu jadwal, nama, kontak, dan alamat.
+     - Catatan kondisi medis penerima terbuka dan dapat dibaca mitra di layar ini.
+  4. **Pelacakan Pesanan Real-Time Pelanggan (`CUS-10`)**:
+     - Tampilan pelacakan pesanan di `resources/views/pelanggan/orders/show.blade.php`.
+     - Hitung mundur batas waktu pencarian terapis saat status `MencariMitra` (30 menit countdown).
+     - Profil terapis penanggung jawab (nama panggilan, inisial, rating 5.0, jumlah layanan selesai, kontak telepon/WA) tampil saat `Dijadwalkan` / `MenujuLokasi` tanpa membocorkan NIK atau data sensitif.
+     - Banner status OTW, estimasi kedatangan (~15-20 menit), dan indikator pembaruan posisi GPS setiap 30 detik.
+  5. **Pengujian & Kualitas Kode**:
+     - 23/23 tests pass untuk modul Slice 4 (`OrderBookingTest`, `PartnerServicePreferenceTest`, `ScheduledOrderMatchingTest`, `OrderTrackingTest`).
+     - **123/123 total test suite aplikasi berstatus hijau (pass)** dengan 528 assertions.
+     - Format kode bersih dan rapi via Laravel Pint.
 
 - **Slice**: `ADM-04` & `ADM-05` (Pemantauan Pesanan Wilayah & Penanganan Order Nyangkut / Stuck) $\rightarrow$ **Selesai Penuh**.
 - **Hasil Sesi Ini**:
@@ -105,8 +132,16 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 - **[DEC-08] Pemisahan Tampilan Katalog Aktif & Nonaktif**: Halaman katalog memisahkan data layanan aktif (tersedia dipesan) dan nonaktif (diarsipkan/ditutup sementara). Navigasi dilakukan melalui stat card interaktif dan tombol redirect cepat (`Lihat Katalog Nonaktif` dan `Kembali ke Katalog Aktif`) dengan badge penghitung layanan secara real-time.
 - **[DEC-09] Modal Dialog Konfirmasi Interaktif Global (`<x-confirm-dialog />`)**: Menggantikan `window.confirm()` browser bawaan dengan modal dialog Alpine.js custom yang elegan dan konsisten. Desain terpusat (*centered circular icon with soft ring accent*), teks *to-the-point* tanpa badge berulang, serta mendukung varian kondisi `danger` (merah), `warning` (kuning/amber), dan `info/success` (hijau). Diterapkan pada Hapus Layanan, Nonaktifkan Layanan, Nonaktifkan Paket Durasi, Cabut Wilayah Penugasan Admin, dan Nonaktifkan Wilayah Layanan.
 - **[DEC-10] Standarisasi Header Bersih & Filter Wilayah Tabel**: Menghapus teks teknis modul (seperti `Modul Verifikasi Mitra (ADM-02)`) dan banner duplikasi data pada header dashboard admin. Filter multi-wilayah dipindahkan langsung ke header card tabel masing-masing agar relevan dan ergonomis.
+
 - **[DEC-11] Penghapusan Fitur Siaga Darurat (Panic Button / SOS)**: Sesuai arahan pengguna, modul Siaga Darurat (`ADM-13` dan elemen darurat `SA-07`) dihapus. Penanganan keluhan, komplain kualitas, maupun laporan kendala di lapangan dipusatkan melalui modul Pusat Laporan Aduan Pelanggan & Mitra (`ADM-08`).
 - **[DEC-12] Sistem Demerit Points & Penebusan Performa Otomatis**: Menggantikan sistem manual Surat Peringatan (SP 1, SP 2, SP 3) dengan akumulasi poin sanksi otomatis terukur (Ambang: 30 = Peringatan, 60 = Suspend 3 Hari, 100 = Suspend 7 Hari, 150 = Banned Permanen). Mitra dapat menebus poin pelanggaran secara adil melalui performa kerja nyata (setiap menyelesaikan pesanan dengan rating 5 bintang memotong 1 poin sanksi). Tersedia mekanisme pengajuan banding (`ADM-07`) dengan pengunggahan surat pernyataan yang ditinjau oleh Admin Wilayah.
+
+- **[DEC-11] Kebebasan Memilih Preferensi Gender Terapis (Opsi A)**: Sesuai kesepakatan produk terbaru, aturan restriksi kaku sesama jenis kelamin (*rigid same-gender lock*) dihapus. Pelanggan kini diberikan kebebasan penuh saat membuat pesanan (`orders/create`) untuk memilih preferensi terapis yang diinginkan (`preferred_gender`):
+  1. `pria` (Khusus Terapis Pria)
+  2. `wanita` (Khusus Terapis Wanita)
+  3. `bebas` (Siapa Saja / Terapis Terdekat yang Tersedia - Paling Cepat)
+  Pencarian instan (`InstantOrderMatchingService`) dan bursa pesanan terjadwal (`MitraOrderController@scheduled`) sepenuhnya menyaring kandidat mitra berdasarkan preferensi pelanggan ini, sehingga mitra pria maupun wanita dapat menerima pesanan pelanggan lintas gender jika pelanggan memilih opsi `bebas` atau gender yang bersangkutan.
+
 
 ---
 
@@ -116,8 +151,7 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 ---
 
 ## 6. Hal yang Perlu Diperhatikan Sesi Berikutnya
-- Porsi **Manajemen Alamat (`CUS-05`, `CUS-23`)**, **Katalog Layanan PWA Pelanggan (`CUS-03`)**, dan **Katalog Layanan Admin (`ADM-10`)** telah selesai dengan 79/79 test berstatus hijau.
-- Modul S3 berikutnya yang siap dikerjakan:
-  1. **CUS-16 / SYS-05 (Dompet Pelanggan & Transaksi Ledger Atomik)**: Tabel dompet, ledger mutasi saldo, proteksi saldo negatif, dan prasyarat kepemilikan Alamat Utama sebelum top-up (DEC-02).
-  2. **CUS-09 / SYS-05 (Integrasi Top-up & Simulasi Webhook Xendit)**: Form top-up saldo di PWA, invoice pending maks 15 menit, verifikasi signature webhook, dan penambahan saldo otomatis.
+- **Slice 4 (S4)** & **Slice 5 (S5)** telah selesai sepenuhnya dengan integrasi preferensi gender Opsi A. Total 134/134 test suite aplikasi berstatus hijau (pass) dengan 588 assertions.
+- Modul operasional berikutnya yang siap dikerjakan:
+  1. **Slice 6 (S6)**: Pelaksanaan Layanan, Tracking OTW, Tiba 50m, Mulai Sesi, & Selesai Layanan (`CUS-11`, `MIT-10`, `MIT-11`, `MIT-12`).
 
