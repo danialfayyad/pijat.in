@@ -388,3 +388,64 @@ test('mitra onboarding renders active cities list and rejects mismatch between s
     $validResponse->assertRedirect(route('mitra.status'));
     expect($mitra->fresh()->partnerProfile->region_id)->toBe($jember->id);
 });
+
+test('mitra can select up to 2 operating regions during onboarding and cannot pick duplicate regions', function () {
+    $regionService = app(RegionService::class);
+    $regionA = $regionService->createRegion(
+        'Wilayah Operasional A',
+        [[115.10, -8.10], [115.30, -8.10], [115.30, -8.30], [115.10, -8.30], [115.10, -8.10]]
+    );
+    $regionB = $regionService->createRegion(
+        'Wilayah Operasional B',
+        [[115.40, -8.10], [115.60, -8.10], [115.60, -8.30], [115.40, -8.30], [115.40, -8.10]]
+    );
+
+    $admin = User::factory()->create(['role' => Role::Admin]);
+    $regionService->assignAdmin($admin, $regionA);
+    $regionService->assignAdmin($admin, $regionB);
+    $regionService->activateRegion($regionA);
+    $regionService->activateRegion($regionB);
+
+    $mitra = User::factory()->mitra()->belumLengkap()->create();
+
+    // 1. Validation error if secondary region is the same as primary region
+    $duplicateResponse = $this->actingAs($mitra)->post(route('mitra.onboarding.store'), [
+        'nik' => '3509012345670002',
+        'region_id' => $regionA->id,
+        'secondary_region_id' => $regionA->id,
+        'latitude' => -8.20,
+        'longitude' => 115.20,
+        'address_text' => 'Jl. Merdeka No. 2',
+        'bank_name' => 'BCA',
+        'account_number' => '5432167891',
+        'account_holder_name' => $mitra->name,
+        'ktp_file' => UploadedFile::fake()->image('ktp.jpg'),
+        'selfie_file' => UploadedFile::fake()->image('selfie.jpg'),
+        'sop_agreement' => '1',
+    ]);
+
+    $duplicateResponse->assertSessionHasErrors('secondary_region_id');
+
+    // 2. Success: Primary region is regionA and secondary region is regionB
+    $validResponse = $this->actingAs($mitra)->post(route('mitra.onboarding.store'), [
+        'nik' => '3509012345670002',
+        'region_id' => $regionA->id,
+        'secondary_region_id' => $regionB->id,
+        'latitude' => -8.20,
+        'longitude' => 115.20,
+        'address_text' => 'Jl. Merdeka No. 2',
+        'bank_name' => 'BCA',
+        'account_number' => '5432167891',
+        'account_holder_name' => $mitra->name,
+        'ktp_file' => UploadedFile::fake()->image('ktp.jpg'),
+        'selfie_file' => UploadedFile::fake()->image('selfie.jpg'),
+        'sop_agreement' => '1',
+    ]);
+
+    $validResponse->assertRedirect(route('mitra.status'));
+
+    $profile = $mitra->fresh()->partnerProfile;
+    expect($profile->region_id)->toBe($regionA->id)
+        ->and($profile->secondary_region_id)->toBe($regionB->id)
+        ->and($profile->getOperatingRegionIds())->toBe([$regionA->id, $regionB->id]);
+});

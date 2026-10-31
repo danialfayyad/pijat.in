@@ -16,6 +16,7 @@ class PartnerProfile extends Model
     protected $fillable = [
         'user_id',
         'region_id',
+        'secondary_region_id',
         'address_text',
         'coordinate',
         'current_coordinate',
@@ -58,6 +59,27 @@ class PartnerProfile extends Model
     public function region(): BelongsTo
     {
         return $this->belongsTo(Region::class);
+    }
+
+    /**
+     * @return BelongsTo<Region, $this>
+     */
+    public function secondaryRegion(): BelongsTo
+    {
+        return $this->belongsTo(Region::class, 'secondary_region_id');
+    }
+
+    /**
+     * Get all operational region IDs for this partner (primary and optional secondary).
+     *
+     * @return array<int>
+     */
+    public function getOperatingRegionIds(): array
+    {
+        return array_values(array_filter([
+            $this->region_id ? (int) $this->region_id : null,
+            $this->secondary_region_id ? (int) $this->secondary_region_id : null,
+        ]));
     }
 
     /**

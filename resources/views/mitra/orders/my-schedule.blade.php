@@ -44,10 +44,10 @@
                             <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
-                            <span>{{ $order->scheduled_start_time?->translatedFormat('l, d M Y') }}</span>
+                            <span>{{ $order->local_scheduled_start_time?->translatedFormat('l, d M Y') }}</span>
                         </div>
                         <span class="font-extrabold text-emerald-900 font-mono">
-                            {{ $order->scheduled_start_time?->format('H:i') }} WIB
+                            {{ $order->local_scheduled_start_time?->format('H:i') }} {{ $order->timezone_abbr }}
                         </span>
                     </div>
 

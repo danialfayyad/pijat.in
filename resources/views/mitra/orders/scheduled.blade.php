@@ -86,10 +86,10 @@
                             </div>
                             <div class="flex-1">
                                 <div class="font-bold text-slate-900 leading-tight">
-                                    {{ $order->scheduled_start_time?->locale('id')->translatedFormat('l, d F Y') }}
+                                    {{ $order->local_scheduled_start_time?->locale('id')->translatedFormat('l, d F Y') }}
                                 </div>
                                 <div class="text-[11px] text-emerald-800 font-mono font-bold mt-0.5">
-                                    Pukul {{ $order->scheduled_start_time?->format('H:i') }} WIB
+                                    Pukul {{ $order->local_scheduled_start_time?->format('H:i') }} {{ $order->timezone_abbr }}
                                 </div>
                             </div>
                         </div>
@@ -120,27 +120,15 @@
                         </div>
                     </div>
 
-                    <!-- Tombol Aksi: Lihat Detail & Ambil Jadwal -->
-                    <div class="grid grid-cols-2 gap-2 pt-1">
+                    <!-- Tombol Aksi: Tinjau Detail Pesanan Terlebih Dahulu -->
+                    <div class="pt-1">
                         <a href="{{ route('mitra.orders.show', $order) }}"
-                           class="min-h-[42px] py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
-                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                           class="w-full min-h-[44px] py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center space-x-2 cursor-pointer">
+                            <span>Lihat Detail & Tinjau Pesanan</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                             </svg>
-                            <span>Detail & Peta</span>
                         </a>
-
-                        <form action="{{ route('mitra.orders.take', $order) }}" method="POST">
-                            @csrf
-                            <button type="submit" 
-                                class="w-full min-h-[42px] py-2 px-3 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                <span>Ambil Jadwal</span>
-                            </button>
-                        </form>
                     </div>
                 </div>
             @empty

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\OrderStatus;
+use App\Enums\OrderType;
 use App\Enums\Role;
 use App\Enums\UserStatus;
 use App\Models\Order;
@@ -50,6 +51,17 @@ class InstantOrderMatchingService
             $lng = (float) ($order->service_coordinate['lng'] ?? 0);
         }
 
+        if ($lat == 0.0 && $lng == 0.0 && $order->exists) {
+            $coords = DB::table('orders')
+                ->selectRaw('ST_Latitude(service_coordinate) as lat, ST_Longitude(service_coordinate) as lng')
+                ->where('id', $order->id)
+                ->first();
+            if ($coords && $coords->lat !== null) {
+                $lat = (float) $coords->lat;
+                $lng = (float) $coords->lng;
+            }
+        }
+
         if ($lat == 0.0 && $lng == 0.0) {
             $order->loadMissing('customerAddress');
             $lat = (float) ($order->customerAddress?->latitude ?? 0);
@@ -95,7 +107,10 @@ class InstantOrderMatchingService
             ->join('partner_profiles as pp', 'pp.user_id', '=', 'u.id')
             ->where('u.role', Role::Mitra->value)
             ->where('u.status', UserStatus::Terverifikasi->value)
-            ->where('pp.region_id', $regionId)
+            ->where(function ($q) use ($regionId) {
+                $q->where('pp.region_id', $regionId)
+                    ->orWhere('pp.secondary_region_id', $regionId);
+            })
             ->where('pp.is_active', true)
             ->whereNotNull('pp.coordinate');
 
@@ -118,17 +133,28 @@ class InstantOrderMatchingService
             });
         }
 
-        // Exclude partners who are currently busy with an active order (Dijadwalkan, MenujuLokasi, MulaiLayanan)
+        // Exclude partners who are currently busy with an active order or upcoming scheduled order within 2 hours
         $query->whereNotExists(function ($sub) {
             $sub->select(DB::raw(1))
                 ->from('orders as o')
                 ->whereColumn('o.mitra_id', 'u.id')
-                ->whereIn('o.status', [
-                    OrderStatus::Dijadwalkan->value,
-                    OrderStatus::MenujuLokasi->value,
-                    OrderStatus::Tiba->value,
-                    OrderStatus::SedangBerlangsung->value,
-                ]);
+                ->where(function ($q) {
+                    $q->whereIn('o.status', [
+                        OrderStatus::MenujuLokasi->value,
+                        OrderStatus::Tiba->value,
+                        OrderStatus::SedangBerlangsung->value,
+                    ])->orWhere(function ($sched) {
+                        $sched->where('o.status', OrderStatus::Dijadwalkan->value)
+                            ->where(function ($s) {
+                                $s->where('o.order_type', OrderType::Instan->value)
+                                    ->orWhere(function ($upcoming) {
+                                        $upcoming->where('o.order_type', OrderType::Terjadwal->value)
+                                            ->whereNotNull('o.scheduled_start_time')
+                                            ->where('o.scheduled_start_time', '<=', Carbon::now()->addHours(2));
+                                    });
+                            });
+                    });
+                });
         });
 
         // Select with distance calculation
