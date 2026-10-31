@@ -24,6 +24,8 @@ class PartnerOnboardingService
      *
      * @param  array{
      *     nik: string,
+     *     region_id?: int|string|null,
+     *     secondary_region_id?: int|string|null,
      *     latitude: float,
      *     longitude: float,
      *     address_text: string,
@@ -56,7 +58,12 @@ class PartnerOnboardingService
             throw new DomainException("Titik koordinat yang Anda sematkan berada di luar batas wilayah {$regionName}.");
         }
 
-        return DB::transaction(function () use ($user, $data, $latitude, $longitude, $activeRegion) {
+        $secondaryRegionId = ! empty($data['secondary_region_id']) ? (int) $data['secondary_region_id'] : null;
+        if ($secondaryRegionId && $secondaryRegionId === (int) $activeRegion->id) {
+            $secondaryRegionId = null;
+        }
+
+        return DB::transaction(function () use ($user, $data, $latitude, $longitude, $activeRegion, $secondaryRegionId) {
             // Handle file uploads
             $ktpPath = $this->storeFile($data['ktp_file'], 'partners/ktp');
             $selfiePath = $this->storeFile($data['selfie_file'], 'partners/selfie');
@@ -68,6 +75,7 @@ class PartnerOnboardingService
                 ['user_id' => $user->id],
                 [
                     'region_id' => $activeRegion->id,
+                    'secondary_region_id' => $secondaryRegionId,
                     'address_text' => $data['address_text'],
                     'coordinate' => ['lat' => $latitude, 'lng' => $longitude],
                     'ktp_path' => $ktpPath,

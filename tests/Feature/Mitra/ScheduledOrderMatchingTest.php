@@ -9,6 +9,7 @@ use App\Models\Region;
 use App\Models\Service;
 use App\Models\ServicePackage;
 use App\Models\User;
+use App\Services\InstantOrderMatchingService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -409,4 +410,119 @@ test('MIT-06: pesanan terjadwal dengan jarak melebihi 10 km tidak muncul di burs
     $farOrder->refresh();
     expect($farOrder->mitra_id)->toBeNull();
     expect($farOrder->status)->toBe(OrderStatus::MencariMitra);
+});
+
+test('mitra with scheduled order at 4 PM can still receive instant orders at 8 AM and pick other scheduled orders at 10 AM', function () {
+    $now = Carbon::parse('2026-10-31 08:00:00');
+    Carbon::setTestNow($now);
+
+    PartnerServicePreference::create([
+        'partner_profile_id' => $this->profileMitraPria->id,
+        'service_id' => $this->serviceA->id,
+        'is_enabled' => true,
+    ]);
+
+    // 1. Mitra has an accepted scheduled order at 4 PM (16:00, 8 hours later)
+    $order4PM = Order::create([
+        'order_code' => 'ORD-4PM-SESSION',
+        'order_type' => OrderType::Terjadwal,
+        'customer_id' => $this->customer->id,
+        'mitra_id' => $this->mitraPria->id,
+        'region_id' => $this->region->id,
+        'service_id' => $this->serviceA->id,
+        'service_package_id' => $this->packageA->id,
+        'service_name' => $this->serviceA->name,
+        'duration_minutes' => 60,
+        'total_price' => 100000,
+        'recipient_name' => 'Warga Sore',
+        'recipient_gender' => 'pria',
+        'preferred_gender' => 'bebas',
+        'service_address_text' => 'Jl. Sore Hari',
+        'service_coordinate' => ['lat' => -8.1720, 'lng' => 113.7000],
+        'scheduled_start_time' => Carbon::parse('2026-10-31 16:00:00'),
+        'status' => OrderStatus::Dijadwalkan,
+    ]);
+
+    // 2. Can partner receive instant order at 8 AM?
+    $instantOrder = Order::create([
+        'order_code' => 'ORD-INSTANT-8AM',
+        'order_type' => OrderType::Instan,
+        'customer_id' => $this->customer->id,
+        'region_id' => $this->region->id,
+        'service_id' => $this->serviceA->id,
+        'service_package_id' => $this->packageA->id,
+        'service_name' => $this->serviceA->name,
+        'duration_minutes' => 60,
+        'total_price' => 100000,
+        'recipient_name' => 'Warga Pagi',
+        'recipient_gender' => 'pria',
+        'preferred_gender' => 'bebas',
+        'service_address_text' => 'Jl. Pagi Hari',
+        'service_coordinate' => ['lat' => -8.1720, 'lng' => 113.7000],
+        'status' => OrderStatus::MencariMitra,
+    ]);
+
+    $matchingService = app(InstantOrderMatchingService::class);
+    $eligiblePartners = $matchingService->findEligiblePartners($instantOrder);
+
+    // Partner is eligible because 4 PM is far ahead (> 2 hours buffer)
+    expect($eligiblePartners->pluck('partner_id'))->toContain($this->mitraPria->id);
+
+    // 3. Can partner pick another scheduled order at 10 AM (10:00 - 11:00)?
+    $order10AM = Order::create([
+        'order_code' => 'ORD-10AM-SESSION',
+        'order_type' => OrderType::Terjadwal,
+        'customer_id' => $this->customer->id,
+        'region_id' => $this->region->id,
+        'service_id' => $this->serviceA->id,
+        'service_package_id' => $this->packageA->id,
+        'service_name' => $this->serviceA->name,
+        'duration_minutes' => 60,
+        'total_price' => 100000,
+        'recipient_name' => 'Warga Siang',
+        'recipient_gender' => 'pria',
+        'preferred_gender' => 'bebas',
+        'service_address_text' => 'Jl. Siang Hari',
+        'service_coordinate' => ['lat' => -8.1720, 'lng' => 113.7000],
+        'scheduled_start_time' => Carbon::parse('2026-10-31 10:00:00'),
+        'status' => OrderStatus::MencariMitra,
+    ]);
+
+    $responseListing = $this->actingAs($this->mitraPria)->get(route('mitra.orders.scheduled'));
+    $responseListing->assertOk();
+    $responseListing->assertSee('ORD-10AM-SESSION');
+
+    // Partner successfully takes the 10 AM order
+    $responseTake = $this->actingAs($this->mitraPria)->post(route('mitra.orders.take', $order10AM));
+    $responseTake->assertRedirect(route('mitra.orders.my-schedule'));
+
+    $order10AM->refresh();
+    expect($order10AM->mitra_id)->toBe($this->mitraPria->id);
+
+    // 4. Partner has orders at 10 AM and 4 PM. Now simulate time is 2:30 PM (14:30)
+    // At 14:30, partner is within 2 hours of 4 PM -> instant order matching should exclude partner!
+    Carbon::setTestNow(Carbon::parse('2026-10-31 14:30:00'));
+
+    $instantAfternoon = Order::create([
+        'order_code' => 'ORD-INSTANT-1430',
+        'order_type' => OrderType::Instan,
+        'customer_id' => $this->customer->id,
+        'region_id' => $this->region->id,
+        'service_id' => $this->serviceA->id,
+        'service_package_id' => $this->packageA->id,
+        'service_name' => $this->serviceA->name,
+        'duration_minutes' => 60,
+        'total_price' => 100000,
+        'recipient_name' => 'Warga Sore Dekat',
+        'recipient_gender' => 'pria',
+        'preferred_gender' => 'bebas',
+        'service_address_text' => 'Jl. Sore Hari Dekat',
+        'service_coordinate' => ['lat' => -8.1720, 'lng' => 113.7000],
+        'status' => OrderStatus::MencariMitra,
+    ]);
+
+    $eligiblePartnersAfternoon = $matchingService->findEligiblePartners($instantAfternoon);
+    expect($eligiblePartnersAfternoon->pluck('partner_id'))->not->toContain($this->mitraPria->id);
+
+    Carbon::setTestNow(); // Reset
 });

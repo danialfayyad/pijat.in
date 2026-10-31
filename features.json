@@ -215,7 +215,7 @@
                 "Chat dinonaktifkan otomatis setelah pesanan selesai atau dibatalkan."
             ],
             "verification": "Kirim pesan chat antar customer dan mitra saat pesanan aktif, periksa nomor HP tersembunyi.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-12",
@@ -275,7 +275,7 @@
                 "Jika rating <= 3 bintang, sistem memunculkan tombol Laporkan Masalah ke menu Aduan."
             ],
             "verification": "Kirim rating bintang 5 dan bintang 2; pastikan rating 2 menampilkan prompt lapor masalah.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-15",
@@ -293,7 +293,7 @@
                 "Setiap pesanan memiliki rincian nota digital: kode pesanan, nama layanan, durasi, harga, penerima, alamat, dan metode bayar."
             ],
             "verification": "Buka menu Riwayat Pesanan dan buka rincian nota digital pesanan selesai.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-16",
@@ -623,7 +623,7 @@
                 "Tombol Selesai dinonaktifkan dan baru dapat ditekan setelah timer durasi paket terpenuhi 100%."
             ],
             "verification": "Jalankan seluruh alur status dari OTW hingga Selesai di PWA Mitra.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-10",
@@ -641,7 +641,7 @@
                 "Jika GPS perangkat tidak akurat dan tombol tetap nonaktif, mitra dapat menekan Minta Konfirmasi Lokasi untuk chat ke customer tanpa sanksi."
             ],
             "verification": "Uji tekan tombol Tiba pada jarak 100 m (gagal) dan jarak 30 m (berhasil).",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-11",
@@ -698,7 +698,7 @@
                 "Riwayat chat tersimpan di server untuk kebutuhan investigasi aduan."
             ],
             "verification": "Kirim pesan chat dari PWA Mitra ke PWA Customer saat status Menuju Lokasi.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-14",
@@ -716,7 +716,7 @@
                 "Tidak ada form ulasan teks; rating bersifat final."
             ],
             "verification": "Kirim rating dari mitra ke customer pasca-layanan selesai.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-15",
@@ -771,7 +771,7 @@
                 "Profil mitra menampilkan jumlah total layanan selesai, nilai rata-rata rating bintang, dan jumlah SP aktif."
             ],
             "verification": "Periksa profil mitra setelah menyelesaikan pesanan dan setelah menerima rating/SP.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-18",
@@ -1476,7 +1476,7 @@
                 "Jika request yang sama terkirim berulang kali karena gangguan jaringan, sistem mengembalikan status sukses tanpa mengeksekusi transisi ganda."
             ],
             "verification": "Kirim 2 request serentak dengan Idempotency-Key yang sama ke endpoint Mulai Layanan, pastikan transisi dieksekusi tepat 1 kali.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "SYS-10",

@@ -423,9 +423,11 @@
                         </div>
                     </div>
 
-                    <!-- Input Hidden region_id -->
+                    <!-- Input Hidden region_id & secondary_region_id -->
                     <input type="hidden" name="region_id" id="region_id"
                         x-effect="$el.value = selectedRegionId">
+                    <input type="hidden" name="secondary_region_id" id="secondary_region_id"
+                        x-effect="$el.value = secondaryRegionId">
 
                     <!-- 1. Cari Kota / Wilayah Layanan -->
                     <div>
@@ -445,33 +447,50 @@
                         </div>
                     </div>
 
-                    <!-- 2. Klik Kota untuk Memilih Sekaligus -->
+                    <!-- 2. Klik Kota untuk Memilih Sekaligus (Maksimal 2 Wilayah) -->
                     <div class="space-y-2">
                         <div class="flex items-center justify-between text-xs">
-                            <span class="font-semibold text-slate-700">2. Klik Kota untuk Memilih Wilayah Operasional:</span>
-                            <button type="button" x-show="selectedRegionId" @click="clearRegion()" class="min-h-[44px] text-rose-600 hover:text-rose-800 text-xs font-semibold cursor-pointer">
-                                Batal Pilih
+                            <span class="font-semibold text-slate-700">2. Pilih Wilayah Operasional (Maksimal 2):</span>
+                            <button type="button" x-show="selectedRegionId || secondaryRegionId" @click="clearAllRegions()" class="min-h-[44px] text-rose-600 hover:text-rose-800 text-xs font-semibold cursor-pointer">
+                                Batal Semua
                             </button>
                         </div>
 
                         <!-- Grid Chips Kota -->
-                        <div class="max-h-52 overflow-y-auto p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/90 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div class="max-h-56 overflow-y-auto p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/90 grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <template x-for="r in filteredRegions" :key="r.id">
-                                <div @click="selectRegion(r)"
-                                     class="min-h-[44px] p-3 rounded-xl border cursor-pointer select-none transition flex items-center justify-between text-xs"
+                                <div @click="toggleRegion(r)"
+                                     class="min-h-[48px] p-3 rounded-xl border cursor-pointer select-none transition flex items-center justify-between text-xs"
                                      :class="{
                                          'bg-emerald-700 text-white font-bold border-emerald-700 shadow-xs': selectedRegionId == r.id,
-                                         'bg-white text-slate-800 border-slate-200 hover:border-emerald-300': selectedRegionId != r.id
+                                         'bg-sky-50 text-sky-950 border-sky-400 font-semibold ring-1 ring-sky-300': secondaryRegionId == r.id,
+                                         'bg-white text-slate-800 border-slate-200 hover:border-emerald-300': selectedRegionId != r.id && secondaryRegionId != r.id
                                      }">
-                                    <div class="truncate mr-1">
+                                    <div class="truncate mr-2">
                                         <span x-text="r.name" class="block truncate"></span>
                                         <span class="text-[11px] block font-normal" 
-                                              :class="selectedRegionId == r.id ? 'text-emerald-100' : 'text-slate-500'"
+                                              :class="{
+                                                  'text-emerald-100': selectedRegionId == r.id,
+                                                  'text-sky-700': secondaryRegionId == r.id,
+                                                  'text-slate-500': selectedRegionId != r.id && secondaryRegionId != r.id
+                                              }"
                                               x-text="r.timezone || 'WIB'"></span>
                                     </div>
-                                    <span class="text-sm font-bold shrink-0" 
-                                          :class="selectedRegionId == r.id ? 'text-white' : 'text-slate-400'" 
-                                          x-text="selectedRegionId == r.id ? '✓' : '+'"></span>
+                                    <div class="shrink-0 flex items-center">
+                                        <template x-if="selectedRegionId == r.id">
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] bg-white text-emerald-800 font-bold uppercase tracking-wider shadow-xs">
+                                                1. Utama
+                                            </span>
+                                        </template>
+                                        <template x-if="secondaryRegionId == r.id">
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] bg-sky-200 text-sky-900 font-bold uppercase tracking-wider">
+                                                2. Tambahan
+                                            </span>
+                                        </template>
+                                        <template x-if="selectedRegionId != r.id && secondaryRegionId != r.id">
+                                            <span class="text-sm font-bold text-slate-400">+</span>
+                                        </template>
+                                    </div>
                                 </div>
                             </template>
 
@@ -484,14 +503,28 @@
                             </div>
                         </div>
 
-                        <!-- Footer Status Pemilihan Kota -->
-                        <div class="text-xs pt-1 flex items-center justify-between">
-                            <div>
-                                <span x-show="!selectedRegionId" class="text-slate-500">Belum ada kota yang dipilih.</span>
-                                <span x-show="selectedRegionId" class="text-emerald-800 font-semibold flex items-center">
-                                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-600 mr-1.5"></span>
-                                    <span>Kota Terpilih: <strong x-text="getSelectedRegionName()"></strong></span>
+                        <!-- Status Pemilihan Kota (Utama & Tambahan) -->
+                        <div class="text-xs pt-1 space-y-1.5">
+                            <div x-show="!selectedRegionId" class="text-slate-500">
+                                Belum ada kota yang dipilih. Pilih 1 kota sebagai domisili utama dan opsional 1 kota tambahan.
+                            </div>
+                            <div x-show="selectedRegionId" class="text-emerald-800 font-semibold flex items-center justify-between">
+                                <span class="flex items-center">
+                                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-600 mr-2 shrink-0"></span>
+                                    <span>Wilayah 1 (Utama / Domisili): <strong x-text="getSelectedRegionName()"></strong></span>
                                 </span>
+                            </div>
+                            <div x-show="secondaryRegionId" class="text-sky-800 font-semibold flex items-center justify-between">
+                                <span class="flex items-center">
+                                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-sky-500 mr-2 shrink-0"></span>
+                                    <span>Wilayah 2 (Tambahan): <strong x-text="getSecondaryRegionName()"></strong></span>
+                                </span>
+                                <button type="button" @click="clearSecondaryRegion()" class="text-rose-600 hover:text-rose-800 text-[11px] font-semibold cursor-pointer">
+                                    Hapus
+                                </button>
+                            </div>
+                            <div x-show="selectedRegionId && !secondaryRegionId" class="text-slate-400 text-[11px]">
+                                Info: Anda dapat memilih 1 kota lagi sebagai wilayah operasional tambahan bila berbatasan langsung.
                             </div>
                         </div>
                     </div>
@@ -503,7 +536,7 @@
                                 3. Titik Lokasi Domisili (Peta Spasial)
                             </label>
                             <span class="text-xs text-emerald-700 font-medium" x-show="selectedRegionId">
-                                Peta otomatis diarahkan ke kota terpilih
+                                Pin domisili wajib berada di dalam Wilayah Utama
                             </span>
                         </div>
 
@@ -527,7 +560,7 @@
                             <label class="block text-xs font-semibold text-slate-700">Alamat Lengkap Domisili <span class="text-rose-500">*</span></label>
                             <span id="geo-status" class="text-[11px] text-emerald-700 font-medium">Otomatis terisi saat pin peta dipindahkan</span>
                         </div>
-                        <textarea id="address_text" name="address_text" rows="3" required placeholder="Jalan, Nomor Rumah, RT/RW, Kelurahan, Kecamatan, Kota..."
+                        <textarea id="address_text" name="address_text" x-model="addressText" rows="3" required placeholder="Jalan, Nomor Rumah, RT/RW, Kelurahan, Kecamatan, Kota..."
                             class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-emerald-600 focus:ring-emerald-600 transition">{{ old('address_text', $partnerProfile?->address_text) }}</textarea>
                         @error('address_text') <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p> @enderror
                     </div>
@@ -609,7 +642,7 @@
             <!-- STEP 4: Ringkasan Berkas, Kode Etik & Persetujuan SOP -->
             <div x-show="currentStep === 4" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
                 <!-- Ringkasan Data -->
-                <div class="bg-emerald-50/70 border border-emerald-200/90 rounded-2xl p-4.5 space-y-3">
+                <div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-4.5 space-y-3">
                     <div class="flex items-center space-x-2 text-emerald-900 font-bold text-xs">
                         <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
@@ -617,25 +650,40 @@
                         <span>Ringkasan Berkas Pendaftaran Anda</span>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div class="bg-white p-2.5 rounded-xl border border-emerald-100">
-                            <span class="text-[10px] text-slate-500 block">NIK Terdaftar</span>
-                            <span class="font-mono font-bold text-slate-900" x-text="nik || '-'"></span>
+                    <div class="space-y-2 text-xs">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs">
+                                <span class="text-[10px] text-slate-500 block">NIK Terdaftar</span>
+                                <span class="font-mono font-bold text-slate-900 text-xs block mt-0.5" x-text="nik || '-'"></span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs">
+                                <span class="text-[10px] text-slate-500 block">Nomor WhatsApp/HP</span>
+                                <span class="font-mono font-bold text-slate-900 text-xs block mt-0.5" x-text="phone || '-'"></span>
+                            </div>
                         </div>
-                        <div class="bg-white p-2.5 rounded-xl border border-emerald-100">
-                            <span class="text-[10px] text-slate-500 block">Nomor WhatsApp/HP</span>
-                            <span class="font-mono font-bold text-slate-900" x-text="phone || '-'"></span>
+
+                        <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500">Wilayah 1 (Utama / Domisili):</span>
+                                <span class="font-bold text-emerald-800" x-text="getSelectedRegionName()"></span>
+                            </div>
+                            <template x-if="secondaryRegionId">
+                                <div class="flex items-center justify-between pt-1.5 border-t border-slate-100">
+                                    <span class="text-slate-500">Wilayah 2 (Tambahan):</span>
+                                    <span class="font-bold text-sky-800" x-text="getSecondaryRegionName()"></span>
+                                </div>
+                            </template>
+                            <div class="pt-2 border-t border-slate-100">
+                                <span class="text-[10px] text-slate-400 block mb-1">Alamat Lengkap Domisili:</span>
+                                <p class="text-slate-700 text-xs leading-relaxed" x-text="addressText || '-'"></p>
+                            </div>
                         </div>
-                        <div class="bg-white p-2.5 rounded-xl border border-emerald-100 col-span-2">
-                            <span class="text-[10px] text-slate-500 block">Kota Layanan & Alamat</span>
-                            <span class="font-bold text-slate-900 block" x-text="getSelectedRegionName()"></span>
-                            <span class="text-[11px] text-slate-600 block mt-0.5 truncate" x-text="document.getElementById('address_text')?.value || '-'"></span>
-                        </div>
-                        <div class="bg-white p-2.5 rounded-xl border border-emerald-100 col-span-2">
-                            <span class="text-[10px] text-slate-500 block">Rekening Pencairan Dana</span>
+
+                        <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs space-y-1">
+                            <span class="text-[10px] text-slate-400 block">Rekening Bank Pencairan Dana</span>
                             <div class="flex items-center justify-between">
                                 <span class="font-bold text-slate-900"><span x-text="bankName"></span> - <span class="font-mono" x-text="accountNumber"></span></span>
-                                <span class="text-[11px] text-slate-700 font-medium truncate ml-2">a.n <span x-text="accountHolderName"></span></span>
+                                <span class="text-slate-700 font-medium">a.n <span x-text="accountHolderName"></span></span>
                             </div>
                         </div>
                     </div>
@@ -947,6 +995,8 @@
                 phone: @js(old('phone', $user->phone ?? '')),
                 searchQuery: '',
                 selectedRegionId: @js(old('region_id', $partnerProfile?->region_id ?? '')),
+                secondaryRegionId: @js(old('secondary_region_id', $partnerProfile?->secondary_region_id ?? '')),
+                addressText: @js(old('address_text', $partnerProfile?->address_text ?? '')),
                 regions: @js($activeRegions),
                 bankName: @js(old('bank_name', $bankAccount?->bank_name ?? 'BCA')),
                 accountNumber: @js(old('account_number', $bankAccount?->account_number ?? '')),
@@ -1017,23 +1067,68 @@
                     return this.regions.filter(r => r.name.toLowerCase().includes(q));
                 },
 
-                selectRegion(region) {
-                    this.selectedRegionId = region.id;
-                    if (window.onMitraRegionSelected) {
-                        window.onMitraRegionSelected(region);
+                toggleRegion(region) {
+                    if (this.selectedRegionId == region.id) {
+                        if (this.secondaryRegionId) {
+                            const sec = this.regions.find(r => r.id == this.secondaryRegionId);
+                            this.selectedRegionId = this.secondaryRegionId;
+                            this.secondaryRegionId = '';
+                            if (window.onSecondaryRegionCleared) {
+                                window.onSecondaryRegionCleared();
+                            }
+                            if (window.onMitraRegionSelected && sec) {
+                                window.onMitraRegionSelected(sec);
+                            }
+                        } else {
+                            this.selectedRegionId = '';
+                            if (window.onMitraRegionCleared) {
+                                window.onMitraRegionCleared();
+                            }
+                        }
+                    } else if (this.secondaryRegionId == region.id) {
+                        this.secondaryRegionId = '';
+                        if (window.onSecondaryRegionCleared) {
+                            window.onSecondaryRegionCleared();
+                        }
+                    } else if (!this.selectedRegionId) {
+                        this.selectedRegionId = region.id;
+                        if (window.onMitraRegionSelected) {
+                            window.onMitraRegionSelected(region);
+                        }
+                    } else {
+                        this.secondaryRegionId = region.id;
+                        if (window.onSecondaryRegionSelected) {
+                            window.onSecondaryRegionSelected(region);
+                        }
                     }
                 },
 
-                clearRegion() {
+                clearAllRegions() {
                     this.selectedRegionId = '';
+                    this.secondaryRegionId = '';
                     if (window.onMitraRegionCleared) {
                         window.onMitraRegionCleared();
+                    }
+                    if (window.onSecondaryRegionCleared) {
+                        window.onSecondaryRegionCleared();
+                    }
+                },
+
+                clearSecondaryRegion() {
+                    this.secondaryRegionId = '';
+                    if (window.onSecondaryRegionCleared) {
+                        window.onSecondaryRegionCleared();
                     }
                 },
 
                 getSelectedRegionName() {
                     const r = this.regions.find(x => x.id == this.selectedRegionId);
                     return r ? r.name : 'Belum dipilih';
+                },
+
+                getSecondaryRegionName() {
+                    const r = this.regions.find(x => x.id == this.secondaryRegionId);
+                    return r ? r.name : '';
                 },
 
                 goToStep(targetStep) {
@@ -1214,6 +1309,7 @@
                         .then(data => {
                             if (data && data.display_name) {
                                 addressInput.value = data.display_name;
+                                addressInput.dispatchEvent(new Event('input'));
                                 if (geoStatus) {
                                     geoStatus.textContent = '✓ Alamat diperbarui dari peta';
                                 }
@@ -1262,7 +1358,9 @@
                 updateInputs(e.latlng.lat, e.latlng.lng);
             });
 
-            // When a region is selected from the chips
+            let secondaryPolygonLayer = null;
+
+            // When a region is selected from the chips (Wilayah Utama)
             window.onMitraRegionSelected = function(region) {
                 if (!region || !region.geojson) return;
 
@@ -1281,10 +1379,15 @@
                     }
                 }).addTo(map);
 
-                const bounds = regionPolygonLayer.getBounds();
-                map.fitBounds(bounds, { padding: [20, 20] });
+                if (secondaryPolygonLayer) {
+                    const combinedBounds = regionPolygonLayer.getBounds().extend(secondaryPolygonLayer.getBounds());
+                    map.fitBounds(combinedBounds, { padding: [25, 25] });
+                } else {
+                    const bounds = regionPolygonLayer.getBounds();
+                    map.fitBounds(bounds, { padding: [20, 20] });
+                }
 
-                const center = bounds.getCenter();
+                const center = regionPolygonLayer.getBounds().getCenter();
                 window.lastValidLatLng = { lat: center.lat, lng: center.lng };
                 marker.setLatLng(center);
                 updateInputs(center.lat, center.lng);
@@ -1296,11 +1399,51 @@
                     map.removeLayer(regionPolygonLayer);
                     regionPolygonLayer = null;
                 }
+                if (secondaryPolygonLayer) {
+                    map.fitBounds(secondaryPolygonLayer.getBounds(), { padding: [20, 20] });
+                }
+            };
+
+            // When secondary region is selected
+            window.onSecondaryRegionSelected = function(region) {
+                if (!region || !region.geojson) return;
+
+                if (secondaryPolygonLayer) {
+                    map.removeLayer(secondaryPolygonLayer);
+                }
+
+                secondaryPolygonLayer = L.geoJSON(region.geojson, {
+                    style: {
+                        color: '#0284c7', // Sky-600
+                        fillColor: '#38bdf8', // Sky-400
+                        fillOpacity: 0.18,
+                        weight: 2,
+                        dashArray: '6, 6'
+                    }
+                }).addTo(map);
+
+                if (regionPolygonLayer) {
+                    const combinedBounds = regionPolygonLayer.getBounds().extend(secondaryPolygonLayer.getBounds());
+                    map.fitBounds(combinedBounds, { padding: [25, 25] });
+                } else {
+                    map.fitBounds(secondaryPolygonLayer.getBounds(), { padding: [20, 20] });
+                }
+            };
+
+            window.onSecondaryRegionCleared = function() {
+                if (secondaryPolygonLayer) {
+                    map.removeLayer(secondaryPolygonLayer);
+                    secondaryPolygonLayer = null;
+                }
+                if (regionPolygonLayer) {
+                    map.fitBounds(regionPolygonLayer.getBounds(), { padding: [20, 20] });
+                }
             };
 
             // Check if a region is pre-selected on load (e.g. after validation error / edit)
             const activeRegions = @js($activeRegions);
             const preselectedId = @js(old('region_id', $partnerProfile?->region_id ?? ''));
+            const preselectedSecId = @js(old('secondary_region_id', $partnerProfile?->secondary_region_id ?? ''));
 
             if (preselectedId && activeRegions && activeRegions.length > 0) {
                 const preselected = activeRegions.find(r => r.id == preselectedId);
@@ -1312,6 +1455,13 @@
                 const auto = activeRegions[0];
                 document.getElementById('region_id').value = auto.id;
                 window.onMitraRegionSelected(auto);
+            }
+
+            if (preselectedSecId && activeRegions && activeRegions.length > 0) {
+                const preselectedSec = activeRegions.find(r => r.id == preselectedSecId);
+                if (preselectedSec) {
+                    window.onSecondaryRegionSelected(preselectedSec);
+                }
             }
 
             // Setup Photo Capture & Auto-Compression with Preview

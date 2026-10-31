@@ -4,6 +4,8 @@ use App\Http\Controllers\Mitra\MitraDashboardController;
 use App\Http\Controllers\Mitra\MitraOrderController;
 use App\Http\Controllers\Mitra\MitraProfileController;
 use App\Http\Controllers\Mitra\OnboardingController;
+use App\Http\Controllers\OrderChatController;
+use App\Http\Controllers\OrderRatingController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:mitra'])->prefix('mitra')->name('mitra.')->group(function () {
@@ -27,4 +29,10 @@ Route::middleware(['auth', 'role:mitra'])->prefix('mitra')->name('mitra.')->grou
     // Detail Pesanan, Peta Interaktif & Update Status Layanan
     Route::get('/orders/{order}', [MitraOrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/status', [MitraOrderController::class, 'updateStatus'])->name('orders.update-status');
+    Route::post('/orders/{order}/rating', [OrderRatingController::class, 'rateByMitra'])->name('orders.rating');
+    Route::get('/orders/{order}/chat/messages', [OrderChatController::class, 'getMessages'])->name('orders.chat.messages');
+    Route::post('/orders/{order}/chat/messages', [OrderChatController::class, 'sendMessage'])->name('orders.chat.send');
+    Route::post('/orders/{order}/rating', [\App\Http\Controllers\OrderRatingController::class, 'rateByMitra'])->name('orders.rating');
+    Route::get('/orders/{order}/chat/messages', [\App\Http\Controllers\OrderChatController::class, 'getMessages'])->name('orders.chat.messages');
+    Route::post('/orders/{order}/chat/messages', [\App\Http\Controllers\OrderChatController::class, 'sendMessage'])->name('orders.chat.send');
 });

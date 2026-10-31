@@ -41,7 +41,7 @@ class PartnerVerificationController extends Controller
     public function show(User $mitra, Request $request): View|RedirectResponse
     {
         $admin = $request->user();
-        $profile = $mitra->partnerProfile?->load('region');
+        $profile = $mitra->partnerProfile?->load(['region', 'secondaryRegion']);
 
         if (! $profile || ! $admin->canAccessRegion($profile->region_id)) {
             abort(403, 'Anda tidak memiliki hak akses terhadap mitra di luar wilayah tugas Anda.');

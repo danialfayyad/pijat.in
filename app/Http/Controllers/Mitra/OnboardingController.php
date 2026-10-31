@@ -57,6 +57,7 @@ class OnboardingController extends Controller
         $validated = $request->validate([
             'nik' => ['required', 'digits:16', Rule::unique('users', 'nik')->ignore($user->id)],
             'region_id' => ['nullable', 'exists:regions,id'],
+            'secondary_region_id' => ['nullable', 'exists:regions,id', 'different:region_id'],
             'latitude' => ['required', 'numeric'],
             'longitude' => ['required', 'numeric'],
             'address_text' => ['required', 'string', 'max:500'],
@@ -73,6 +74,7 @@ class OnboardingController extends Controller
             'nik.required' => 'Nomor Induk Kependudukan (NIK) wajib diisi.',
             'nik.digits' => 'NIK harus berjumlah tepat 16 digit.',
             'nik.unique' => 'NIK ini telah terdaftar di sistem pijat.in.',
+            'secondary_region_id.different' => 'Wilayah tambahan harus berbeda dari wilayah utama domisili.',
             'latitude.required' => 'Silakan sematkan pin lokasi domisili Anda pada peta.',
             'address_text.required' => 'Alamat lengkap domisili wajib diisi.',
             'ktp_file.required' => 'Foto KTP wajib diunggah.',
@@ -83,6 +85,7 @@ class OnboardingController extends Controller
         $payload = [
             'nik' => $validated['nik'],
             'region_id' => $validated['region_id'] ?? null,
+            'secondary_region_id' => $validated['secondary_region_id'] ?? null,
             'latitude' => (float) $validated['latitude'],
             'longitude' => (float) $validated['longitude'],
             'address_text' => $validated['address_text'],
@@ -122,7 +125,7 @@ class OnboardingController extends Controller
         }
 
         return view('mitra.status', [
-            'user' => $user->load('partnerProfile.region', 'primaryBankAccount'),
+            'user' => $user->load('partnerProfile.region', 'partnerProfile.secondaryRegion', 'primaryBankAccount'),
         ]);
     }
 }

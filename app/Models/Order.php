@@ -37,6 +37,8 @@ class Order extends Model
         'service_address_text',
         'service_coordinate',
         'scheduled_start_time',
+        'service_started_at',
+        'service_completed_at',
         'medical_notes',
         'risk_agreement_version',
         'consent_timestamp',
@@ -61,10 +63,38 @@ class Order extends Model
             'total_price' => 'decimal:2',
             'commission_percent' => 'decimal:2',
             'scheduled_start_time' => 'datetime',
+            'service_started_at' => 'datetime',
+            'service_completed_at' => 'datetime',
             'consent_timestamp' => 'datetime',
             'medical_notes' => 'encrypted',
             'reschedule_count' => 'integer',
         ];
+    }
+
+    /**
+     * Get the scheduled start time localized to region timezone (Asia/Jakarta, Asia/Makassar, Asia/Jayapura).
+     */
+    public function getLocalScheduledStartTimeAttribute(): ?Carbon
+    {
+        if (! $this->scheduled_start_time) {
+            return null;
+        }
+
+        $tz = $this->region?->timezone ?? 'Asia/Jakarta';
+
+        return $this->scheduled_start_time->copy()->setTimezone($tz);
+    }
+
+    /**
+     * Get the timezone abbreviation for this order's region (WIB, WITA, WIT).
+     */
+    public function getTimezoneAbbrAttribute(): string
+    {
+        return match ($this->region?->timezone) {
+            'Asia/Makassar' => 'WITA',
+            'Asia/Jayapura' => 'WIT',
+            default => 'WIB',
+        };
     }
 
     /**
@@ -137,6 +167,22 @@ class Order extends Model
     public function dispatches(): HasMany
     {
         return $this->hasMany(OrderDispatch::class);
+    }
+
+    /**
+     * @return HasMany<OrderRating, $this>
+     */
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(OrderRating::class);
+    }
+
+    /**
+     * @return HasMany<OrderMessage, $this>
+     */
+    public function messages(): HasMany
+    {
+        return $this->hasMany(OrderMessage::class)->orderBy('created_at', 'asc');
     }
 
     /**

@@ -130,23 +130,31 @@ test('mitra dapat memperbarui status pesanan secara bertahap menuju lokasi hingg
     $response1->assertRedirect(route('mitra.orders.show', $order));
     expect($order->fresh()->status)->toBe(OrderStatus::MenujuLokasi);
 
-    // 2. Menuju Lokasi -> Tiba
+    // 2. Menuju Lokasi -> Tiba (dengan validasi koordinat / force arrived)
     $response2 = $this->actingAs($this->mitra)
-        ->post(route('mitra.orders.update-status', $order), ['status' => 'tiba']);
+        ->post(route('mitra.orders.update-status', $order), [
+            'status' => 'tiba',
+            'latitude' => -8.1776,
+            'longitude' => 113.7197,
+        ]);
     $response2->assertRedirect(route('mitra.orders.show', $order));
     expect($order->fresh()->status)->toBe(OrderStatus::Tiba);
 
-    // 3. Tiba -> Sedang Berlangsung
+    // 3. Tiba -> Sedang Berlangsung (mencatat service_started_at)
     $response3 = $this->actingAs($this->mitra)
         ->post(route('mitra.orders.update-status', $order), ['status' => 'sedang_berlangsung']);
     $response3->assertRedirect(route('mitra.orders.show', $order));
-    expect($order->fresh()->status)->toBe(OrderStatus::SedangBerlangsung);
+    $orderFresh = $order->fresh();
+    expect($orderFresh->status)->toBe(OrderStatus::SedangBerlangsung);
+    expect($orderFresh->service_started_at)->not->toBeNull();
 
-    // 4. Sedang Berlangsung -> Selesai
+    // 4. Sedang Berlangsung -> Selesai (mencatat service_completed_at)
     $response4 = $this->actingAs($this->mitra)
         ->post(route('mitra.orders.update-status', $order), ['status' => 'selesai']);
     $response4->assertRedirect(route('mitra.orders.show', $order));
-    expect($order->fresh()->status)->toBe(OrderStatus::Selesai);
+    $orderDone = $order->fresh();
+    expect($orderDone->status)->toBe(OrderStatus::Selesai);
+    expect($orderDone->service_completed_at)->not->toBeNull();
 });
 
 test('mitra lain tidak dapat melihat detail pesanan mitra berbeda yang bukan di bursa', function () {
@@ -185,4 +193,86 @@ test('mitra lain tidak dapat melihat detail pesanan mitra berbeda yang bukan di 
 
     $response = $this->actingAs($otherMitra)->get(route('mitra.orders.show', $order));
     $response->assertForbidden();
+});
+
+test('mitra terhalang validasi radius 50m saat tiba jika jarak jauh tanpa konfirmasi manual', function () {
+    $order = Order::create([
+        'order_code' => 'ORD-GEOFENCE-01',
+        'order_type' => OrderType::Terjadwal,
+        'customer_id' => $this->customer->id,
+        'customer_address_id' => $this->address->id,
+        'mitra_id' => $this->mitra->id,
+        'region_id' => $this->region->id,
+        'service_id' => $this->service->id,
+        'service_package_id' => $this->package->id,
+        'service_name' => $this->service->name,
+        'duration_minutes' => 60,
+        'total_price' => 100000,
+        'recipient_name' => 'Danial',
+        'recipient_gender' => 'pria',
+        'service_address_text' => 'Jl. Semeru No. 10',
+        'service_coordinate' => ['lat' => -8.1776, 'lng' => 113.7197],
+        'status' => OrderStatus::MenujuLokasi,
+    ]);
+
+    // Posisi terapis jauh (sekitar 2 km) tanpa force_arrived
+    $response = $this->actingAs($this->mitra)
+        ->post(route('mitra.orders.update-status', $order), [
+            'status' => 'tiba',
+            'latitude' => -8.1900,
+            'longitude' => 113.7300,
+        ]);
+
+    $response->assertSessionHas('location_warning');
+    expect($order->fresh()->status)->toBe(OrderStatus::MenujuLokasi);
+
+    // Dengan force_arrived (jalur cadangan/toleransi GPS)
+    $responseFallback = $this->actingAs($this->mitra)
+        ->post(route('mitra.orders.update-status', $order), [
+            'status' => 'tiba',
+            'latitude' => -8.1900,
+            'longitude' => 113.7300,
+            'force_arrived' => 1,
+        ]);
+
+    $responseFallback->assertSessionHas('status');
+    expect($order->fresh()->status)->toBe(OrderStatus::Tiba);
+});
+
+test('pembaruan status bersifat idempoten terhadap pengiriman berulang saat sinyal buruk', function () {
+    $order = Order::create([
+        'order_code' => 'ORD-IDEMPOTENT-01',
+        'order_type' => OrderType::Terjadwal,
+        'customer_id' => $this->customer->id,
+        'customer_address_id' => $this->address->id,
+        'mitra_id' => $this->mitra->id,
+        'region_id' => $this->region->id,
+        'service_id' => $this->service->id,
+        'service_package_id' => $this->package->id,
+        'service_name' => $this->service->name,
+        'duration_minutes' => 60,
+        'total_price' => 100000,
+        'recipient_name' => 'Danial',
+        'recipient_gender' => 'pria',
+        'service_address_text' => 'Jl. Semeru No. 10',
+        'service_coordinate' => ['lat' => -8.1776, 'lng' => 113.7197],
+        'status' => OrderStatus::MenujuLokasi,
+    ]);
+
+    // Request pertama
+    $this->actingAs($this->mitra)
+        ->post(route('mitra.orders.update-status', $order), [
+            'status' => 'tiba',
+            'force_arrived' => 1,
+        ]);
+    expect($order->fresh()->status)->toBe(OrderStatus::Tiba);
+
+    // Request kedua (duplikat karena retry sinyal buruk)
+    $retry = $this->actingAs($this->mitra)
+        ->post(route('mitra.orders.update-status', $order), [
+            'status' => 'tiba',
+            'force_arrived' => 1,
+        ]);
+    $retry->assertRedirect(route('mitra.orders.show', $order));
+    expect($order->fresh()->status)->toBe(OrderStatus::Tiba);
 });

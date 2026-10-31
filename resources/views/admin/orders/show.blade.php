@@ -95,8 +95,8 @@
                         <div>
                             <span class="text-slate-400 block text-[11px]">Jadwal Pelaksanaan</span>
                             <span class="font-semibold text-slate-700 mt-0.5 block">
-                                @if ($order->scheduled_start_time)
-                                    {{ $order->scheduled_start_time->translatedFormat('d F Y, H:i') }} WIB
+                                @if ($order->local_scheduled_start_time)
+                                    {{ $order->local_scheduled_start_time->translatedFormat('d F Y, H:i') }} {{ $order->timezone_abbr }}
                                 @else
                                     Segera (Instan)
                                 @endif
