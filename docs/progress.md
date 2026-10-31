@@ -28,7 +28,7 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 | **S8** | Aduan Wilayah, Poin Sanksi, Banding, & Resolusi Masalah | Selesai (Backoffice) | 30 Okt 2026 | 31 Okt 2026 | ADM-08, ADM-07, ADM-06 Selesai Penuh; ADM-09 dikonsolidasikan ke Manajemen Mitra (S11) per DEC-13; Panic Button ditiadakan per DEC-11 |
 | **S9** | Saldo Mitra 24 Jam, Penarikan Dana, Keuangan Wilayah | Belum Dimulai | - | - | Tergantung S7, S8 |
 | **S10**| Perpindahan Domisili Customer & Mitra Antarwilayah | Belum Dimulai | - | - | Tergantung S2, S3 |
-| **S11**| Pelengkap: Retensi Data 30 Hari, Anonymization, Audit | Belum Dimulai | - | - | Tergantung S8, S9 |
+| **S11**| Manajemen Pengguna, Audit, & Pelengkap Sistem | Sedang Berjalan (Backoffice) | 31 Okt 2026 | - | ADM-05 Selesai Penuh (10/10 tests pass, 198/198 total suite pass, Pint clean); Integrasi metrik rating mitra & ulasan pelanggan terpadu, moderasi akun (aktifkan/suspend/blokir) & tabel blacklists |
 
 ---
 

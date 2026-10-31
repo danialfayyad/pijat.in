@@ -954,10 +954,11 @@
             ],
             "acceptance_criteria": [
                 "Admin dapat mengaktifkan, menangguhkan sementara, atau memblokir akun mitra/customer di wilayah tugasnya.",
-                "Aksi pemblokiran permanen mencatat nomor HP dan device ID ke daftar hitam sistem."
+                "Aksi pemblokiran permanen mencatat nomor HP dan device ID ke daftar hitam sistem.",
+                "Admin dapat melihat detail profil lengkap mitra dan customer, termasuk integrasi metrik performa rating, distribusi bintang, dan riwayat pesanan/sanksi."
             ],
-            "verification": "Uji sanksi blokir akun dari admin, pastikan nomor HP dan perangkat tidak dapat login kembali.",
-            "passes": false
+            "verification": "Uji sanksi blokir akun dari admin, pastikan nomor HP dan perangkat tidak dapat login kembali, serta verifikasi tampilan metrik rating.",
+            "passes": true
         },
         {
             "id": "ADM-06",

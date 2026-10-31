@@ -16,6 +16,7 @@ class OrderRating extends Model
         'to_user_id',
         'rating_type',
         'score',
+        'review',
     ];
 
     /**

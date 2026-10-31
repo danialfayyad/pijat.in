@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'nik', 'gender', 'date_of_birth', 'email', 'phone', 'role', 'status', 'region_id', 'password', 'phone_verified_at', 'rejection_reason', 'rejection_code', 'penalty_points', 'suspended_until'])]
+#[Fillable(['name', 'nik', 'gender', 'date_of_birth', 'email', 'phone', 'device_id', 'role', 'status', 'status_reason', 'region_id', 'password', 'phone_verified_at', 'rejection_reason', 'rejection_code', 'penalty_points', 'suspended_until'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -296,6 +296,45 @@ class User extends Authenticatable
         return $this->ratingsReceived()
             ->where('rating_type', 'customer_to_mitra')
             ->count();
+    }
+
+    /**
+     * Get star rating distribution breakdown [5 => int, 4 => int, 3 => int, 2 => int, 1 => int].
+     *
+     * @return array<int, int>
+     */
+    public function partnerRatingDistribution(): array
+    {
+        $counts = $this->ratingsReceived()
+            ->where('rating_type', 'customer_to_mitra')
+            ->selectRaw('score, COUNT(*) as count')
+            ->groupBy('score')
+            ->pluck('count', 'score')
+            ->all();
+
+        return [
+            5 => (int) ($counts[5] ?? 0),
+            4 => (int) ($counts[4] ?? 0),
+            3 => (int) ($counts[3] ?? 0),
+            2 => (int) ($counts[2] ?? 0),
+            1 => (int) ($counts[1] ?? 0),
+        ];
+    }
+
+    /**
+     * Check if user is permanently blocked / banned.
+     */
+    public function isBlocked(): bool
+    {
+        return $this->hasStatus(UserStatus::Diblokir);
+    }
+
+    /**
+     * @return HasMany<Blacklist, $this>
+     */
+    public function blacklists(): HasMany
+    {
+        return $this->hasMany(Blacklist::class);
     }
 
     /**

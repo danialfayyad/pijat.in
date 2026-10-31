@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\PartnerVerificationController;
 use App\Http\Controllers\Admin\PenaltyAppealController;
 use App\Http\Controllers\Admin\PenaltyMonitoringController;
 use App\Http\Controllers\Admin\ServiceCatalogController;
+use App\Http\Controllers\Admin\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
 // Region-scoped operational routes
@@ -39,6 +40,12 @@ Route::middleware(['auth', 'role:admin,superadmin', 'admin.region'])->prefix('ad
     Route::get('/appeals/{appeal}', [PenaltyAppealController::class, 'show'])->name('appeals.show');
     Route::post('/appeals/{appeal}/approve', [PenaltyAppealController::class, 'approve'])->name('appeals.approve');
     Route::post('/appeals/{appeal}/reject', [PenaltyAppealController::class, 'reject'])->name('appeals.reject');
+
+    // User & Partner Management (ADM-05)
+    Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+    Route::get('/users/partners/{user}', [UserManagementController::class, 'showPartner'])->name('users.partners.show');
+    Route::get('/users/customers/{user}', [UserManagementController::class, 'showCustomer'])->name('users.customers.show');
+    Route::post('/users/{user}/status', [UserManagementController::class, 'updateStatus'])->name('users.update-status');
 });
 
 // Global Service Catalog routes (permission: KATALOG)

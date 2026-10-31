@@ -111,6 +111,10 @@
                                class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.mitra.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Verifikasi Mitra
                             </a>
+                            <a href="{{ route('admin.users.index') }}" 
+                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.users.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Manajemen Pengguna
+                            </a>
                             @if (Auth::user()->canAccessMenu('KATALOG'))
                                 <a href="{{ route('admin.catalog.index') }}" 
                                    class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.catalog.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
