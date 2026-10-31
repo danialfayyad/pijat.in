@@ -40,9 +40,15 @@
                         <span class="font-mono text-slate-900">{{ substr($user->nik, 0, 6) . '******' . substr($user->nik, -4) }}</span>
                     </div>
                     <div class="flex justify-between pb-2 border-b border-slate-200/60">
-                        <span class="text-slate-600">Wilayah Layanan Domisili:</span>
+                        <span class="text-slate-600">Wilayah Layanan Utama:</span>
                         <span class="font-semibold text-emerald-800">{{ $user->partnerProfile?->region?->name ?? 'Terdeteksi' }}</span>
                     </div>
+                    @if ($user->partnerProfile?->secondaryRegion)
+                        <div class="flex justify-between pb-2 border-b border-slate-200/60">
+                            <span class="text-slate-600">Wilayah Tambahan:</span>
+                            <span class="font-semibold text-sky-800">{{ $user->partnerProfile->secondaryRegion->name }}</span>
+                        </div>
+                    @endif
                     <div class="flex justify-between">
                         <span class="text-slate-600">Rekening Pencairan:</span>
                         <span class="font-mono text-slate-900">{{ $user->primaryBankAccount?->bank_name }} ({{ $user->primaryBankAccount?->account_number }})</span>

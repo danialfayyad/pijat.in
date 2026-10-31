@@ -74,7 +74,7 @@
                                 @if ($order->order_type->value === 'instan')
                                     <span class="text-emerald-700 font-semibold">Pesanan Instan</span>
                                 @else
-                                    {{ $order->scheduled_start_time?->translatedFormat('d M Y, H:i') }} WIB
+                                    {{ $order->local_scheduled_start_time?->translatedFormat('d M Y, H:i') }} {{ $order->timezone_abbr }}
                                 @endif
                             </span>
                         </div>

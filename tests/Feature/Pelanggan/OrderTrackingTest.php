@@ -117,6 +117,13 @@ test('CUS-10: saat status mencari mitra pada pesanan terjadwal, bursa jadwal mit
     $response->assertSee('ORD-TRACK-SCHED-SEARCH');
     $response->assertSee('Bursa Jadwal Mitra');
     $response->assertSee('Menunggu Konfirmasi Terapis');
+    $response->assertSee('Batas Klaim Bursa');
+    $response->assertSee('H-2 Jam');
+
+    // Verify local timezone conversion
+    $expectedLocal = $order->scheduled_start_time->copy()->setTimezone('Asia/Jakarta');
+    $response->assertSee($expectedLocal->translatedFormat('d M Y, H:i'));
+    $response->assertSee('WIB');
 });
 
 test('CUS-10: saat status dijadwalkan, profil mitra tampil tanpa data sensitif NIK', function () {
@@ -179,4 +186,37 @@ test('CUS-10: saat status menuju lokasi, estimasi kedatangan dan tracking GPS ta
     $response->assertSee('Estimasi Kedatangan');
     $response->assertSee('~15 - 20 Menit');
     $response->assertSee('Posisi diperbarui setiap 30 detik');
+});
+
+test('pelanggan dapat memantau endpoint live-tracking untuk update koordinat GPS terapis secara berkala', function () {
+    $order = Order::create([
+        'order_code' => 'ORD-TRACK-LIVE',
+        'order_type' => OrderType::Terjadwal,
+        'customer_id' => $this->customer->id,
+        'mitra_id' => $this->mitra->id,
+        'customer_address_id' => $this->address->id,
+        'region_id' => $this->region->id,
+        'service_id' => $this->service->id,
+        'service_package_id' => $this->package->id,
+        'service_name' => $this->service->name,
+        'duration_minutes' => 60,
+        'total_price' => 100000,
+        'recipient_name' => 'Bambang',
+        'recipient_gender' => 'pria',
+        'service_address_text' => 'Jl. Kaliurang No. 10',
+        'service_coordinate' => ['lat' => -8.1720, 'lng' => 113.7000],
+        'scheduled_start_time' => Carbon::now()->addHours(1),
+        'status' => OrderStatus::MenujuLokasi,
+    ]);
+
+    $response = $this->actingAs($this->customer)->getJson(route('pelanggan.orders.live-tracking', $order));
+
+    $response->assertOk();
+    $response->assertJson([
+        'status' => 'menuju_lokasi',
+        'mitra_id' => $this->mitra->id,
+        'mitra_name' => 'Supriadi Terapis',
+        'customer_lat' => -8.172,
+        'customer_lng' => 113.7,
+    ]);
 });

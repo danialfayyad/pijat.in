@@ -7,6 +7,7 @@ use App\Enums\OrderType;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderDispatch;
+use App\Models\OrderRating;
 use App\Models\OrderStatusHistory;
 use App\Models\Service;
 use App\Models\ServicePackage;
@@ -354,6 +355,76 @@ class OrderBookingController extends Controller
 
         $order->load(['customerAddress', 'region', 'service', 'servicePackage', 'mitra.partnerProfile']);
 
-        return view('pelanggan.orders.show', compact('order'));
+        $orderCoords = DB::table('orders')
+            ->selectRaw('ST_Latitude(service_coordinate) as lat, ST_Longitude(service_coordinate) as lng')
+            ->where('id', $order->id)
+            ->first();
+
+        $customerLat = (float) ($orderCoords?->lat ?? $order->customerAddress?->latitude ?? -8.1720);
+        $customerLng = (float) ($orderCoords?->lng ?? $order->customerAddress?->longitude ?? 113.7000);
+
+        $mitraLat = null;
+        $mitraLng = null;
+        if ($order->mitra_id) {
+            $profileCoords = DB::table('partner_profiles')
+                ->selectRaw('ST_Latitude(COALESCE(current_coordinate, coordinate)) as lat, ST_Longitude(COALESCE(current_coordinate, coordinate)) as lng')
+                ->where('user_id', $order->mitra_id)
+                ->first();
+
+            $mitraLat = $profileCoords?->lat ? (float) $profileCoords->lat : null;
+            $mitraLng = $profileCoords?->lng ? (float) $profileCoords->lng : null;
+        }
+
+        $myRating = OrderRating::where('order_id', $order->id)
+            ->where('from_user_id', $request->user()->id)
+            ->first();
+
+        return view('pelanggan.orders.show', compact('order', 'customerLat', 'customerLng', 'mitraLat', 'mitraLng', 'myRating'));
+    }
+
+    /**
+     * Return live location and status for live GPS polling.
+     */
+    public function liveTracking(Request $request, Order $order): JsonResponse
+    {
+        if ($order->customer_id !== $request->user()->id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $order->load(['mitra.partnerProfile']);
+
+        $orderCoords = DB::table('orders')
+            ->selectRaw('ST_Latitude(service_coordinate) as lat, ST_Longitude(service_coordinate) as lng')
+            ->where('id', $order->id)
+            ->first();
+
+        $customerLat = $orderCoords?->lat ? (float) $orderCoords->lat : ($order->customerAddress?->latitude ? (float) $order->customerAddress->latitude : null);
+        $customerLng = $orderCoords?->lng ? (float) $orderCoords->lng : ($order->customerAddress?->longitude ? (float) $order->customerAddress->longitude : null);
+
+        $mitraLat = null;
+        $mitraLng = null;
+        if ($order->mitra_id) {
+            $profileCoords = DB::table('partner_profiles')
+                ->selectRaw('ST_Latitude(COALESCE(current_coordinate, coordinate)) as lat, ST_Longitude(COALESCE(current_coordinate, coordinate)) as lng')
+                ->where('user_id', $order->mitra_id)
+                ->first();
+
+            $mitraLat = $profileCoords?->lat ? (float) $profileCoords->lat : null;
+            $mitraLng = $profileCoords?->lng ? (float) $profileCoords->lng : null;
+        }
+
+        return response()->json([
+            'status' => $order->status->value,
+            'status_label' => $order->status->label(),
+            'mitra_id' => $order->mitra_id,
+            'mitra_name' => $order->mitra?->name,
+            'mitra_lat' => $mitraLat,
+            'mitra_lng' => $mitraLng,
+            'customer_lat' => $customerLat,
+            'customer_lng' => $customerLng,
+            'service_started_at' => $order->service_started_at?->toIso8601String(),
+            'duration_minutes' => $order->duration_minutes,
+            'updated_at' => now()->toIso8601String(),
+        ]);
     }
 }
