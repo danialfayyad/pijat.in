@@ -354,16 +354,23 @@
         <!-- Quick Links: Bursa & Jadwal Saya (MIT-06, MIT-07) -->
         <div class="grid grid-cols-2 gap-3">
             <a href="{{ route('mitra.orders.scheduled') }}" 
-               class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs hover:border-emerald-300 hover:shadow-sm transition flex items-center space-x-3 group cursor-pointer">
-                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
+               class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs hover:border-emerald-300 hover:shadow-sm transition flex items-center justify-between group cursor-pointer">
+                <div class="flex items-center space-x-3 truncate">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                    </div>
+                    <div class="truncate">
+                        <h3 class="text-xs font-bold text-slate-900 leading-tight">Bursa Pesanan</h3>
+                        <span class="text-[11px] text-slate-500 font-medium block">Ambil Pesanan</span>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="text-xs font-bold text-slate-900 leading-tight">Bursa Pesanan</h3>
-                    <span class="text-[11px] text-slate-500 font-medium">Ambil Pesanan</span>
-                </div>
+                @if (isset($availableBursaCount) && $availableBursaCount > 0)
+                    <span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-600 text-white font-extrabold font-mono shrink-0 shadow-xs">
+                        {{ $availableBursaCount }}
+                    </span>
+                @endif
             </a>
 
             <a href="{{ route('mitra.orders.my-schedule') }}" 
@@ -380,21 +387,74 @@
             </a>
         </div>
 
-        <!-- Active / Scheduled Orders Placeholder -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-3">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 class="text-xs font-bold text-slate-800">Pesanan Hari Ini</h3>
-                <span class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md font-mono">0 Pesanan</span>
-            </div>
-            <div class="py-6 text-center text-slate-500 text-xs">
-                <div class="w-10 h-10 mx-auto rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+        <!-- Pesanan Hari Ini (MIT-07) -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-3.5">
+            <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                <div class="flex items-center space-x-2">
+                    <h3 class="text-xs font-bold text-slate-800">Pesanan Hari Ini</h3>
+                    @if (isset($todayOrders) && $todayOrders->isNotEmpty())
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    @endif
                 </div>
-                <p class="font-semibold text-slate-700">Belum Ada Pesanan Aktif</p>
-                <p class="text-[11px] text-slate-400 mt-0.5">Pastikan status <strong>Online</strong> untuk menerima tawaran pesanan baru.</p>
+                <span class="text-[11px] font-semibold {{ isset($todayOrders) && $todayOrders->isNotEmpty() ? 'text-emerald-800 bg-emerald-50 border border-emerald-100' : 'text-slate-500 bg-slate-100' }} px-2 py-0.5 rounded-md font-mono">
+                    {{ isset($todayOrders) ? $todayOrders->count() : 0 }} Pesanan
+                </span>
             </div>
+
+            @if (isset($todayOrders) && $todayOrders->isNotEmpty())
+                <div class="space-y-3">
+                    @foreach ($todayOrders as $order)
+                        <div class="p-3.5 rounded-xl border border-slate-200/90 hover:border-emerald-300 transition space-y-2.5 bg-slate-50/50">
+                            <div class="flex items-center justify-between text-xs">
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-mono font-bold text-slate-700 text-[11px]">{{ $order->order_code }}</span>
+                                    <span class="text-slate-300">•</span>
+                                    <span class="font-medium text-slate-600">
+                                        @if ($order->order_type->value === 'instan')
+                                            <span class="text-emerald-700 font-semibold">Instan</span>
+                                        @else
+                                            Hari Ini, pk {{ $order->local_scheduled_start_time?->format('H:i') }} {{ $order->timezone_abbr }}
+                                        @endif
+                                    </span>
+                                </div>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $order->status->badgeClasses() }}">
+                                    {{ $order->status->label() }}
+                                </span>
+                            </div>
+
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-900 leading-snug">{{ $order->service_name }}</h4>
+                                <p class="text-[11px] text-slate-500 mt-0.5 line-clamp-1 leading-relaxed">
+                                    📍 {{ $order->service_address_text }}
+                                </p>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 text-xs">
+                                <span class="font-bold text-slate-900 font-mono">
+                                    Rp {{ number_format($order->total_price, 0, ',', '.') }}
+                                </span>
+                                <a href="{{ route('mitra.orders.show', $order) }}"
+                                   class="py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] rounded-lg shadow-xs transition flex items-center space-x-1 cursor-pointer">
+                                    <span>Buka Detail &amp; Rute</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="py-6 text-center text-slate-500 text-xs">
+                    <div class="w-10 h-10 mx-auto rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <p class="font-semibold text-slate-700">Belum Ada Pesanan Aktif Hari Ini</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Pastikan status <strong>Online</strong> untuk menerima pesanan baru, atau buka menu <strong>Bursa Pesanan</strong>.</p>
+                </div>
+            @endif
         </div>
 
         <!-- Modal Tawaran Pesanan Instan 60 Detik (MIT-05) -->

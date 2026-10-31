@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\OrderRating;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -47,7 +48,7 @@ class MitraOrderController extends Controller
             ->where('order_type', 'terjadwal')
             ->whereNull('mitra_id')
             ->whereIn('status', [OrderStatus::MencariMitra, OrderStatus::Dijadwalkan])
-            ->where('region_id', $profile->region_id)
+            ->whereIn('region_id', $profile->getOperatingRegionIds())
             ->where(function ($q) use ($user) {
                 $q->where('preferred_gender', 'bebas')
                     ->orWhereNull('preferred_gender')
@@ -113,8 +114,8 @@ class MitraOrderController extends Controller
                     throw new \RuntimeException('Pesanan ini telah diambil oleh mitra lain.');
                 }
 
-                // Verify same region
-                if ($lockedOrder->region_id !== $profile->region_id) {
+                // Verify operating region
+                if (! in_array($lockedOrder->region_id, $profile->getOperatingRegionIds(), true)) {
                     throw new \RuntimeException('Pesanan ini berada di luar wilayah operasional Anda.');
                 }
 
@@ -262,7 +263,7 @@ class MitraOrderController extends Controller
             && $order->mitra_id === null
             && in_array($order->status, [OrderStatus::MencariMitra, OrderStatus::Dijadwalkan], true)
             && $profile
-            && $order->region_id === $profile->region_id;
+            && in_array($order->region_id, $profile->getOperatingRegionIds(), true);
 
         if (! $isAssigned && ! $isAvailableInBursa) {
             abort(403, 'Akses tidak sah untuk melihat pesanan ini.');
@@ -295,6 +296,10 @@ class MitraOrderController extends Controller
 
         $maxRadiusKm = self::MAX_SCHEDULED_RADIUS_KM;
 
+        $myRating = OrderRating::where('order_id', $order->id)
+            ->where('from_user_id', $user->id)
+            ->first();
+
         return view('mitra.orders.show', compact(
             'order',
             'profile',
@@ -304,7 +309,8 @@ class MitraOrderController extends Controller
             'mitraLat',
             'mitraLng',
             'distanceKm',
-            'maxRadiusKm'
+            'maxRadiusKm',
+            'myRating'
         ));
     }
 
@@ -326,6 +332,25 @@ class MitraOrderController extends Controller
         $targetStatus = OrderStatus::from($validated['status']);
         $currentStatus = $order->status;
 
+        // Idempotency: If order is already in the target status or has progressed past it (SYS-09)
+        if ($currentStatus === $targetStatus) {
+            return redirect()->route('mitra.orders.show', $order)
+                ->with('status', 'Status pesanan sudah '.$targetStatus->label().'.');
+        }
+
+        $progressionWeights = [
+            OrderStatus::Dijadwalkan->value => 1,
+            OrderStatus::MenujuLokasi->value => 2,
+            OrderStatus::Tiba->value => 3,
+            OrderStatus::SedangBerlangsung->value => 4,
+            OrderStatus::Selesai->value => 5,
+        ];
+
+        if (($progressionWeights[$currentStatus->value] ?? 0) > ($progressionWeights[$targetStatus->value] ?? 0)) {
+            return redirect()->route('mitra.orders.show', $order)
+                ->with('status', 'Pesanan telah melewati tahapan '.$targetStatus->label().'.');
+        }
+
         // Valid status progression:
         // Dijadwalkan -> MenujuLokasi -> Tiba -> SedangBerlangsung -> Selesai
         $allowedTransitions = [
@@ -342,12 +367,60 @@ class MitraOrderController extends Controller
                 ->with('error', 'Transisi status tidak valid dari '.$currentStatus->label().' ke '.$targetStatus->label().'.');
         }
 
-        DB::transaction(function () use ($order, $targetStatus, $currentStatus, $user) {
-            $order->update(['status' => $targetStatus]);
+        // MIT-10: Geofence radius validation (50 meters) on arrival with graceful fallback
+        if ($targetStatus === OrderStatus::Tiba && ! $request->boolean('force_arrived')) {
+            $orderCoords = DB::table('orders')
+                ->selectRaw('ST_Latitude(service_coordinate) as lat, ST_Longitude(service_coordinate) as lng')
+                ->where('id', $order->id)
+                ->first();
+
+            $custLat = (float) ($orderCoords?->lat ?? $order->customerAddress?->latitude ?? 0);
+            $custLng = (float) ($orderCoords?->lng ?? $order->customerAddress?->longitude ?? 0);
+
+            $partnerLat = $request->filled('latitude') ? (float) $request->input('latitude') : null;
+            $partnerLng = $request->filled('longitude') ? (float) $request->input('longitude') : null;
+
+            if (! $partnerLat || ! $partnerLng) {
+                $profileCoords = DB::table('partner_profiles')
+                    ->selectRaw('ST_Latitude(COALESCE(current_coordinate, coordinate)) as lat, ST_Longitude(COALESCE(current_coordinate, coordinate)) as lng')
+                    ->where('user_id', $user->id)
+                    ->first();
+                $partnerLat = (float) ($profileCoords?->lat ?? 0);
+                $partnerLng = (float) ($profileCoords?->lng ?? 0);
+            }
+
+            if ($custLat && $custLng && $partnerLat && $partnerLng) {
+                $distanceMeters = $this->calculateDistance($partnerLat, $partnerLng, $custLat, $custLng) * 1000;
+                if ($distanceMeters > 50) {
+                    return redirect()->route('mitra.orders.show', $order)
+                        ->with('location_warning', [
+                            'distance_meters' => round($distanceMeters),
+                            'message' => 'Jarak Anda terdeteksi '.round($distanceMeters).' meter dari lokasi pelanggan. Mohon mendekat ke lokasi atau konfirmasi kedatangan manual.',
+                        ]);
+                }
+            }
+        }
+
+        DB::transaction(function () use ($order, $targetStatus, $currentStatus, $user, $request) {
+            $updatePayload = ['status' => $targetStatus];
+
+            if ($targetStatus === OrderStatus::SedangBerlangsung && ! $order->service_started_at) {
+                $updatePayload['service_started_at'] = now();
+            }
+
+            if ($targetStatus === OrderStatus::Selesai && ! $order->service_completed_at) {
+                $updatePayload['service_completed_at'] = now();
+            }
+
+            $order->update($updatePayload);
+
+            $forceNote = ($targetStatus === OrderStatus::Tiba && $request->boolean('force_arrived'))
+                ? ' (Konfirmasi kedatangan manual / toleransi GPS)'
+                : '';
 
             $notes = [
                 OrderStatus::MenujuLokasi->value => 'Mitra sedang dalam perjalanan menuju lokasi pelanggan',
-                OrderStatus::Tiba->value => 'Mitra telah tiba di lokasi pelanggan',
+                OrderStatus::Tiba->value => 'Mitra telah tiba di lokasi pelanggan'.$forceNote,
                 OrderStatus::SedangBerlangsung->value => 'Mitra memulai sesi layanan pijat',
                 OrderStatus::Selesai->value => 'Sesi layanan telah selesai dilaksanakan',
             ];

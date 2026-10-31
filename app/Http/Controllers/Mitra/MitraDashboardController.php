@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Mitra;
 
+use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\OrderDispatch;
 use App\Services\InstantOrderMatchingService;
 use App\Services\PartnerOnboardingService;
+use Carbon\Carbon;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -31,9 +34,57 @@ class MitraDashboardController extends Controller
             return redirect()->route('mitra.status');
         }
 
-        $profile = $user->partnerProfile?->load('region');
+        $profile = $user->partnerProfile?->load(['region', 'secondaryRegion']);
 
-        return view('mitra.dashboard', compact('user', 'profile'));
+        $tz = $profile?->region?->timezone ?? 'Asia/Jakarta';
+        $todayStartUtc = Carbon::now($tz)->startOfDay()->utc();
+        $todayEndUtc = Carbon::now($tz)->endOfDay()->utc();
+
+        // 1. Fetch today's orders assigned to this partner (scheduled today or active instant)
+        $todayOrders = Order::query()
+            ->where('mitra_id', $user->id)
+            ->whereIn('status', [
+                OrderStatus::Dijadwalkan,
+                OrderStatus::MenujuLokasi,
+                OrderStatus::Tiba,
+                OrderStatus::SedangBerlangsung,
+                OrderStatus::Selesai,
+            ])
+            ->where(function ($q) use ($todayStartUtc, $todayEndUtc) {
+                $q->whereBetween('scheduled_start_time', [$todayStartUtc, $todayEndUtc])
+                    ->orWhere(function ($instant) use ($todayStartUtc, $todayEndUtc) {
+                        $instant->whereNull('scheduled_start_time')
+                            ->whereBetween('created_at', [$todayStartUtc, $todayEndUtc]);
+                    });
+            })
+            ->with(['customer', 'customerAddress', 'service', 'region'])
+            ->orderByRaw("FIELD(status, 'sedang_berlangsung', 'tiba', 'menuju_lokasi', 'dijadwalkan', 'selesai')")
+            ->orderBy('scheduled_start_time', 'asc')
+            ->get();
+
+        // 2. Count available open orders in partner's operating regions
+        $availableBursaCount = 0;
+        if ($profile) {
+            $operatingRegionIds = $profile->getOperatingRegionIds();
+            $enabledServiceIds = $profile->getEnabledServiceIds();
+
+            $availableBursaCount = Order::query()
+                ->where('order_type', 'terjadwal')
+                ->whereNull('mitra_id')
+                ->whereIn('status', [OrderStatus::MencariMitra, OrderStatus::Dijadwalkan])
+                ->whereIn('region_id', $operatingRegionIds)
+                ->where(function ($q) use ($user) {
+                    $q->where('preferred_gender', 'bebas')
+                        ->orWhereNull('preferred_gender')
+                        ->orWhere('preferred_gender', $user->gender);
+                })
+                ->whereIn('service_id', $enabledServiceIds)
+                ->whereNotNull('scheduled_start_time')
+                ->where('scheduled_start_time', '>', now())
+                ->count();
+        }
+
+        return view('mitra.dashboard', compact('user', 'profile', 'todayOrders', 'availableBursaCount'));
     }
 
     /**
@@ -83,7 +134,7 @@ class MitraDashboardController extends Controller
         $user = $request->user();
         $profile = $user->partnerProfile;
 
-        if ($profile && $profile->is_active) {
+        if ($profile) {
             $pointWkt = sprintf('POINT(%F %F)', $validated['longitude'], $validated['latitude']);
             $profile->update([
                 'current_coordinate' => DB::raw("ST_GeomFromText('{$pointWkt}', 4326, 'axis-order=long-lat')"),

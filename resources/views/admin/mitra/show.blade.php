@@ -51,9 +51,15 @@
                             <span class="font-mono text-slate-700">{{ $mitra->phone }}</span>
                         </div>
                         <div>
-                            <span class="text-slate-400 block">Wilayah Domisili:</span>
+                            <span class="text-slate-400 block">Wilayah Domisili (Utama):</span>
                             <span class="font-bold text-emerald-700">{{ $profile?->region?->name ?? 'Belum terpetakan' }}</span>
                         </div>
+                        @if ($profile?->secondaryRegion)
+                            <div>
+                                <span class="text-slate-400 block">Wilayah Tambahan:</span>
+                                <span class="font-bold text-sky-700">{{ $profile->secondaryRegion->name }}</span>
+                            </div>
+                        @endif
                         <div>
                             <span class="text-slate-400 block">Alamat Fisik:</span>
                             <span class="text-slate-700 leading-relaxed">{{ $profile?->address_text }}</span>
