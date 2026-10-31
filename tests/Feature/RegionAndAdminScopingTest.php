@@ -362,3 +362,89 @@ test('superadmin can batch assign multiple regions to an admin simultaneously', 
     $this->assertDatabaseHas('admin_region_assignments', ['user_id' => $admin->id, 'region_id' => $regionC->id]);
     expect($admin->assignedRegions()->count())->toBe(3);
 });
+
+test('superadmin can create a new admin account with optional regions and catalog permission (SA-02)', function () {
+    $superadmin = User::factory()->create(['role' => Role::Superadmin]);
+    $regionService = app(RegionService::class);
+    $region = $regionService->createRegion('Kota Semarang', [[110.3, -7.0], [110.4, -7.0], [110.4, -6.9], [110.3, -6.9], [110.3, -7.0]]);
+
+    $response = $this->actingAs($superadmin)->post(route('superadmin.admins.store'), [
+        'name' => 'Admin Baru Semarang',
+        'email' => 'admin.semarang@pijat.in',
+        'phone' => '081234567890',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+        'can_manage_catalog' => 1,
+        'region_ids' => [$region->id],
+    ]);
+
+    $response->assertRedirect(route('superadmin.admins.index'))
+        ->assertSessionHas('status');
+
+    $this->assertDatabaseHas('users', [
+        'name' => 'Admin Baru Semarang',
+        'email' => 'admin.semarang@pijat.in',
+        'role' => Role::Admin->value,
+    ]);
+
+    $newAdmin = User::where('email', 'admin.semarang@pijat.in')->first();
+    expect($newAdmin)->not->toBeNull()
+        ->and($newAdmin->isAdmin())->toBeTrue()
+        ->and($newAdmin->canAccessMenu('KATALOG'))->toBeTrue()
+        ->and($newAdmin->assignedRegions()->count())->toBe(1);
+
+    $this->assertDatabaseHas('admin_region_assignments', [
+        'user_id' => $newAdmin->id,
+        'region_id' => $region->id,
+    ]);
+});
+
+test('non-superadmin cannot create admin account', function () {
+    $admin = User::factory()->create(['role' => Role::Admin]);
+
+    $this->actingAs($admin)->post(route('superadmin.admins.store'), [
+        'name' => 'Illegal Admin',
+        'email' => 'illegal@pijat.in',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ])->assertForbidden();
+});
+
+test('superadmin can delete an admin account and clean up their assignments (SA-02)', function () {
+    $superadmin = User::factory()->create(['role' => Role::Superadmin]);
+    $admin = User::factory()->create(['role' => Role::Admin, 'name' => 'Admin Dihapus']);
+    $regionService = app(RegionService::class);
+    $region = $regionService->createRegion('Kota Kediri', [[112.0, -7.8], [112.1, -7.8], [112.1, -7.7], [112.0, -7.7], [112.0, -7.8]]);
+    $regionService->assignAdmin($admin, $region, true);
+
+    expect($admin->assignedRegions()->count())->toBe(1);
+
+    $response = $this->actingAs($superadmin)->delete(route('superadmin.admins.destroy', $admin));
+
+    $response->assertRedirect(route('superadmin.admins.index'))
+        ->assertSessionHas('status');
+
+    $this->assertDatabaseMissing('users', ['id' => $admin->id]);
+    $this->assertDatabaseMissing('admin_region_assignments', ['user_id' => $admin->id]);
+});
+
+test('superadmin cannot delete their own account', function () {
+    $superadmin = User::factory()->create(['role' => Role::Superadmin]);
+
+    $response = $this->actingAs($superadmin)->delete(route('superadmin.admins.destroy', $superadmin));
+
+    $response->assertRedirect()
+        ->assertSessionHasErrors(['admin_delete']);
+
+    $this->assertDatabaseHas('users', ['id' => $superadmin->id]);
+});
+
+test('non-superadmin cannot delete admin account', function () {
+    $adminA = User::factory()->create(['role' => Role::Admin]);
+    $adminB = User::factory()->create(['role' => Role::Admin]);
+
+    $this->actingAs($adminA)->delete(route('superadmin.admins.destroy', $adminB))
+        ->assertForbidden();
+
+    $this->assertDatabaseHas('users', ['id' => $adminB->id]);
+});

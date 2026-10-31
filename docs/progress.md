@@ -25,7 +25,7 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 | **S5** | Pemesanan Instan, Penawaran Sekuensial 60s, & Lock | Selesai | 29 Okt 2026 | 29 Okt 2026 | 6/6 tests pass (InstantOrderMatchingTest), 131/131 total suite pass, Pint clean; CUS-08, MIT-04, MIT-05, SYS-01 Selesai Penuh |
 | **S6** | Pelaksanaan Layanan, Tracking OTW, Tiba 50m, Selesai | Belum Dimulai | - | - | Tergantung S2, S4, S5 |
 | **S7** | Pembatalan, Reschedule, Refund, & Potongan Kompensasi| Belum Dimulai | - | - | Tergantung S6 |
-| **S8** | Tombol Darurat, Aduan 24 Jam, SP Bertingkat, Banding | Belum Dimulai | - | - | Tergantung S6, S7 |
+| **S8** | Aduan Wilayah, Poin Sanksi, Banding, & Resolusi Masalah | Selesai (Backoffice) | 30 Okt 2026 | 31 Okt 2026 | ADM-08, ADM-07, ADM-06 Selesai Penuh; ADM-09 dikonsolidasikan ke Manajemen Mitra (S11) per DEC-13; Panic Button ditiadakan per DEC-11 |
 | **S9** | Saldo Mitra 24 Jam, Penarikan Dana, Keuangan Wilayah | Belum Dimulai | - | - | Tergantung S7, S8 |
 | **S10**| Perpindahan Domisili Customer & Mitra Antarwilayah | Belum Dimulai | - | - | Tergantung S2, S3 |
 | **S11**| Pelengkap: Retensi Data 30 Hari, Anonymization, Audit | Belum Dimulai | - | - | Tergantung S8, S9 |
@@ -135,6 +135,7 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 
 - **[DEC-11] Penghapusan Fitur Siaga Darurat (Panic Button / SOS)**: Sesuai arahan pengguna, modul Siaga Darurat (`ADM-13` dan elemen darurat `SA-07`) dihapus. Penanganan keluhan, komplain kualitas, maupun laporan kendala di lapangan dipusatkan melalui modul Pusat Laporan Aduan Pelanggan & Mitra (`ADM-08`).
 - **[DEC-12] Sistem Demerit Points & Penebusan Performa Otomatis**: Menggantikan sistem manual Surat Peringatan (SP 1, SP 2, SP 3) dengan akumulasi poin sanksi otomatis terukur (Ambang: 30 = Peringatan, 60 = Suspend 3 Hari, 100 = Suspend 7 Hari, 150 = Banned Permanen). Mitra dapat menebus poin pelanggaran secara adil melalui performa kerja nyata (setiap menyelesaikan pesanan dengan rating 5 bintang memotong 1 poin sanksi). Tersedia mekanisme pengajuan banding (`ADM-07`) dengan pengunggahan surat pernyataan yang ditinjau oleh Admin Wilayah.
+- **[DEC-13] Konsolidasi Metrik Rating ke Manajemen Mitra (ADM-05 di S11)**: Sesuai arahan pengguna, menu 'Tinjauan Rating' tersendiri ditiadakan. Mitra berating rendah secara alami telah terfilter oleh preferensi customer serta algoritma matching pesanan instan/terjadwal. Pelanggaran nyata mitra telah terakomodasi secara adil melalui Pusat Aduan (`ADM-08`) dan Sistem Poin Sanksi (`ADM-06`). Seluruh riwayat dan performa rating mitra akan digabungkan pada halaman profil/detail mitra di modul Manajemen Mitra (`ADM-05` pada S11).
 
 - **[DEC-11] Kebebasan Memilih Preferensi Gender Terapis (Opsi A)**: Sesuai kesepakatan produk terbaru, aturan restriksi kaku sesama jenis kelamin (*rigid same-gender lock*) dihapus. Pelanggan kini diberikan kebebasan penuh saat membuat pesanan (`orders/create`) untuk memilih preferensi terapis yang diinginkan (`preferred_gender`):
   1. `pria` (Khusus Terapis Pria)

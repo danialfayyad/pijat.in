@@ -239,7 +239,6 @@ class User extends Authenticatable
     }
 
     /**
-
      * @return HasMany<Complaint, $this>
      */
     public function complaintsAsTarget(): HasMany
@@ -254,20 +253,49 @@ class User extends Authenticatable
     {
         return $this->hasMany(Complaint::class, 'complainant_id');
 
-
     }
+
     public function completedOrdersCount(): int
     {
         return $this->ordersAsMitra()->where('status', OrderStatus::Selesai)->count();
     }
 
     /**
-     * Get the partner's rating (default 5.0).
+     * @return HasMany<OrderRating, $this>
+     */
+    public function ratingsReceived(): HasMany
+    {
+        return $this->hasMany(OrderRating::class, 'to_user_id');
+    }
+
+    /**
+     * @return HasMany<OrderRating, $this>
+     */
+    public function ratingsGiven(): HasMany
+    {
+        return $this->hasMany(OrderRating::class, 'from_user_id');
+    }
+
+    /**
+     * Get the partner's rating (dynamic, or default 5.0).
      */
     public function partnerRating(): float
     {
-        return 5.0;
+        $avg = $this->ratingsReceived()
+            ->where('rating_type', 'customer_to_mitra')
+            ->avg('score');
 
+        return $avg !== null ? round((float) $avg, 2) : 5.0;
+    }
+
+    /**
+     * Get the total ratings received as partner.
+     */
+    public function partnerRatingsCount(): int
+    {
+        return $this->ratingsReceived()
+            ->where('rating_type', 'customer_to_mitra')
+            ->count();
     }
 
     /**

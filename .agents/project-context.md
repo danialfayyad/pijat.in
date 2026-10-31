@@ -19,7 +19,8 @@ Pijat.in is presented as a massage and wellness marketplace. The public landing 
 - Instant Order Matching & Sequential Dispatch (S5 / CUS-08, MIT-04, MIT-05, SYS-01): Sequential 60-second dispatch based on live coordinate proximity within 5 km, partner active toggle, and auto-fallback to scheduled order if no nearby partner is available.
 - Flexible Partner Gender Preference (DEC-11 / Opsi A): Rigid same-gender lock removed; customers choose therapist gender preference (`pria`, `wanita`, or `bebas`) during checkout.
 - Partner Order Details, Map & Live Road Routing: Partners can view full order details (`mitra.orders.show`), customer recipient info, medical notes, interactive Leaflet map with customer marker & live partner GPS marker, actual road route geometry (turn-by-turn road tracking via OSRM routing engine), driving distance (`X.X km (Jalur Jalan)`), estimated arrival time, Google Maps direct navigation link, and sequential service status updates (`Dijadwalkan` -> `MenujuLokasi` -> `Tiba` -> `SedangBerlangsung` -> `Selesai`).
-- All 142 unit & feature tests in Pest passing (638 assertions) with Pint style formatting compliant.
+- Complaints & Demerit Sanction System (S8 / ADM-08, ADM-06, ADM-07, SA-05): Customer & partner complaints handling with full evidence upload and admin resolution actions; dynamic demerit points system with automatic threshold enforcement and performance redemption (5-star ratings shave off demerit points); penalty appeal workflow with formal declaration upload and regional admin review. Standalone rating review (ADM-09) consolidated into Partner Management (ADM-05/S11) per DEC-13.
+- All unit & feature tests in Pest passing with Pint style formatting compliant.
 
 ## Role model and authentication map
 

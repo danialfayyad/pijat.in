@@ -39,11 +39,6 @@ Route::middleware(['auth', 'role:admin,superadmin', 'admin.region'])->prefix('ad
     Route::get('/appeals/{appeal}', [PenaltyAppealController::class, 'show'])->name('appeals.show');
     Route::post('/appeals/{appeal}/approve', [PenaltyAppealController::class, 'approve'])->name('appeals.approve');
     Route::post('/appeals/{appeal}/reject', [PenaltyAppealController::class, 'reject'])->name('appeals.reject');
-
-    // Demerit Points & Penalty Monitoring (ADM-06)
-    Route::get('/penalties', [PenaltyMonitoringController::class, 'index'])->name('penalties.index');
-    Route::get('/penalties/{user}', [PenaltyMonitoringController::class, 'show'])->name('penalties.show');
-    Route::post('/penalties/{user}/adjust', [PenaltyMonitoringController::class, 'adjust'])->name('penalties.adjust');
 });
 
 // Global Service Catalog routes (permission: KATALOG)

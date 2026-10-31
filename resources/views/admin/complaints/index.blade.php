@@ -93,7 +93,7 @@
                                name="search" 
                                value="{{ request('search') }}" 
                                placeholder="Cari kode, pesanan, pelapor..." 
-                               class="w-full text-xs sm:text-sm border-slate-200 rounded-xl pl-9 pr-3.5 py-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-xs placeholder-slate-400">
+                               class="w-full text-xs border-slate-200 rounded-xl pl-9 pr-3.5 py-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-xs placeholder:text-xs placeholder-slate-400">
                     </div>
 
                     <!-- 2. Multi-Wilayah Filter (Posisi Kedua) -->
@@ -101,7 +101,7 @@
                         <div class="flex items-center space-x-1.5 shrink-0">
                             <label for="region_filter" class="text-xs font-semibold text-slate-600 shrink-0">Wilayah:</label>
                             <select id="region_filter" name="region_id" onchange="this.form.submit()"
-                                    class="text-xs sm:text-sm font-semibold border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs py-2 pl-3.5 pr-8 cursor-pointer">
+                                    class="text-xs font-semibold border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs py-2 pl-3.5 pr-8 cursor-pointer">
                                 <option value="">Semua Wilayah ({{ $accessibleRegions->count() }})</option>
                                 @foreach ($accessibleRegions as $reg)
                                     <option value="{{ $reg->id }}" {{ request('region_id') == $reg->id ? 'selected' : '' }}>
@@ -116,7 +116,7 @@
                     <div class="flex items-center space-x-1.5 shrink-0">
                         <label for="status_filter" class="text-xs font-semibold text-slate-600 shrink-0">Status:</label>
                         <select id="status_filter" name="status" onchange="this.form.submit()"
-                                class="text-xs sm:text-sm font-semibold border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs py-2 pl-3.5 pr-8 cursor-pointer">
+                                class="text-xs font-semibold border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs py-2 pl-3.5 pr-8 cursor-pointer">
                             <option value="semua" {{ $currentTab === 'semua' ? 'selected' : '' }}>Semua Status ({{ $totalCount }})</option>
                             <option value="menunggu" {{ $currentTab === 'menunggu' ? 'selected' : '' }}>Aduan Baru ({{ $pendingCount }})</option>
                             <option value="diproses" {{ $currentTab === 'diproses' ? 'selected' : '' }}>Sedang Diproses ({{ $inProcessCount }})</option>
