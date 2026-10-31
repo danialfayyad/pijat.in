@@ -18,6 +18,11 @@ Pijat.in is presented as a massage and wellness marketplace. The public landing 
 - Order Booking & FCFS Scheduled Matching (S4 / CUS-04, CUS-06, CUS-07, MIT-06, MIT-07, MIT-08, CUS-10): Scheduled booking (H+3 jam s.d. 7 hari, 08:00 - 21:00), partner service preferences, FCFS scheduled order exchange with 10 km maximum operating radius validation (orders > 10 km are filtered from bursa and blocked on claim), encrypted medical notes, real-time customer tracking with full-screen background map & Gojek-style draggable bottom sheet, live GPS polling, and SweetAlert2 confirmation dialogs.
 - Instant Order Matching & Sequential Dispatch (S5 / CUS-08, MIT-04, MIT-05, SYS-01): Sequential 60-second dispatch based on live coordinate proximity within 5 km, partner active toggle, and auto-fallback to scheduled order if no nearby partner is available.
 - Flexible Partner Gender Preference (DEC-11 / Opsi A): Rigid same-gender lock removed; customers choose therapist gender preference (`pria`, `wanita`, or `bebas`) during checkout.
+
+- Partner Order Details, Map & Live Road Routing: Partners can view full order details (`mitra.orders.show`), customer recipient info, medical notes, interactive Leaflet map with customer marker & live partner GPS marker, actual road route geometry (turn-by-turn road tracking via OSRM routing engine), driving distance (`X.X km (Jalur Jalan)`), estimated arrival time, Google Maps direct navigation link, and sequential service status updates (`Dijadwalkan` -> `MenujuLokasi` -> `Tiba` -> `SedangBerlangsung` -> `Selesai`).
+- Complaints & Demerit Sanction System (S8 / ADM-08, ADM-06, ADM-07, SA-05): Customer & partner complaints handling with full evidence upload and admin resolution actions; dynamic demerit points system with automatic threshold enforcement and performance redemption (5-star ratings shave off demerit points); penalty appeal workflow with formal declaration upload and regional admin review. Standalone rating review (ADM-09) consolidated into Partner Management (ADM-05/S11) per DEC-13.
+- All unit & feature tests in Pest passing with Pint style formatting compliant.
+
 - Partner & Customer Order Tracking with Full Map & Live Road Routing: Both partners (`mitra.orders.show`) and customers (`pelanggan.orders.show`) view interactive full-screen Leaflet maps with live partner & customer pins, OSRM turn-by-turn road route geometries, driving distances, ETAs, and pullable bottom sheets (peek vs expanded) matching Gojek/Grab driver & passenger UX. Live polling (`/pelanggan/orders/{order}/live-tracking`) updates GPS positions every 10 seconds.
 - Multi-Wilayah Layanan Mitra (DEC-12 / Opsi 1): Mitra diizinkan melayani hingga 2 wilayah operasional (Wilayah Utama / Domisili tempat pin koordinat berada, dan Wilayah Tambahan opsional). Didukung kolom `secondary_region_id` pada `partner_profiles`, matching order instan $\le$ 5 km pada kedua wilayah, dan bursa pesanan terjadwal $\le$ 10 km pada kedua wilayah.
 - Order Execution, Tracking, In-App Chat, & Ratings (Slice 6 / S6):
@@ -28,6 +33,7 @@ Pijat.in is presented as a massage and wellness marketplace. The public landing 
   - Idempotensi Aksi Luar Jaringan (SYS-09): Mencegah transisi ganda saat retry akibat gangguan sinyal di lapangan.
 - Master Wilayah & Admin Seeders: `MasterWilayahSeeder` populates operational regions (Jember, Yogyakarta, Surabaya, Blitar, Jakarta Selatan, dll.) with official boundary polygons/MultiPolygons from GeoJSON datasets, and `AdminSeeder` creates Superadmin and Regional Admins with automatic region assignments and emergency duty handling (`can_handle_emergency = true`).
 - All 200 unit & feature tests in Pest passing (902 assertions) with Pint style formatting compliant.
+
 
 ## Role model and authentication map
 

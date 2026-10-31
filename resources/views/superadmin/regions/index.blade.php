@@ -1,13 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center space-x-2">
-            <h2 class="font-bold text-xl text-slate-800 leading-tight">
-                {{ __('Master Wilayah Layanan') }}
-            </h2>
-            <span class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-semibold">
-                {{ $regions->count() }} Wilayah
-            </span>
-        </div>
+        <h2 class="font-bold text-xl text-slate-800 leading-tight">
+            {{ __('Master Wilayah Layanan') }}
+        </h2>
     </x-slot>
 
     <!-- Leaflet Assets -->
@@ -78,7 +73,7 @@
                         <div>
                             <label for="search-city" class="block text-xs font-semibold text-slate-700 mb-1">Cari Cepat</label>
                             <input type="text" id="search-city" oninput="onSearchCity(this.value)" placeholder="Ketik nama kota (cth: Surabaya, Bandung)..." 
-                                class="w-full text-xs rounded-xl border-slate-200 focus:ring-emerald-500 focus:border-emerald-500 placeholder-slate-400">
+                                class="w-full text-xs rounded-xl border-slate-200 focus:ring-emerald-500 focus:border-emerald-500 placeholder:text-xs placeholder-slate-400">
                             <div id="search-results" class="hidden mt-1 max-h-36 overflow-y-auto bg-white border border-emerald-200 rounded-xl shadow-lg text-xs divide-y divide-slate-100 z-20"></div>
                         </div>
                     </div>

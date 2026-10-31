@@ -19,7 +19,7 @@
         </style>
     </head>
     <body class="font-sans antialiased bg-slate-50 text-slate-800" x-data="{ sidebarOpen: false }">
-        <div class="min-h-screen flex">
+        <div class="h-screen flex overflow-hidden bg-slate-50">
             <!-- Left Sidebar (Desktop) -->
             @include('layouts.sidebar')
 
@@ -74,21 +74,13 @@
                                class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.admins.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Penugasan Admin
                             </a>
+                            <a href="{{ route('superadmin.complaint-categories.index') }}" 
+                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.complaint-categories.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Kategori Aduan
+                            </a>
                             <a href="{{ route('admin.orders.index') }}" 
                                class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.orders.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Pesanan Wilayah
-                            </a>
-                            <a href="{{ route('admin.complaints.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.complaints.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                                Laporan Aduan
-                            </a>
-                            <a href="{{ route('admin.penalties.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.penalties.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                                Poin & Sanksi
-                            </a>
-                            <a href="{{ route('admin.appeals.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.appeals.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                                Banding Sanksi
                             </a>
                             <a href="{{ route('admin.catalog.index') }}" 
                                class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.catalog.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
@@ -150,9 +142,9 @@
             </div>
 
             <!-- Main Content Container -->
-            <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <!-- Topbar Header (Spacious & Clean h-20) -->
-                <header class="bg-white border-b border-slate-200/80 sticky top-0 z-20 px-6 sm:px-8 lg:px-10 h-20 flex items-center justify-between shadow-xs">
+            <div class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+                <!-- Topbar Header (Fixed at Top, Spacious & Clean h-20) -->
+                <header class="bg-white border-b border-slate-200/80 shrink-0 px-6 sm:px-8 lg:px-10 h-20 flex items-center justify-between shadow-xs z-20">
                     <!-- Left: Mobile Toggle & Page Title -->
                     <div class="flex items-center space-x-4">
                         <button type="button" @click="sidebarOpen = true" class="lg:hidden p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg">
@@ -164,17 +156,6 @@
                         @else
                             <h1 class="text-xl font-bold text-slate-800">Pijat In Backoffice</h1>
                         @endisset
-                    </div>
-
-                    <!-- Right: User Quick Status -->
-                    <div class="flex items-center space-x-3">
-                        <div class="hidden sm:flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-slate-700 shadow-2xs">
-                            <div class="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center">
-                                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                            </div>
-                            <span class="text-xs font-semibold">{{ Auth::user()->name }}</span>
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        </div>
                     </div>
                 </header>
 

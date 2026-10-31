@@ -975,7 +975,7 @@
                 "Admin dapat melihat riwayat SP otomatis yang diterbitkan oleh sistem."
             ],
             "verification": "Terbitkan SP manual ke mitra dari panel admin dan periksa notifikasi serta riwayat di sisi mitra.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "ADM-07",
@@ -1019,7 +1019,7 @@
             "id": "ADM-09",
             "role": "Admin",
             "module": "Tinjauan Mitra & Rating",
-            "description": "Tinjauan mitra dan customer berating rendah (< 4.0 min 10 pesanan): aksi abaikan, terbitkan SP, atau tangguhkan.",
+            "description": "Ditiadakan sebagai menu tersendiri; informasi dan evaluasi performa rating digabungkan langsung ke dalam Manajemen Mitra (ADM-05 di S11) per keputusan produk [DEC-13].",
             "priority": "Must",
             "brd_ref": "5.3, 4.14",
             "slice": "S8",
@@ -1027,11 +1027,11 @@
                 "F0"
             ],
             "acceptance_criteria": [
-                "Sistem menampilkan daftar mitra di wilayah tugas dengan rating rata-rata < 4.0 dan minimal 10 pesanan.",
-                "Admin dapat memeriksa riwayat pesanan, distribusi bintang, dan mengambil tindakan SP atau penangguhan."
+                "Informasi metrik rating mitra diintegrasikan langsung pada halaman detail profil mitra (ADM-05/S11).",
+                "Mitra berating rendah otomatis terdampak seleksi matching pesanan dan sistem penegakan berbasis laporan aduan (ADM-08) & poin sanksi (ADM-06), tanpa memerlukan menu hukuman rating manual tersendiri."
             ],
-            "verification": "Simulasi mitra dengan rating rata-rata 3.8 (12 pesanan), pastikan muncul di menu Tinjauan Mitra.",
-            "passes": false
+            "verification": "Konsolidasi ke Manajemen Mitra (S11); menu tinjauan rating tersendiri ditiadakan.",
+            "passes": true
         },
         {
             "id": "ADM-10",

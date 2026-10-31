@@ -1,40 +1,16 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <a href="{{ route('admin.complaints.index') }}" 
-                   class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition"
-                   title="Kembali ke Daftar Aduan">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                </a>
-                <div>
-                    <div class="flex items-center gap-2.5">
-                        <h2 class="text-xl font-bold text-slate-800 leading-tight">
-                            Aduan {{ $complaint->complaint_code }}
-                        </h2>
-                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700">
-                            <span class="w-1.5 h-1.5 rounded-full {{ $complaint->status->dotClass() }}"></span>
-                            {{ $complaint->status->label() }}
-                        </span>
-                    </div>
-                    <p class="text-xs text-slate-400 mt-0.5">
-                        Wilayah {{ $complaint->region?->name ?? '-' }} &bull; Dilaporkan {{ $complaint->created_at->format('d M Y, H:i') }} WIB
-                    </p>
-                </div>
-            </div>
-
-            @if ($complaint->isPending())
-                <form method="POST" action="{{ route('admin.complaints.process', $complaint) }}">
-                    @csrf
-                    <button type="submit" 
-                            class="px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer">
-                        <span>Mulai Investigasi</span>
-                        <span>&rarr;</span>
-                    </button>
-                </form>
-            @endif
+        <div class="flex items-center gap-3">
+            <a href="{{ route('admin.complaints.index') }}" 
+               class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition"
+               title="Kembali ke Daftar Aduan">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+            </a>
+            <h2 class="text-xl font-bold text-slate-800 leading-tight">
+                Aduan {{ $complaint->complaint_code }}
+            </h2>
         </div>
     </x-slot>
 
@@ -81,16 +57,31 @@
             <!-- LEFT COLUMN (7 Cols): Dossier Aduan & Bukti -->
             <div class="lg:col-span-7 space-y-6">
 
-                <!-- 1. Pihak yang Terlibat (Pelapor vs Terlapor) -->
+                <!-- 1. Pihak yang Terlibat & Informasi Aduan -->
                 <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Pihak yang Terlibat</h3>
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+                                <span class="w-2 h-2 rounded-full {{ $complaint->status->dotClass() }}"></span>
+                                {{ $complaint->status->label() }}
+                            </span>
+                            <span class="text-slate-300">&bull;</span>
+                            <span class="text-xs text-slate-500 font-medium">
+                                Wilayah {{ $complaint->region?->name ?? '-' }}
+                            </span>
+                            <span class="text-slate-300">&bull;</span>
+                            <span class="text-xs text-slate-400">
+                                Dilaporkan {{ $complaint->created_at->format('d M Y, H:i') }} WIB
+                            </span>
+                        </div>
                         <span class="text-xs font-semibold text-slate-700">
                             {{ $complaint->category_label }}
                         </span>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-1">
+                    <div>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Pihak yang Terlibat</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <!-- Pelapor -->
                         <div class="space-y-1.5">
                             <span class="text-[11px] font-semibold text-slate-400 block uppercase tracking-wide">
@@ -148,6 +139,7 @@
                                 </a>
                             @endif
                         </div>
+                    </div>
                     </div>
                 </div>
 
@@ -267,7 +259,34 @@
                 </div>
 
                 <!-- 2. Panel Putusan & Tindak Lanjut -->
-                @if ($complaint->isResolved() || $complaint->isRejected())
+                @if ($complaint->isPending())
+                    <!-- Panel Tahap Investigasi Kasus -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+                        <div class="border-b border-slate-100 pb-3">
+                            <h3 class="text-sm font-bold text-slate-800">Tahap Investigasi Kasus</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Aduan ini berstatus baru dan belum dalam penanganan aktif.</p>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-xs text-amber-900 space-y-1">
+                            <div class="font-bold flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                <span>Menunggu Investigasi Admin</span>
+                            </div>
+                            <p class="text-[11px] text-amber-700 leading-relaxed">
+                                Mulai investigasi untuk mencatat Anda sebagai PIC penanggung jawab, menghubungi para pihak terkait, dan membuka formulir penetapan putusan.
+                            </p>
+                        </div>
+
+                        <form method="POST" action="{{ route('admin.complaints.process', $complaint) }}">
+                            @csrf
+                            <button type="submit" 
+                                    class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs transition shadow-xs flex items-center justify-center gap-2 cursor-pointer">
+                                <span>Mulai Investigasi Sekarang</span>
+                                <span>&rarr;</span>
+                            </button>
+                        </form>
+                    </div>
+                @elseif ($complaint->isResolved() || $complaint->isRejected())
                     <!-- Tampilan Putusan Final Resmi -->
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -306,7 +325,7 @@
                         </div>
                     </div>
                 @else
-                    <!-- In-Place Decision Workspace Form (Tanpa Modal Popup) -->
+                    <!-- In-Place Decision Workspace Form (Sedang Diproses) -->
                     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-5">
                         <div class="border-b border-slate-100 pb-3">
                             <h3 class="text-sm font-bold text-slate-800">Tindak Lanjut & Putusan Kasus</h3>
@@ -403,7 +422,7 @@
                                           rows="3" 
                                           required 
                                           placeholder="Tuliskan ringkasan mediasi dan dasar pertimbangan putusan (min. 10 karakter)..."
-                                          class="w-full text-xs rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"></textarea>
+                                          class="w-full text-xs placeholder:text-xs rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"></textarea>
                             </div>
 
                             <button type="submit" 
@@ -425,7 +444,7 @@
                                           rows="3" 
                                           required 
                                           placeholder="Jelaskan alasan mengapa aduan ini ditolak atau dinyatakan tidak valid..."
-                                          class="w-full text-xs rounded-xl border-slate-200 focus:border-rose-500 focus:ring-rose-500"></textarea>
+                                          class="w-full text-xs placeholder:text-xs rounded-xl border-slate-200 focus:border-rose-500 focus:ring-rose-500"></textarea>
                             </div>
 
                             <label class="flex items-start p-3 rounded-xl bg-amber-50/60 border border-amber-200 cursor-pointer">

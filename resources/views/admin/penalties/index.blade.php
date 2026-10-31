@@ -1,15 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h2 class="font-bold text-xl text-slate-800 leading-tight">
-                    Monitoring Poin Sanksi & Akun
-                </h2>
-                <p class="text-xs text-slate-500 mt-1">
-                    Pantau akumulasi poin sanksi, penegakan pembekuan akun (suspend), dan riwayat pelanggaran.
-                </p>
-            </div>
-        </div>
+        <h2 class="font-bold text-xl text-slate-800 leading-tight">
+            {{ __('Monitoring Poin Sanksi & Akun') }}
+        </h2>
     </x-slot>
 
     <div class="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
@@ -25,67 +18,43 @@
         <!-- Summary Metric Cards (1x4 Grid) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Total Bersanksi -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-1">
                 <div class="flex items-center justify-between text-slate-500">
-                    <span class="text-xs font-semibold uppercase tracking-wider">Total Bersanksi</span>
-                    <span class="p-2 rounded-xl bg-slate-100 text-slate-600">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                        </svg>
-                    </span>
+                    <span class="text-xs font-medium">Total Bersanksi</span>
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
                 </div>
-                <div class="mt-3">
-                    <div class="text-2xl font-bold text-slate-800">{{ number_format($counts['semua']) }}</div>
-                    <div class="text-[11px] text-slate-400 mt-0.5">Akun dengan akumulasi poin / sanksi</div>
-                </div>
+                <div class="text-2xl font-bold text-slate-800">{{ number_format($counts['semua']) }}</div>
+                <div class="text-[11px] text-slate-400">Akun dengan akumulasi poin / sanksi</div>
             </div>
 
             <!-- Peringatan (30-59) -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
-                <div class="flex items-center justify-between text-amber-600">
-                    <span class="text-xs font-semibold uppercase tracking-wider">Peringatan (30-59)</span>
-                    <span class="p-2 rounded-xl bg-amber-50 text-amber-600">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                    </span>
+            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-1">
+                <div class="flex items-center justify-between text-slate-500">
+                    <span class="text-xs font-medium">Peringatan (30-59)</span>
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                 </div>
-                <div class="mt-3">
-                    <div class="text-2xl font-bold text-amber-600">{{ number_format($counts['peringatan']) }}</div>
-                    <div class="text-[11px] text-slate-400 mt-0.5">Mendapat notifikasi waspada</div>
-                </div>
+                <div class="text-2xl font-bold text-slate-800">{{ number_format($counts['peringatan']) }}</div>
+                <div class="text-[11px] text-amber-600 font-medium">Mendapat notifikasi waspada</div>
             </div>
 
             <!-- Suspend Sementara (60-149) -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
-                <div class="flex items-center justify-between text-orange-600">
-                    <span class="text-xs font-semibold uppercase tracking-wider">Tersuspend (60-149)</span>
-                    <span class="p-2 rounded-xl bg-orange-50 text-orange-600">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                        </svg>
-                    </span>
+            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-1">
+                <div class="flex items-center justify-between text-slate-500">
+                    <span class="text-xs font-medium">Tersuspend (60-149)</span>
+                    <span class="w-2 h-2 rounded-full bg-orange-500"></span>
                 </div>
-                <div class="mt-3">
-                    <div class="text-2xl font-bold text-orange-600">{{ number_format($counts['tersuspend']) }}</div>
-                    <div class="text-[11px] text-slate-400 mt-0.5">Dibekukan 3 atau 7 hari kerja</div>
-                </div>
+                <div class="text-2xl font-bold text-slate-800">{{ number_format($counts['tersuspend']) }}</div>
+                <div class="text-[11px] text-orange-600 font-medium">Dibekukan 3 atau 7 hari kerja</div>
             </div>
 
             <!-- Banned Permanen (150+) -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
-                <div class="flex items-center justify-between text-rose-600">
-                    <span class="text-xs font-semibold uppercase tracking-wider">Diblokir (150+)</span>
-                    <span class="p-2 rounded-xl bg-rose-50 text-rose-600">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                    </span>
+            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-1">
+                <div class="flex items-center justify-between text-slate-500">
+                    <span class="text-xs font-medium">Diblokir (150+)</span>
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
                 </div>
-                <div class="mt-3">
-                    <div class="text-2xl font-bold text-rose-600">{{ number_format($counts['banned']) }}</div>
-                    <div class="text-[11px] text-slate-400 mt-0.5">Akses layanan dicabut permanen</div>
-                </div>
+                <div class="text-2xl font-bold text-slate-800">{{ number_format($counts['banned']) }}</div>
+                <div class="text-[11px] text-slate-400">Akses layanan dicabut permanen</div>
             </div>
         </div>
 
@@ -93,7 +62,7 @@
         <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             <!-- Tab Semua -->
             <a href="{{ route('admin.penalties.index', array_merge(request()->except('status', 'page'), ['status' => 'semua'])) }}"
-               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $currentTab === 'semua' ? 'bg-slate-900 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $currentTab === 'semua' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
                 Semua
             </a>
 
@@ -139,7 +108,7 @@
                                name="search" 
                                value="{{ request('search') }}" 
                                placeholder="Cari nama, email, no HP..." 
-                               class="w-full text-xs sm:text-sm border-slate-200 rounded-xl pl-9 pr-3.5 py-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-xs placeholder-slate-400">
+                               class="w-full text-xs border-slate-200 rounded-xl pl-9 pr-3.5 py-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-xs placeholder:text-xs placeholder-slate-400">
                     </div>
 
                     <!-- 2. Multi-Wilayah Filter (Posisi Kedua) -->
@@ -147,7 +116,7 @@
                         <div class="flex items-center space-x-1.5 shrink-0">
                             <label for="region_filter" class="text-xs font-semibold text-slate-600 shrink-0">Wilayah:</label>
                             <select id="region_filter" name="region_id" onchange="this.form.submit()"
-                                    class="text-xs sm:text-sm font-semibold border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs py-2 pl-3.5 pr-8 cursor-pointer">
+                                    class="text-xs font-semibold border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs py-2 pl-3.5 pr-8 cursor-pointer">
                                 <option value="">Semua Wilayah ({{ $accessibleRegions->count() }})</option>
                                 @foreach ($accessibleRegions as $region)
                                     <option value="{{ $region->id }}" {{ (string) request('region_id') === (string) $region->id ? 'selected' : '' }}>
@@ -162,7 +131,7 @@
                     <div class="flex items-center space-x-1.5 shrink-0">
                         <label for="role_filter" class="text-xs font-semibold text-slate-600 shrink-0">Peran:</label>
                         <select id="role_filter" name="role" onchange="this.form.submit()"
-                                class="text-xs sm:text-sm font-semibold border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs py-2 pl-3.5 pr-8 cursor-pointer">
+                                class="text-xs font-semibold border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs py-2 pl-3.5 pr-8 cursor-pointer">
                             <option value="">Semua Peran</option>
                             <option value="mitra" {{ request('role') === 'mitra' ? 'selected' : '' }}>Mitra</option>
                             <option value="pelanggan" {{ request('role') === 'pelanggan' ? 'selected' : '' }}>Pelanggan</option>

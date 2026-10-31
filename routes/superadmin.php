@@ -16,8 +16,10 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::post('/regions/{region}/deactivate', [RegionController::class, 'deactivate'])->name('regions.deactivate');
 
     Route::get('/admins', [AdminAssignmentController::class, 'index'])->name('admins.index');
+    Route::post('/admins', [AdminAssignmentController::class, 'store'])->name('admins.store');
     Route::post('/admins/assign', [AdminAssignmentController::class, 'assign'])->name('admins.assign');
     Route::post('/admins/revoke', [AdminAssignmentController::class, 'revoke'])->name('admins.revoke');
+    Route::delete('/admins/{user}', [AdminAssignmentController::class, 'destroy'])->name('admins.destroy');
 
     Route::get('/complaint-categories', [ComplaintCategoryController::class, 'index'])->name('complaint-categories.index');
     Route::post('/complaint-categories', [ComplaintCategoryController::class, 'store'])->name('complaint-categories.store');
