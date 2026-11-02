@@ -86,6 +86,18 @@
                                class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.catalog.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Katalog Layanan
                             </a>
+                            <a href="{{ route('superadmin.parameters.index') }}" 
+                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.parameters.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Parameter Sistem
+                            </a>
+                            <a href="{{ route('superadmin.audit-logs.index') }}" 
+                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.audit-logs.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Log Audit Terpusat
+                            </a>
+                            <a href="{{ route('superadmin.legal-documents.index') }}" 
+                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.legal-documents.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Dokumen Legal & SOP
+                            </a>
                         @elseif (Auth::user()->isAdmin())
                             <a href="{{ route('admin.dashboard') }}" 
                                class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.dashboard') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
@@ -111,6 +123,10 @@
                                class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.mitra.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Verifikasi Mitra
                             </a>
+                            <a href="{{ route('admin.users.index') }}" 
+                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.users.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Manajemen Pengguna
+                            </a>
                             @if (Auth::user()->canAccessMenu('KATALOG'))
                                 <a href="{{ route('admin.catalog.index') }}" 
                                    class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.catalog.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
@@ -126,7 +142,7 @@
                     </nav>
 
                     <!-- Mobile User & Logout -->
-                    <div class="p-4 border-t border-emerald-900/50">
+                    <div class="p-4 border-t border-emerald-900/50 space-y-3">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm font-semibold text-white">{{ Auth::user()->name }}</p>
@@ -137,6 +153,12 @@
                                 <button type="submit" class="p-2 text-rose-300 hover:text-white">Keluar</button>
                             </form>
                         </div>
+                        @if (Auth::user()->isAdmin() || Auth::user()->isSuperadmin())
+                            <a href="{{ route('admin.profile.edit') }}" 
+                               class="block text-center w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-semibold transition">
+                                Pengaturan Profil & Kata Sandi
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -156,6 +178,38 @@
                         @else
                             <h1 class="text-xl font-bold text-slate-800">Pijat In Backoffice</h1>
                         @endisset
+                    </div>
+
+                    <!-- Right: Quick Actions & Notifications (ADM-14) -->
+                    <div class="flex items-center space-x-3">
+                        @if (Auth::user()->isAdmin() || Auth::user()->isSuperadmin())
+                            <a href="{{ route('admin.notifications.index') }}" 
+                               class="relative p-2 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition"
+                               title="Notifikasi & Antrean Tugas">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                @php
+                                    $unreadNotifsCount = Auth::user()->systemNotifications()->whereNull('read_at')->count();
+                                @endphp
+                                @if ($unreadNotifsCount > 0)
+                                    <span class="absolute top-1 right-1 flex h-4 w-4">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-4 w-4 bg-emerald-600 text-[9px] font-bold text-white items-center justify-center">
+                                            {{ $unreadNotifsCount > 9 ? '9+' : $unreadNotifsCount }}
+                                        </span>
+                                    </span>
+                                @endif
+                            </a>
+                            <a href="{{ route('admin.profile.edit') }}" 
+                               class="p-2 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition"
+                               title="Pengaturan Profil">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </a>
+                        @endif
                     </div>
                 </header>
 

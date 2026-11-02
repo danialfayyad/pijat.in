@@ -94,4 +94,3 @@ class OrderChatController extends Controller
         ]);
     }
 }
-

@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminNotificationController;
+use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\ComplaintController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PartnerVerificationController;
 use App\Http\Controllers\Admin\PenaltyAppealController;
 use App\Http\Controllers\Admin\PenaltyMonitoringController;
 use App\Http\Controllers\Admin\ServiceCatalogController;
+use App\Http\Controllers\Admin\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
 // Region-scoped operational routes
@@ -39,6 +42,21 @@ Route::middleware(['auth', 'role:admin,superadmin', 'admin.region'])->prefix('ad
     Route::get('/appeals/{appeal}', [PenaltyAppealController::class, 'show'])->name('appeals.show');
     Route::post('/appeals/{appeal}/approve', [PenaltyAppealController::class, 'approve'])->name('appeals.approve');
     Route::post('/appeals/{appeal}/reject', [PenaltyAppealController::class, 'reject'])->name('appeals.reject');
+
+    // User & Partner Management (ADM-05)
+    Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+    Route::get('/users/partners/{user}', [UserManagementController::class, 'showPartner'])->name('users.partners.show');
+    Route::get('/users/customers/{user}', [UserManagementController::class, 'showCustomer'])->name('users.customers.show');
+    Route::post('/users/{user}/status', [UserManagementController::class, 'updateStatus'])->name('users.update-status');
+
+    // Admin Profile & Password (ADM-14)
+    Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/password', [AdminProfileController::class, 'updatePassword'])->name('profile.password');
+
+    // Notifications & Task Queue (ADM-14, SYS-06)
+    Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [AdminNotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [AdminNotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
 });
 
 // Global Service Catalog routes (permission: KATALOG)
