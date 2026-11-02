@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use Carbon\Carbon;
+use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -282,9 +283,11 @@ class Order extends Model
     /**
      * Set the spatial service coordinate.
      */
-    public function setServiceCoordinateAttribute(array|string|null $value): void
+    public function setServiceCoordinateAttribute(array|string|Expression|null $value): void
     {
-        if (is_array($value) && isset($value['lat'], $value['lng'])) {
+        if ($value instanceof Expression) {
+            $this->attributes['service_coordinate'] = $value;
+        } elseif (is_array($value) && isset($value['lat'], $value['lng'])) {
             $wkt = sprintf('POINT(%F %F)', (float) $value['lng'], (float) $value['lat']);
             $this->attributes['service_coordinate'] = DB::raw("ST_GeomFromText('{$wkt}', 4326, 'axis-order=long-lat')");
         } elseif (is_string($value)) {

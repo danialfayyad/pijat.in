@@ -746,7 +746,16 @@
 
                 <!-- 1C. Kondisi: Pesanan Terjadwal - Terapis Sudah Mengonfirmasi Jadwal (Dijadwalkan) -->
                 @if ($order->status === \App\Enums\OrderStatus::Dijadwalkan)
-                    <div class="bg-gradient-to-br from-indigo-950 via-slate-900 to-emerald-950 rounded-2xl p-4 text-white shadow-sm space-y-3">
+                    @php
+                        $hoursBefore = $order->scheduled_start_time ? \Carbon\Carbon::now()->diffInHours($order->scheduled_start_time, false) : 0;
+                        $canCancelFull = $hoursBefore >= 3;
+                        $canReschedule = $hoursBefore >= 3 && $order->reschedule_count < 2;
+                        $cancelWarn = $canCancelFull
+                            ? 'Batalkan pesanan terjadwal? Saldo dompet sebesar Rp ' . number_format($order->total_price, 0, ',', '.') . ' akan dikembalikan 100% ke dompet Anda.'
+                            : 'PERINGATAN KETENTUAN 4.7: Pembatalan kurang dari 3 jam sebelum jadwal layanan dikenakan potongan 50% (Rp ' . number_format($order->total_price * 0.5, 0, ',', '.') . ') sebagai hak kompensasi terapis. Pengembalian saldo adalah 50% (Rp ' . number_format($order->total_price * 0.5, 0, ',', '.') . '). Lanjutkan pembatalan?';
+                    @endphp
+                    <div class="bg-gradient-to-br from-indigo-950 via-slate-900 to-emerald-950 rounded-2xl p-4 text-white shadow-sm space-y-3"
+                         x-data="{ showRescheduleModal: false }">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-2">
                                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
@@ -770,6 +779,85 @@
                                 {{ $order->local_scheduled_start_time?->translatedFormat('d M Y, H:i') }} {{ $order->timezone_abbr }}
                             </span>
                         </div>
+
+                        <div class="space-y-2 pt-2 border-t border-white/10">
+                            @if ($canReschedule)
+                                <button type="button" @click="showRescheduleModal = true"
+                                    class="w-full min-h-[42px] py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-bold text-xs shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    <span>Jadwalkan Ulang / Reschedule (Sisa {{ 2 - $order->reschedule_count }}x)</span>
+                                </button>
+                            @elseif ($order->reschedule_count >= 2)
+                                <div class="p-2 rounded-xl bg-white/5 border border-white/10 text-center text-[11px] text-amber-200">
+                                    Batas maksimal reschedule telah tercapai (maksimal 2x per pesanan).
+                                </div>
+                            @else
+                                <div class="p-2 rounded-xl bg-white/5 border border-white/10 text-center text-[11px] text-amber-200">
+                                    Reschedule ditutup karena waktu layanan kurang dari 3 jam.
+                                </div>
+                            @endif
+
+                            <form method="POST" action="{{ route('pelanggan.orders.cancel', $order) }}" 
+                                  onsubmit="return confirmCancelOrder(event, '{{ $cancelWarn }}');">
+                                @csrf
+                                <button type="submit"
+                                    class="w-full min-h-[42px] py-2 rounded-xl bg-white/10 hover:bg-rose-600/80 border border-white/20 text-white font-bold text-xs transition flex items-center justify-center space-x-1 cursor-pointer">
+                                    <span>Batalkan Pesanan ({{ $canCancelFull ? 'Refund 100%' : 'Potongan Denda 50%' }})</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Reschedule Modal Pop-up -->
+                        @if ($canReschedule)
+                            <div x-show="showRescheduleModal" 
+                                 x-cloak
+                                 class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs"
+                                 @click.self="showRescheduleModal = false">
+                                <div class="bg-white rounded-2xl p-5 max-w-sm w-full text-slate-900 shadow-2xl border border-slate-200">
+                                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                                        <h4 class="text-sm font-extrabold text-slate-900">Jadwalkan Ulang Layanan</h4>
+                                        <button type="button" @click="showRescheduleModal = false" class="text-slate-400 hover:text-slate-600">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </button>
+                                    </div>
+
+                                    <form method="POST" action="{{ route('pelanggan.orders.reschedule', $order) }}" class="mt-4 space-y-4">
+                                        @csrf
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Pilih Tanggal Baru</label>
+                                            <input type="date" name="scheduled_date" required
+                                                min="{{ now($order->region?->timezone ?? 'Asia/Jakarta')->format('Y-m-d') }}"
+                                                max="{{ now($order->region?->timezone ?? 'Asia/Jakarta')->addDays(7)->format('Y-m-d') }}"
+                                                value="{{ now($order->region?->timezone ?? 'Asia/Jakarta')->format('Y-m-d') }}"
+                                                class="w-full rounded-xl border-slate-200 text-xs px-3 py-2.5 focus:border-emerald-500 focus:ring-emerald-500">
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-700">Pilih Jam Mulai (08:00 - 21:00)</label>
+                                            <input type="time" name="scheduled_time" required min="08:00" max="21:00" step="900"
+                                                value="10:00"
+                                                class="w-full rounded-xl border-slate-200 text-xs px-3 py-2.5 focus:border-emerald-500 focus:ring-emerald-500">
+                                            <p class="text-[10px] text-slate-500">Jadwal baru minimal 3 jam dari saat ini (antara 08:00 - 21:00).</p>
+                                        </div>
+
+                                        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 leading-relaxed">
+                                            💡 <strong>Ketentuan Reschedule:</strong> Reschedule tidak dikenakan biaya tambahan. Setelah disimpan, pesanan akan kembali dipublikasikan ke Bursa Terbuka agar dapat dikonfirmasi oleh mitra.
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2 pt-2">
+                                            <button type="button" @click="showRescheduleModal = false"
+                                                class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+                                                Batal
+                                            </button>
+                                            <button type="submit"
+                                                class="w-full py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition">
+                                                Simpan Jadwal
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 @endif
 

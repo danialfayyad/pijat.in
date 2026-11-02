@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderRating;
 use App\Models\User;
+use App\Services\OrderCancellationService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,6 +18,10 @@ use Illuminate\View\View;
 class MitraOrderController extends Controller
 {
     public const MAX_SCHEDULED_RADIUS_KM = 10.0;
+
+    public function __construct(
+        protected OrderCancellationService $cancellationService
+    ) {}
 
     /**
      * Display available scheduled orders for partner (MIT-06).
@@ -443,6 +448,42 @@ class MitraOrderController extends Controller
 
         return redirect()->route('mitra.orders.show', $order)
             ->with('status', $successMessages[$targetStatus->value] ?? 'Status pesanan berhasil diperbarui.');
+    }
+
+    /**
+     * Cancel order by partner (MIT-11, MIT-12).
+     */
+    public function cancel(Request $request, Order $order): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($order->mitra_id !== $user->id) {
+            abort(403, 'Anda bukan mitra penanggung jawab untuk pesanan ini.');
+        }
+
+        $validated = $request->validate([
+            'cancellation_type' => ['required', 'in:regular,customer_not_present,gender_mismatch,medical_condition'],
+            'reason' => ['required', 'string', 'min:5', 'max:500'],
+        ]);
+
+        try {
+            $result = $this->cancellationService->cancelByMitra(
+                $order,
+                $user,
+                $validated['reason'],
+                $validated['cancellation_type']
+            );
+
+            if ($validated['cancellation_type'] === 'regular') {
+                return redirect()->route('mitra.orders.scheduled')
+                    ->with('warning', 'Pesanan dibatalkan dan dikembalikan ke bursa jadwal mitra. Poin sanksi pelanggaran telah dicatat pada sistem.');
+            }
+
+            return redirect()->route('mitra.orders.show', $order)
+                ->with('status', $result['message']);
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     /**

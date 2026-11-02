@@ -112,9 +112,78 @@
         div:where(.swal2-container) .swal-admin-theme .swal2-confirm:active {
             background-color: #065f46 !important;
         }
+        div:where(.swal2-container) .swal-admin-theme .swal2-danger-btn {
+            margin: 0 !important;
+            width: 100% !important;
+            min-height: 42px !important;
+            padding: 0.625rem 1rem !important;
+            font-size: 0.75rem !important;
+            font-weight: 700 !important;
+            border-radius: 0.75rem !important;
+            background-color: #e11d48 !important;
+            color: #ffffff !important;
+            box-shadow: 0 1px 2px 0 rgba(225, 29, 72, 0.2) !important;
+            transition: all 0.15s ease-in-out !important;
+            border: none !important;
+            cursor: pointer !important;
+        }
     </style>
 
     <script>
+        function confirmMitraCancellation(event) {
+            event.preventDefault();
+            const form = event.currentTarget || event.target;
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Batalkan Pesanan Ini?',
+                    text: 'PERINGATAN SANKSI: Membatalkan pesanan yang telah Anda ambil akan dikenakan sanksi 15 poin pelanggaran (SP) dan pesanan akan dikembalikan ke bursa jadwal mitra.',
+                    input: 'textarea',
+                    inputPlaceholder: 'Tuliskan alasan pembatalan Anda (minimal 5 karakter)...',
+                    inputAttributes: {
+                        minlength: 5,
+                        required: 'true'
+                    },
+                    inputValidator: (value) => {
+                        if (!value || value.trim().length < 5) {
+                            return 'Alasan pembatalan wajib diisi minimal 5 karakter!';
+                        }
+                    },
+                    showCancelButton: true,
+                    cancelButtonText: 'Kembali',
+                    confirmButtonText: 'Ya, Batalkan Pesanan',
+                    reverseButtons: true,
+                    buttonsStyling: false,
+                    customClass: {
+                        popup: 'swal-admin-theme',
+                        icon: 'swal2-warning',
+                        confirmButton: 'swal2-danger-btn',
+                        cancelButton: 'swal2-cancel'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed && result.value) {
+                        const reasonInput = form.querySelector('input[name="reason"]');
+                        if (reasonInput) {
+                            reasonInput.value = result.value.trim();
+                        }
+                        form.submit();
+                    }
+                });
+            } else {
+                const reason = prompt('Tuliskan alasan pembatalan Anda (minimal 5 karakter):');
+                if (reason && reason.trim().length >= 5) {
+                    const reasonInput = form.querySelector('input[name="reason"]');
+                    if (reasonInput) {
+                        reasonInput.value = reason.trim();
+                    }
+                    form.submit();
+                }
+            }
+            return false;
+        }
+        window.confirmMitraCancellation = confirmMitraCancellation;
+
         function confirmOrderAction(event, title, message, confirmBtnText = 'Ya, Lanjutkan', icon = 'question') {
             event.preventDefault();
             const form = event.currentTarget || event.target;
@@ -156,6 +225,7 @@
             touchStartY: 0,
             touchCurrentY: 0,
             isDragging: false,
+            showSpecialCancelModal: false,
 
             mitraLat: {{ $mitraLat }},
             mitraLng: {{ $mitraLng }},
@@ -657,16 +727,28 @@
                 <div class="pt-2">
                     @if ($isAssigned)
                         @if ($order->status === \App\Enums\OrderStatus::Dijadwalkan)
-                            <form action="{{ route('mitra.orders.update-status', $order) }}" method="POST"
-                                  onsubmit="return confirmOrderAction(event, 'Mulai Perjalanan?', 'Mulai perjalanan menuju lokasi pelanggan sekarang?', 'Ya, Berangkat', 'question');">
-                                @csrf
-                                <input type="hidden" name="status" value="menuju_lokasi">
-                                <button type="submit" 
-                                    class="w-full min-h-[46px] py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                                    <span>Mulai Berangkat (Menuju Lokasi)</span>
-                                </button>
-                            </form>
+                            <div class="space-y-1.5">
+                                <form action="{{ route('mitra.orders.update-status', $order) }}" method="POST"
+                                      onsubmit="return confirmOrderAction(event, 'Mulai Perjalanan?', 'Mulai perjalanan menuju lokasi pelanggan sekarang?', 'Ya, Berangkat', 'question');">
+                                    @csrf
+                                    <input type="hidden" name="status" value="menuju_lokasi">
+                                    <button type="submit" 
+                                        class="w-full min-h-[46px] py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                        <span>Mulai Berangkat (Menuju Lokasi)</span>
+                                    </button>
+                                </form>
+                                <form action="{{ route('mitra.orders.cancel', $order) }}" method="POST"
+                                      onsubmit="return confirmMitraCancellation(event);">
+                                    @csrf
+                                    <input type="hidden" name="cancellation_type" value="regular">
+                                    <input type="hidden" name="reason" value="">
+                                    <button type="submit"
+                                        class="w-full py-1 text-center text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer">
+                                        Batalkan Pesanan (Kembali ke Bursa • Penalti SP)
+                                    </button>
+                                </form>
+                            </div>
                         @elseif ($order->status === \App\Enums\OrderStatus::MenujuLokasi)
                             <form action="{{ route('mitra.orders.update-status', $order) }}" method="POST"
                                   onsubmit="return confirmArrival(event);">
@@ -679,16 +761,22 @@
                                 </button>
                             </form>
                         @elseif ($order->status === \App\Enums\OrderStatus::Tiba)
-                            <form action="{{ route('mitra.orders.update-status', $order) }}" method="POST"
-                                  onsubmit="return confirmOrderAction(event, 'Mulai Layanan?', 'Mulai sesi pemijatan sekarang?', 'Mulai Sesi', 'question');">
-                                @csrf
-                                <input type="hidden" name="status" value="sedang_berlangsung">
-                                <button type="submit" 
-                                    class="w-full min-h-[46px] py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
-                                    <span>Mulai Sesi Layanan Pijat</span>
+                            <div class="space-y-1.5">
+                                <form action="{{ route('mitra.orders.update-status', $order) }}" method="POST"
+                                      onsubmit="return confirmOrderAction(event, 'Mulai Layanan?', 'Mulai sesi pemijatan sekarang?', 'Mulai Sesi', 'question');">
+                                    @csrf
+                                    <input type="hidden" name="status" value="sedang_berlangsung">
+                                    <button type="submit" 
+                                        class="w-full min-h-[46px] py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+                                        <span>Mulai Sesi Layanan Pijat</span>
+                                    </button>
+                                </form>
+                                <button type="button" @click="showSpecialCancelModal = true"
+                                    class="w-full py-1 text-center text-[11px] font-bold text-amber-700 hover:text-amber-800 hover:underline cursor-pointer">
+                                    Kendala di Lokasi / Pembatalan Khusus (Bebas Sanksi)
                                 </button>
-                            </form>
+                            </div>
                         @elseif ($order->status === \App\Enums\OrderStatus::SedangBerlangsung)
                             <div class="space-y-2">
                                 <div class="p-2 bg-emerald-50 rounded-xl border border-emerald-200/90 flex items-center justify-between text-xs">
@@ -960,16 +1048,28 @@
                 @if ($isAssigned)
                     <div class="pt-1 space-y-2">
                         @if ($order->status === \App\Enums\OrderStatus::Dijadwalkan)
-                            <form action="{{ route('mitra.orders.update-status', $order) }}" method="POST"
-                                  onsubmit="return confirmOrderAction(event, 'Mulai Perjalanan?', 'Mulai perjalanan menuju lokasi pelanggan sekarang?', 'Ya, Berangkat', 'question');">
-                                @csrf
-                                <input type="hidden" name="status" value="menuju_lokasi">
-                                <button type="submit" 
-                                    class="w-full min-h-[46px] py-3 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                                    <span>Mulai Berangkat (Menuju Lokasi)</span>
-                                </button>
-                            </form>
+                            <div class="space-y-1.5">
+                                <form action="{{ route('mitra.orders.update-status', $order) }}" method="POST"
+                                      onsubmit="return confirmOrderAction(event, 'Mulai Perjalanan?', 'Mulai perjalanan menuju lokasi pelanggan sekarang?', 'Ya, Berangkat', 'question');">
+                                    @csrf
+                                    <input type="hidden" name="status" value="menuju_lokasi">
+                                    <button type="submit" 
+                                        class="w-full min-h-[46px] py-3 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                        <span>Mulai Berangkat (Menuju Lokasi)</span>
+                                    </button>
+                                </form>
+                                <form action="{{ route('mitra.orders.cancel', $order) }}" method="POST"
+                                      onsubmit="return confirmMitraCancellation(event);">
+                                    @csrf
+                                    <input type="hidden" name="cancellation_type" value="regular">
+                                    <input type="hidden" name="reason" value="">
+                                    <button type="submit"
+                                        class="w-full py-1.5 text-center text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer">
+                                        Batalkan Pesanan (Kembali ke Bursa • Penalti SP)
+                                    </button>
+                                </form>
+                            </div>
                         @elseif ($order->status === \App\Enums\OrderStatus::MenujuLokasi)
                             <form action="{{ route('mitra.orders.update-status', $order) }}" method="POST"
                                   onsubmit="return confirmArrival(event);">
@@ -982,16 +1082,22 @@
                                 </button>
                             </form>
                         @elseif ($order->status === \App\Enums\OrderStatus::Tiba)
-                            <form action="{{ route('mitra.orders.update-status', $order) }}" method="POST"
-                                  onsubmit="return confirmOrderAction(event, 'Mulai Layanan?', 'Mulai sesi pemijatan sekarang?', 'Mulai Sesi', 'question');">
-                                @csrf
-                                <input type="hidden" name="status" value="sedang_berlangsung">
-                                <button type="submit" 
-                                    class="w-full min-h-[46px] py-3 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
-                                    <span>Mulai Sesi Layanan Pijat</span>
+                            <div class="space-y-1.5">
+                                <form action="{{ route('mitra.orders.update-status', $order) }}" method="POST"
+                                      onsubmit="return confirmOrderAction(event, 'Mulai Layanan?', 'Mulai sesi pemijatan sekarang?', 'Mulai Sesi', 'question');">
+                                    @csrf
+                                    <input type="hidden" name="status" value="sedang_berlangsung">
+                                    <button type="submit" 
+                                        class="w-full min-h-[46px] py-3 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+                                        <span>Mulai Sesi Layanan Pijat</span>
+                                    </button>
+                                </form>
+                                <button type="button" @click="showSpecialCancelModal = true"
+                                    class="w-full py-1.5 text-center text-[11px] font-bold text-amber-700 hover:text-amber-800 hover:underline cursor-pointer">
+                                    Kendala di Lokasi / Pembatalan Khusus (Bebas Sanksi)
                                 </button>
-                            </form>
+                            </div>
                         @elseif ($order->status === \App\Enums\OrderStatus::SedangBerlangsung)
                             <div class="space-y-2">
                                 <div class="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200/90 flex items-center justify-between text-xs">
@@ -1086,6 +1192,73 @@
                 </button>
             </div>
 
+        </div>
+
+        <!-- Special Cancellation Modal (MIT-11) -->
+        <div x-show="showSpecialCancelModal" 
+             x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs"
+             @click.self="showSpecialCancelModal = false">
+            <div class="bg-white rounded-2xl p-5 max-w-sm w-full text-slate-900 shadow-2xl border border-slate-200 space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div>
+                        <h4 class="text-sm font-extrabold text-slate-900">Pembatalan Khusus di Lokasi</h4>
+                        <p class="text-[10px] text-emerald-700 font-semibold">Tiba di Lokasi • Bebas Sanksi Mitra</p>
+                    </div>
+                    <button type="button" @click="showSpecialCancelModal = false" class="text-slate-400 hover:text-slate-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <form method="POST" action="{{ route('mitra.orders.cancel', $order) }}" class="space-y-4">
+                    @csrf
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-800">Pilih Jenis Kendala / Alasan Khusus:</label>
+                        
+                        <label class="flex items-start p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer space-x-2.5 transition">
+                            <input type="radio" name="cancellation_type" value="customer_not_present" required class="mt-0.5 text-emerald-600 focus:ring-emerald-500">
+                            <div class="text-xs">
+                                <strong class="text-slate-900 block font-bold">Pelanggan Tidak Hadir di Lokasi</strong>
+                                <span class="text-[11px] text-slate-500 leading-tight block mt-0.5">Sudah menunggu minimal 15 menit & tidak merespons. Mitra menerima kompensasi transport 50%.</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer space-x-2.5 transition">
+                            <input type="radio" name="cancellation_type" value="gender_mismatch" required class="mt-0.5 text-emerald-600 focus:ring-emerald-500">
+                            <div class="text-xs">
+                                <strong class="text-slate-900 block font-bold">Ketidaksesuaian Gender Penerima</strong>
+                                <span class="text-[11px] text-slate-500 leading-tight block mt-0.5">Gender penerima layanan di tempat tidak sesuai ketentuan. Mitra menerima kompensasi 50%.</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer space-x-2.5 transition">
+                            <input type="radio" name="cancellation_type" value="medical_condition" required class="mt-0.5 text-emerald-600 focus:ring-emerald-500">
+                            <div class="text-xs">
+                                <strong class="text-slate-900 block font-bold">Kontraindikasi Medis Berbahaya</strong>
+                                <span class="text-[11px] text-slate-500 leading-tight block mt-0.5">Ditemukan riwayat/kondisi medis yang berbahaya untuk dipijat. Pelanggan refund 100%, mitra bebas sanksi.</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700">Rincian Penjelasan (Wajib diisi):</label>
+                        <textarea name="reason" rows="2" required minlength="5" maxlength="500"
+                            placeholder="Jelaskan detail kendala yang terjadi di lokasi pelanggan..."
+                            class="w-full rounded-xl border-slate-200 text-xs p-2.5 focus:border-emerald-500 focus:ring-emerald-500"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <button type="button" @click="showSpecialCancelModal = false"
+                            class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+                            Kembali
+                        </button>
+                        <button type="submit"
+                            class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition">
+                            Batalkan Pesanan
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
     </div>

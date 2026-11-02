@@ -6,13 +6,13 @@ use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
-use App\Models\OrderDispatch;
 use App\Models\OrderRating;
 use App\Models\OrderStatusHistory;
 use App\Models\Service;
 use App\Models\ServicePackage;
 use App\Services\InstantOrderMatchingService;
 use App\Services\OrderBookingService;
+use App\Services\OrderCancellationService;
 use App\Services\WalletService;
 use Carbon\Carbon;
 use DomainException;
@@ -28,7 +28,8 @@ class OrderBookingController extends Controller
     public function __construct(
         protected OrderBookingService $bookingService,
         protected InstantOrderMatchingService $matchingService,
-        protected WalletService $walletService
+        protected WalletService $walletService,
+        protected OrderCancellationService $cancellationService
     ) {}
 
     /**
@@ -155,59 +156,57 @@ class OrderBookingController extends Controller
             abort(403, 'Akses tidak sah.');
         }
 
-        if ($order->status->isTerminal()) {
-            return back()->with('error', 'Pesanan ini sudah selesai atau telah dibatalkan sebelumnya.');
-        }
-
-        if (! in_array($order->status, [OrderStatus::MenungguPembayaran, OrderStatus::MencariMitra, OrderStatus::Dijadwalkan])) {
-            return back()->with('error', 'Pesanan yang sedang dalam perjalanan atau sedang berlangsung tidak dapat dibatalkan mandiri.');
-        }
-
         $reason = trim((string) $request->input('reason', 'Dibatalkan oleh pelanggan'));
         if (empty($reason)) {
             $reason = 'Dibatalkan oleh pelanggan';
         }
 
-        DB::transaction(function () use ($order, $user, $reason) {
-            $previousStatus = $order->status;
+        try {
+            $result = $this->cancellationService->cancelByCustomer($order, $user, $reason);
 
-            if (in_array($previousStatus, [OrderStatus::MencariMitra, OrderStatus::Dijadwalkan])) {
-                $this->walletService->credit(
-                    $user,
-                    (float) $order->total_price,
-                    'order_refund',
-                    (string) $order->id,
-                    'Refund 100% pembatalan pesanan '.$order->order_code,
-                    $order->region_id
-                );
-            }
+            return redirect()->route('pelanggan.orders.index')
+                ->with('success', $result['message']);
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
 
-            if ($order->order_type === OrderType::Instan) {
-                OrderDispatch::where('order_id', $order->id)
-                    ->where('status', OrderDispatch::STATUS_OFFERED)
-                    ->update(['status' => OrderDispatch::STATUS_EXPIRED]);
-            }
+    /**
+     * Reschedule a scheduled order by customer (CUS-13).
+     */
+    public function reschedule(Request $request, Order $order): RedirectResponse
+    {
+        $user = $request->user();
 
-            $order->update([
-                'status' => OrderStatus::Dibatalkan,
-                'cancellation_reason' => $reason,
-                'cancelled_by_id' => $user->id,
-                'cancelled_by_role' => 'pelanggan',
-                'mitra_id' => null,
-            ]);
+        if ($order->customer_id !== $user->id) {
+            abort(403, 'Akses tidak sah.');
+        }
 
-            OrderStatusHistory::create([
-                'order_id' => $order->id,
-                'from_status' => $previousStatus->value,
-                'to_status' => OrderStatus::Dibatalkan->value,
-                'actor_id' => $user->id,
-                'actor_role' => 'pelanggan',
-                'note' => 'Pembatalan oleh pelanggan: '.$reason,
-            ]);
-        });
+        $validated = $request->validate([
+            'scheduled_date' => ['required', 'date'],
+            'scheduled_time' => ['required', 'string'],
+        ]);
 
-        return redirect()->route('pelanggan.orders.index')
-            ->with('success', 'Pesanan '.$order->order_code.' berhasil dibatalkan.');
+        $regionTz = $order->region?->timezone ?? 'Asia/Jakarta';
+
+        try {
+            $newScheduleTime = Carbon::createFromFormat(
+                'Y-m-d H:i',
+                $validated['scheduled_date'].' '.$validated['scheduled_time'],
+                $regionTz
+            );
+
+            $this->cancellationService->rescheduleByCustomer($order, $user, $newScheduleTime);
+
+            $newFormatted = $newScheduleTime->translatedFormat('d M Y, H:i').' '.$order->timezone_abbr;
+
+            return redirect()->route('pelanggan.orders.show', $order)
+                ->with('success', "Pesanan berhasil dijadwalkan ulang ke {$newFormatted}. Pesanan telah dipublikasikan kembali ke Bursa Jadwal Mitra.");
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            return back()->with('error', 'Format waktu jadwal tidak valid. Mohon periksa kembali input Anda.');
+        }
     }
 
     /**

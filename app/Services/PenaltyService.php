@@ -31,9 +31,10 @@ class PenaltyService
         int $points,
         string $reason,
         ?Complaint $complaint = null,
-        ?User $actor = null
+        ?User $actor = null,
+        ?Order $order = null
     ): PenaltyLedger {
-        return DB::transaction(function () use ($targetUser, $points, $reason, $complaint, $actor) {
+        return DB::transaction(function () use ($targetUser, $points, $reason, $complaint, $actor, $order) {
             $user = User::where('id', $targetUser->id)->lockForUpdate()->firstOrFail();
 
             $balanceBefore = $user->penalty_points;
@@ -48,7 +49,7 @@ class PenaltyService
             return PenaltyLedger::create([
                 'user_id' => $user->id,
                 'complaint_id' => $complaint?->id,
-                'order_id' => $complaint?->order_id,
+                'order_id' => $order?->id ?? $complaint?->order_id,
                 'actor_id' => $actor?->id,
                 'type' => 'violation',
                 'points' => $points,
