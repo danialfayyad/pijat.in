@@ -386,4 +386,24 @@ class User extends Authenticatable
     {
         return $this->hasMany(PenaltyLedger::class);
     }
+
+    /**
+     * Web Push subscriptions registered by this user.
+     *
+     * @return HasMany<PushSubscription, $this>
+     */
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
+    /**
+     * In-app and system notifications received by this user.
+     *
+     * @return HasMany<SystemNotification, $this>
+     */
+    public function systemNotifications(): HasMany
+    {
+        return $this->hasMany(SystemNotification::class);
+    }
 }

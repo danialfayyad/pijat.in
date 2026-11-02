@@ -408,7 +408,7 @@
                 "Customer menerima Web Push saat top-up sukses dan refund berhasil diproses."
             ],
             "verification": "Simulasi trigger event notifikasi dan verifikasi payload Web Push VAPID terkirim.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-22",
@@ -843,7 +843,7 @@
                 "Mitra menerima Web Push saat mendapat tawaran instan, ada pesanan terjadwal baru, pesanan dibatalkan, saldo dilepas, dan SP terbit."
             ],
             "verification": "Verifikasi pengiriman payload Web Push ke service worker PWA Mitra.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-22",
@@ -1124,7 +1124,7 @@
                 "Admin dapat melihat notifikasi antrean tugas baru dan mengubah kata sandi akunnya."
             ],
             "verification": "Uji ubah password akun admin dan periksa penerimaan notifikasi antrean verifikasi.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "ADM-15",
@@ -1161,7 +1161,7 @@
                 "Admin wilayah pesanan yang menangani insiden customer luar kota hanya dapat melihat data sebatas kasus terkait."
             ],
             "verification": "Periksa profil mitra pasca pindah domisili dari panel admin wilayah baru.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "SA-01",
@@ -1180,7 +1180,7 @@
                 "Perubahan nilai komisi atau denda tidak berlaku surut pada transaksi yang sudah berjalan."
             ],
             "verification": "Ubah persentase komisi di panel Super Admin, periksa catatan di audit log dan pastikan pesanan lama tidak berubah.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "SA-02",
@@ -1218,7 +1218,7 @@
                 "Super Admin dapat menyaring log audit berdasarkan modul, rentang tanggal, dan aktor."
             ],
             "verification": "Buka menu Log Audit di Super Admin setelah melakukan perubahan parameter dan periksa integritas baris log.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "SA-04",
@@ -1254,7 +1254,7 @@
                 "Sistem mencatat nomor versi dokumen baru; persetujuan pengguna berikutnya mengacu pada versi terbaru."
             ],
             "verification": "Perbarui teks perjanjian kemitraan, pastikan pendaftaran mitra baru mencatat nomor versi teks terbaru.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "SA-06",
@@ -1423,7 +1423,7 @@
                 "Notifikasi tidak bocor ke admin wilayah lain."
             ],
             "verification": "Trigger event aduan baru di wilayah X, pastikan hanya admin wilayah X yang menerima push notification.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "SYS-07",
@@ -1441,7 +1441,7 @@
                 "Data teks chat dan catatan medis dihapus/dibersihkan secara permanen demi kepatuhan UU PDP."
             ],
             "verification": "Jalankan cron job pembersihan data lama, pastikan chat > 30 hari terhapus sedangkan nota pesanan tetap ada.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "SYS-08",

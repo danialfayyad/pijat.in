@@ -306,4 +306,3 @@ class UserManagementController extends Controller
         return back()->with('success', "Akun {$user->name} telah diblokir permanen dan nomor HP/perangkat dimasukkan ke daftar hitam.");
     }
 }
-
