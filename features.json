@@ -235,7 +235,7 @@
                 "Setelah mitra menekan OTW, tombol pembatalan customer dinonaktifkan/hilang (kecuali mitra telat > 30 menit dari estimasi)."
             ],
             "verification": "Uji pembatalan customer pada status Mencari Mitra, H-4 jam, H-1 jam, dan status OTW.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-13",
@@ -255,7 +255,7 @@
                 "Setelah reschedule berhasil, pesanan kembali ke status Mencari Mitra dan mitra lama menerima notifikasi."
             ],
             "verification": "Uji reschedule ke-1, ke-2 (sukses), dan ke-3 (ditolak) serta uji batas < 3 jam (ditolak).",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-14",
@@ -660,7 +660,7 @@
                 "Mitra dapat membatalkan dengan alasan Kondisi medis tidak sesuai (refund 100%, mitra bebas sanksi)."
             ],
             "verification": "Simulasi eksekusi masing-masing opsi pembatalan khusus dan verifikasi efek sanksi/refund.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-12",
@@ -679,7 +679,7 @@
                 "Pesanan yang dibatalkan dilempar ulang ke bursa pencarian."
             ],
             "verification": "Uji pembatalan mandiri oleh mitra pada pesanan terjadwal, pastikan SP tercatat otomatis.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-13",
@@ -1348,7 +1348,7 @@
                 "Status Menunggu Pembayaran yang tidak dibayar dalam 15 menit otomatis menjadi Kedaluwarsa."
             ],
             "verification": "Jalankan scheduler sistem, uji pembatalan otomatis pesanan instan menit ke-31 dan invoice menit ke-16.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "SYS-03",

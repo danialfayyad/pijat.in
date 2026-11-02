@@ -34,12 +34,10 @@ Route::middleware(['auth', 'role:pelanggan'])->prefix('pelanggan')->name('pelang
     Route::get('/orders/{order}/live-tracking', [OrderBookingController::class, 'liveTracking'])->name('orders.live-tracking');
     Route::post('/orders/{order}/pay', [OrderBookingController::class, 'payWithWallet'])->name('orders.pay');
     Route::post('/orders/{order}/cancel', [OrderBookingController::class, 'cancel'])->name('orders.cancel');
+    Route::post('/orders/{order}/reschedule', [OrderBookingController::class, 'reschedule'])->name('orders.reschedule');
     Route::post('/orders/{order}/rating', [OrderRatingController::class, 'rateByCustomer'])->name('orders.rating');
     Route::get('/orders/{order}/chat/messages', [OrderChatController::class, 'getMessages'])->name('orders.chat.messages');
     Route::post('/orders/{order}/chat/messages', [OrderChatController::class, 'sendMessage'])->name('orders.chat.send');
-    Route::post('/orders/{order}/rating', [\App\Http\Controllers\OrderRatingController::class, 'rateByCustomer'])->name('orders.rating');
-    Route::get('/orders/{order}/chat/messages', [\App\Http\Controllers\OrderChatController::class, 'getMessages'])->name('orders.chat.messages');
-    Route::post('/orders/{order}/chat/messages', [\App\Http\Controllers\OrderChatController::class, 'sendMessage'])->name('orders.chat.send');
 
     // Customer Wallet & Top-up (CUS-16, SYS-05)
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');

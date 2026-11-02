@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Sequential 60-second instant order timeout processor (SYS-01)
 Schedule::command('orders:process-instant-offers')->everyMinute();
+
+// Automatic cancellations for stuck orders and expired payments (SYS-02)
+Schedule::command('orders:process-cancellations')->everyMinute();

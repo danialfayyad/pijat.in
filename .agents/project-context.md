@@ -31,8 +31,14 @@ Pijat.in is presented as a massage and wellness marketplace. The public landing 
   - In-App Order Chat Drawer (CUS-11, MIT-13): Percakapan pesan teks dalam aplikasi selama pesanan aktif via `<x-order-chat-drawer />`, nomor kontak asli disembunyikan untuk privasi pengguna, dan riwayat obrolan tersimpan untuk audit investigasi.
   - In-Sheet Rating Bintang 1-5 (CUS-14, MIT-14): Penilaian rating 1-5 bintang pasca-layanan selesai tanpa form teks. Rating 5 bintang memicu pemotongan poin sanksi mitra, dan rating $\le 3$ bintang memicu prompt aduan ke Pusat Bantuan.
   - Idempotensi Aksi Luar Jaringan (SYS-09): Mencegah transisi ganda saat retry akibat gangguan sinyal di lapangan.
+- Order Cancellation, Reschedule, Refund, & Partner Compensation (Slice 7 / S7):
+  - Matriks Pembatalan Pelanggan (CUS-12): Pembatalan pesanan terjadwal $\ge 3$ jam sebelum jadwal mengembalikan dana 100%; pembatalan $< 3$ jam sebelum jadwal memotong 50% dana yang otomatis dikreditkan sebagai kompensasi transport mitra ke dompetnya (`partner_compensation`). Pembatalan pada status `MenujuLokasi` dikunci kecuali mitra terdeteksi terlambat parah ($> 30$ menit).
+  - Reschedule Pesanan Terjadwal (CUS-13): Pelanggan dapat menjadwalkan ulang pesanan terjadwal maksimal 2 kali per pesanan tanpa biaya, minimal 3 jam sebelum jadwal lama (antara pukul 08:00 s.d 21:00). Setelah reschedule berhasil, pesanan kembali dipublikasikan ke bursa jadwal mitra (`MencariMitra`) secara otomatis.
+  - Pembatalan Sepihak Mitra (MIT-12): Mitra membatalkan pesanan terjadwal yang sudah diambil dengan alasan wajib; dikenakan sanksi 15 poin pelanggaran (SP) via `PenaltyService` dan pesanan dilempar kembali ke bursa terbuka.
+  - Pembatalan Khusus Mitra di Lokasi (MIT-11, DEC-03): Mitra dapat membatalkan di status `Tiba` karena Customer Tidak Ada di Lokasi (mitra dapat kompensasi 50%, pelanggan disanksi 15 poin), Gender Penerima Tidak Sesuai (mitra dapat kompensasi 50%), dan Kontraindikasi Medis Berbahaya (refund pelanggan 100%, mitra bebas sanksi 100% per DEC-03).
+  - Pembatalan Otomatis Sistem (SYS-02): Command `orders:process-cancellations` (terjadwal setiap menit) secara otomatis membatalkan pesanan instan tanpa mitra $> 30$ menit (refund 100%), pesanan terjadwal bursa yang melewati batas H-2 jam (refund 100%), pesanan belum dibayar $> 15$ menit, dan kedaluwarsa invoice top-up saldo $> 15$ menit.
 - Master Wilayah & Admin Seeders: `MasterWilayahSeeder` populates operational regions (Jember, Yogyakarta, Surabaya, Blitar, Jakarta Selatan, dll.) with official boundary polygons/MultiPolygons from GeoJSON datasets, and `AdminSeeder` creates Superadmin and Regional Admins with automatic region assignments and emergency duty handling (`can_handle_emergency = true`).
-- All 200 unit & feature tests in Pest passing (902 assertions) with Pint style formatting compliant.
+- All 219 unit & feature tests in Pest passing (987 assertions) with Pint style formatting compliant.
 
 
 ## Role model and authentication map
