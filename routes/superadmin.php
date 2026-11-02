@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\SuperAdmin\AdminAssignmentController;
+use App\Http\Controllers\SuperAdmin\AuditLogController;
 use App\Http\Controllers\SuperAdmin\ComplaintCategoryController;
+use App\Http\Controllers\SuperAdmin\LegalDocumentController;
+use App\Http\Controllers\SuperAdmin\ParameterController;
 use App\Http\Controllers\SuperAdmin\RegionController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +29,19 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::put('/complaint-categories/{complaintCategory}', [ComplaintCategoryController::class, 'update'])->name('complaint-categories.update');
     Route::post('/complaint-categories/{complaintCategory}/toggle', [ComplaintCategoryController::class, 'toggle'])->name('complaint-categories.toggle');
     Route::delete('/complaint-categories/{complaintCategory}', [ComplaintCategoryController::class, 'destroy'])->name('complaint-categories.destroy');
+
+    // System Parameters (SA-01)
+    Route::get('/parameters', [ParameterController::class, 'index'])->name('parameters.index');
+    Route::post('/parameters', [ParameterController::class, 'update'])->name('parameters.update');
+
+    // Centralized Audit Trail Logs (SA-03)
+    Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show'])->name('audit-logs.show');
+
+    // Legal Documents Management (SA-05)
+    Route::get('/legal-documents', [LegalDocumentController::class, 'index'])->name('legal-documents.index');
+    Route::get('/legal-documents/{document}/edit', [LegalDocumentController::class, 'edit'])->name('legal-documents.edit');
+    Route::put('/legal-documents/{document}', [LegalDocumentController::class, 'update'])->name('legal-documents.update');
 
     Route::get('/catalog', fn () => redirect()->route('admin.catalog.index'))->name('catalog.index');
 });

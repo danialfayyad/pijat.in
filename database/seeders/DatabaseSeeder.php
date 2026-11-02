@@ -32,6 +32,9 @@ class DatabaseSeeder extends Seeder
             ComplaintCategorySeeder::class,
             ComplaintSeeder::class,
             PenaltySeeder::class,
+            PartnerVerificationDummySeeder::class,
+            ParameterSeeder::class,
+            LegalDocumentSeeder::class,
         ]);
     }
 }

@@ -33,4 +33,8 @@ Route::middleware(['auth', 'role:mitra'])->prefix('mitra')->name('mitra.')->grou
     Route::post('/orders/{order}/rating', [OrderRatingController::class, 'rateByMitra'])->name('orders.rating');
     Route::get('/orders/{order}/chat/messages', [OrderChatController::class, 'getMessages'])->name('orders.chat.messages');
     Route::post('/orders/{order}/chat/messages', [OrderChatController::class, 'sendMessage'])->name('orders.chat.send');
+
+    Route::post('/orders/{order}/rating', [OrderRatingController::class, 'rateByMitra'])->name('orders.rating');
+    Route::get('/orders/{order}/chat/messages', [OrderChatController::class, 'getMessages'])->name('orders.chat.messages');
+    Route::post('/orders/{order}/chat/messages', [OrderChatController::class, 'sendMessage'])->name('orders.chat.send');
 });

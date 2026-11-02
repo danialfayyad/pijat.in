@@ -39,6 +39,10 @@ Route::middleware(['auth', 'role:pelanggan'])->prefix('pelanggan')->name('pelang
     Route::get('/orders/{order}/chat/messages', [OrderChatController::class, 'getMessages'])->name('orders.chat.messages');
     Route::post('/orders/{order}/chat/messages', [OrderChatController::class, 'sendMessage'])->name('orders.chat.send');
 
+    Route::post('/orders/{order}/rating', [OrderRatingController::class, 'rateByCustomer'])->name('orders.rating');
+    Route::get('/orders/{order}/chat/messages', [OrderChatController::class, 'getMessages'])->name('orders.chat.messages');
+    Route::post('/orders/{order}/chat/messages', [OrderChatController::class, 'sendMessage'])->name('orders.chat.send');
+
     // Customer Wallet & Top-up (CUS-16, SYS-05)
     Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
     Route::get('/wallet/topup', [WalletController::class, 'create'])->name('wallet.topup');

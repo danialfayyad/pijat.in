@@ -28,13 +28,48 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 | **S8** | Aduan Wilayah, Poin Sanksi, Banding, & Resolusi Masalah | Selesai (Backoffice) | 30 Okt 2026 | 31 Okt 2026 | ADM-08, ADM-07, ADM-06 Selesai Penuh; ADM-09 dikonsolidasikan ke Manajemen Mitra (S11) per DEC-13; Panic Button ditiadakan per DEC-11 |
 | **S9** | Saldo Mitra 24 Jam, Penarikan Dana, Keuangan Wilayah | Belum Dimulai | - | - | Tergantung S7, S8 |
 | **S10**| Perpindahan Domisili Customer & Mitra Antarwilayah | Belum Dimulai | - | - | Tergantung S2, S3 |
-| **S11**| Pelengkap: Retensi Data 30 Hari, Anonymization, Audit | Belum Dimulai | - | - | Tergantung S8, S9 |
+| **S11**| Manajemen Pengguna, Audit, & Pelengkap Sistem | Selesai Penuh | 31 Okt 2026 | 02 Nov 2026 | 26/26 tests pass (ADM-05, ADM-14, ADM-16, SA-01, SA-03, SA-05, SYS-06, SYS-07, CUS-21, MIT-21), 238/238 total suite pass, Pint clean; Manajemen parameter operasional, log audit, dokumen legal, moderasi pengguna, isolasi notifikasi wilayah, pembersihan retensi UU PDP & Web Push VAPID selesai |
 
 ---
 
 ### 3. Slice Aktif Saat Ini
 
-- **Slice**: `S4` (Pemesanan Terjadwal, Matching FCFS, & Jadwal Mitra) $\rightarrow$ **Selesai Penuh (100%)**.
+- **Slice**: `S11` (**Manajemen Pengguna, Audit, & Pelengkap Sistem**) $\rightarrow$ **Selesai Penuh (100%)**.
+- **Hasil Sesi Ini**:
+  1. **Manajemen Parameter Operasional & Konfigurasi Sistem (`SA-01`)**:
+     - Tabel `parameters` dengan 34 parameter kontrak, tipe data dinamis, dan caching forever.
+     - Super Admin panel untuk pengelolaan parameter dengan proteksi non-retroaktif dan catatan alasan wajib diisi.
+     - 5/5 tests pass di `ParameterManagementTest`.
+  2. **Log Audit Terpusat (`SA-03`)**:
+     - Tabel `audit_logs` merekam seluruh mutasi sensitif, user actor, model target, old values, new values, IP, dan User Agent.
+     - Antarmuka Super Admin untuk penelusuran audit dengan filter modul, rentang tanggal, aktor, dan modal inspeksi diff JSON.
+     - 3/3 tests pass di `AuditLogTest`.
+  3. **Manajemen Dokumen Legal & SOP (`SA-05`)**:
+     - Tabel `legal_documents` dan seeder 4 dokumen resmi (SOP Kemitraan v2.2, S&K v1.0, Kebijakan Privasi v1.0, Pernyataan Risiko v1.0).
+     - Antarmuka Super Admin untuk pembaruan dokumen dengan riwayat penomoran versi.
+     - 3/3 tests pass di `LegalDocumentTest`.
+  4. **Profil Admin, Ganti Password, & Pusat Notifikasi Antrean (`ADM-14`)**:
+     - Controller `AdminProfileController` & `AdminNotificationController`.
+     - Antarmuka Pusat Notifikasi & Antrean Tugas dengan metrik antrean verifikasi mitra, laporan aduan terbuka, dan pengajuan banding sanksi.
+     - Fitur tandai telah dibaca per baris dan tandai semua telah dibaca.
+     - 3/3 tests pass di `AdminProfileTest`.
+  5. **Audit Riwayat Lintas Wilayah (`ADM-16`)**:
+     - Admin wilayah baru dapat mengaudit rekam jejak pesanan, sebaran rating, ulasan, dan buku besar poin sanksi dari mitra yang berpindah domisili.
+     - Penanganan aduan/pesanan oleh admin luar wilayah dibatasi secara ketat sebatas kasus pesanan tanpa akses ke moderasi umum pengguna.
+     - 2/2 tests pass di `CrossRegionAuditTest`.
+  6. **Penyebaran Notifikasi Terisolasi & Web Push VAPID (`SYS-06`, `CUS-21`, `MIT-21`)**:
+     - Layanan `NotificationService` dengan tabel `push_subscriptions` dan `system_notifications`.
+     - Endpoints registrasi langganan Web Push browser (`/push/public-key`, `/push/subscribe`, `/push/unsubscribe`).
+     - Penyebaran notifikasi operasional admin dijamin terisolasi (*zero leakage*) hanya kepada admin yang ditugaskan ke wilayah kejadian (`SYS-06`).
+     - Dukungan payload Web Push untuk customer (perubahan status pesanan, top-up sukses, refund) dan mitra (tawaran instan 60s, pesanan terjadwal, pembatalan, pelepasan saldo 24h, poin sanksi, dan persetujuan verifikasi).
+     - 5/5 tests pass di `PushNotificationTest`.
+  7. **Scheduler Pembersihan Data Otomatis UU PDP (`SYS-07`)**:
+     - Artisan command `app:cleanup-expired-data` terjadwal harian di `routes/console.php`.
+     - Menghapus pesan chat (`order_messages`) dan mengosongkan catatan medis sensitif (`orders.medical_notes`) yang berumur > 30 hari secara permanen, tanpa menghapus nota atau integritas transaksi pesanan.
+     - 2/2 tests pass di `DataRetentionCleanupTest`.
+  8. **Pengujian Menyeluruh (Pest) & Kode Bersih**:
+     - Seluruh 26 test suite Slice 11 berstatus hijau (pass).
+     - Format kode terstandarisasi bersih via Laravel Pint dan build frontend (`npm run build`) sukses tanpa peringatan.
 - **Hasil Sesi Ini**:
   1. **Preferensi Layanan Mitra (`MIT-08`)**:
      - Tabel `partner_service_preferences` dengan relasi ke `partner_profiles` dan `services`.

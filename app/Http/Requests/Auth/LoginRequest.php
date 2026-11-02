@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\Blacklist;
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -47,6 +49,30 @@ class LoginRequest extends FormRequest
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
+            ]);
+        }
+
+        /** @var User $user */
+        $user = Auth::user();
+
+        if ($user->isBlocked() || Blacklist::where('user_id', $user->id)->orWhere('phone', $user->phone)->exists()) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda telah diblokir permanen karena pelanggaran ketentuan layanan.',
+            ]);
+        }
+
+        if ($user->isSuspended()) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            $until = $user->suspended_until?->format('d M Y H:i') ?? 'jangka waktu tertentu';
+            $reason = $user->status_reason ? " Alasan: {$user->status_reason}" : '';
+
+            throw ValidationException::withMessages([
+                'email' => "Akun Anda sedang ditangguhkan hingga {$until}.{$reason}",
             ]);
         }
 
