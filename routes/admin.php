@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminFinanceController;
 use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\ComplaintController;
@@ -48,6 +49,13 @@ Route::middleware(['auth', 'role:admin,superadmin', 'admin.region'])->prefix('ad
     Route::get('/users/partners/{user}', [UserManagementController::class, 'showPartner'])->name('users.partners.show');
     Route::get('/users/customers/{user}', [UserManagementController::class, 'showCustomer'])->name('users.customers.show');
     Route::post('/users/{user}/status', [UserManagementController::class, 'updateStatus'])->name('users.update-status');
+
+    // Regional Finance & Withdrawal Management (ADM-11)
+    Route::get('/finance', [AdminFinanceController::class, 'index'])->name('finance.index');
+    Route::post('/finance/withdrawals/{withdrawal}/approve', [AdminFinanceController::class, 'approveWithdrawal'])->name('finance.withdrawals.approve');
+    Route::post('/finance/withdrawals/{withdrawal}/reject', [AdminFinanceController::class, 'rejectWithdrawal'])->name('finance.withdrawals.reject');
+    Route::get('/finance/export/csv', [AdminFinanceController::class, 'exportCsv'])->name('finance.export.csv');
+    Route::get('/finance/export/print', [AdminFinanceController::class, 'exportPrint'])->name('finance.export.print');
 
     // Admin Profile & Password (ADM-14)
     Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');

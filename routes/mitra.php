@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Mitra\MitraComplaintController;
 use App\Http\Controllers\Mitra\MitraDashboardController;
+use App\Http\Controllers\Mitra\MitraFinanceController;
 use App\Http\Controllers\Mitra\MitraOrderController;
 use App\Http\Controllers\Mitra\MitraPenaltyController;
 use App\Http\Controllers\Mitra\MitraProfileController;
@@ -28,6 +29,11 @@ Route::middleware(['auth', 'role:mitra'])->prefix('mitra')->name('mitra.')->grou
     Route::post('/pesanan-terjadwal/{order}/ambil', [MitraOrderController::class, 'take'])->name('orders.take');
     Route::get('/jadwal-saya', [MitraOrderController::class, 'mySchedule'])->name('orders.my-schedule');
 
+    // Saldo, Keuangan & Penarikan Dana (MIT-15, MIT-16)
+    Route::get('/keuangan', [MitraFinanceController::class, 'index'])->name('finance.index');
+    Route::get('/keuangan/tarik', [MitraFinanceController::class, 'withdraw'])->name('finance.withdraw');
+    Route::post('/keuangan/tarik', [MitraFinanceController::class, 'storeWithdrawal'])->name('finance.withdraw.store');
+
     // Detail Pesanan, Peta Interaktif & Update Status Layanan
     Route::get('/orders/{order}', [MitraOrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/status', [MitraOrderController::class, 'updateStatus'])->name('orders.update-status');
@@ -35,6 +41,7 @@ Route::middleware(['auth', 'role:mitra'])->prefix('mitra')->name('mitra.')->grou
     Route::post('/orders/{order}/rating', [OrderRatingController::class, 'rateByMitra'])->name('orders.rating');
     Route::get('/orders/{order}/chat/messages', [OrderChatController::class, 'getMessages'])->name('orders.chat.messages');
     Route::post('/orders/{order}/chat/messages', [OrderChatController::class, 'sendMessage'])->name('orders.chat.send');
+
 
     // Mitra Incident & Complaints (MIT-19)
     Route::get('/orders/{order}/laporkan-insiden', [MitraComplaintController::class, 'create'])->name('orders.incident.create');
@@ -44,4 +51,5 @@ Route::middleware(['auth', 'role:mitra'])->prefix('mitra')->name('mitra.')->grou
     Route::get('/sanksi', [MitraPenaltyController::class, 'index'])->name('penalties.index');
     Route::get('/sanksi/banding', [MitraPenaltyController::class, 'createAppeal'])->name('penalties.appeal.create');
     Route::post('/sanksi/banding', [MitraPenaltyController::class, 'storeAppeal'])->name('penalties.appeal.store');
+
 });

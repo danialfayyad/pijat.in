@@ -3,6 +3,7 @@
 use App\Http\Controllers\SuperAdmin\AdminAssignmentController;
 use App\Http\Controllers\SuperAdmin\AuditLogController;
 use App\Http\Controllers\SuperAdmin\ComplaintCategoryController;
+use App\Http\Controllers\SuperAdmin\FinanceReportController;
 use App\Http\Controllers\SuperAdmin\LegalDocumentController;
 use App\Http\Controllers\SuperAdmin\ParameterController;
 use App\Http\Controllers\SuperAdmin\RegionController;
@@ -42,6 +43,12 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::get('/legal-documents', [LegalDocumentController::class, 'index'])->name('legal-documents.index');
     Route::get('/legal-documents/{document}/edit', [LegalDocumentController::class, 'edit'])->name('legal-documents.edit');
     Route::put('/legal-documents/{document}', [LegalDocumentController::class, 'update'])->name('legal-documents.update');
+
+    // Financial Monitoring & Cross-Region Reports (SA-04, SA-08)
+    Route::get('/finance', [FinanceReportController::class, 'index'])->name('finance.index');
+    Route::get('/finance/cross-region', [FinanceReportController::class, 'crossRegion'])->name('finance.cross-region');
+    Route::get('/finance/export/csv', [FinanceReportController::class, 'exportCsv'])->name('finance.export.csv');
+    Route::get('/finance/export/print', [FinanceReportController::class, 'exportPrint'])->name('finance.export.print');
 
     Route::get('/catalog', fn () => redirect()->route('admin.catalog.index'))->name('catalog.index');
 });

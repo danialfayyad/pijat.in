@@ -30,13 +30,23 @@
                     </div>
                 </div>
 
-                <a href="{{ route('pelanggan.wallet.topup') }}" 
-                    class="min-h-[44px] px-4 py-2.5 rounded-xl bg-white text-emerald-800 text-xs font-extrabold shadow-sm hover:bg-emerald-50 active:scale-95 transition flex items-center space-x-1.5 shrink-0 cursor-pointer">
-                    <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    <span>Isi Saldo</span>
-                </a>
+                <div class="flex items-center gap-2 shrink-0">
+                    <a href="{{ route('pelanggan.wallet.withdraw') }}" 
+                        class="min-h-[44px] px-3.5 py-2.5 rounded-xl bg-emerald-900/60 border border-emerald-400/30 text-white text-xs font-bold shadow-xs hover:bg-emerald-900/80 active:scale-95 transition flex items-center space-x-1.5 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span>Tarik Saldo</span>
+                    </a>
+
+                    <a href="{{ route('pelanggan.wallet.topup') }}" 
+                        class="min-h-[44px] px-3.5 py-2.5 rounded-xl bg-white text-emerald-800 text-xs font-extrabold shadow-sm hover:bg-emerald-50 active:scale-95 transition flex items-center space-x-1.5 cursor-pointer">
+                        <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span>Isi Saldo</span>
+                    </a>
+                </div>
             </div>
 
             <div class="mt-5 pt-3.5 border-t border-emerald-600/60 flex items-center justify-between text-xs text-emerald-100/90 relative z-10">
@@ -44,11 +54,52 @@
                     <svg class="w-3.5 h-3.5 text-emerald-200" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                         <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                     </svg>
-                    <span>Wilayah: <strong>{{ $user->region?->name ?? 'Belum ada alamat' }}</strong></span>
+                    <span>Wilayah: <strong>{{ $user->primaryAddress?->region?->name ?? 'Belum ada alamat' }}</strong></span>
                 </div>
                 <span class="text-[11px] text-emerald-200 font-medium">Buku Kas Aman</span>
             </div>
         </div>
+
+        <!-- Riwayat Pengajuan Penarikan Pelanggan (CUS-17) -->
+        @if (isset($withdrawalRequests) && $withdrawalRequests->isNotEmpty())
+            <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-2.5">
+                <h3 class="text-xs font-bold text-slate-900">Pengajuan Penarikan Dana</h3>
+                <div class="space-y-2">
+                    @foreach ($withdrawalRequests as $wd)
+                        <div class="p-3 rounded-xl border border-slate-100 bg-slate-50/70 text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-[11px] font-semibold text-slate-700">{{ $wd->withdrawal_code }}</span>
+                                @if ($wd->isPending())
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 ring-2 ring-amber-100"></span>
+                                        Menunggu Verifikasi
+                                    </span>
+                                @elseif ($wd->isApproved())
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100"></span>
+                                        Dicairkan
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-700">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 ring-2 ring-rose-100"></span>
+                                        Ditolak
+                                    </span>
+                                @endif
+                            </div>
+                            <div class="flex items-center justify-between mt-1.5 text-slate-500 text-[11px]">
+                                <span>{{ $wd->bank_name }} • {{ $wd->created_at->format('d M Y, H:i') }}</span>
+                                <span class="font-bold text-slate-900">Rp {{ number_format($wd->amount, 0, ',', '.') }}</span>
+                            </div>
+                            @if ($wd->isRejected() && $wd->rejection_reason)
+                                <div class="mt-1.5 pt-1.5 border-t border-slate-200/60 text-[10px] text-rose-600">
+                                    Alasan: {{ $wd->rejection_reason }}
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
 
         <!-- Transaction History -->
         <div class="space-y-3 pt-2">

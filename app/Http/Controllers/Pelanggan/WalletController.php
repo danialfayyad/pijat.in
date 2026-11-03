@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Pelanggan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Parameter;
 use App\Models\TopupInvoice;
+use App\Models\WithdrawalRequest;
+use App\Services\NotificationService;
 use App\Services\TopupService;
 use App\Services\WalletService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -16,7 +20,8 @@ class WalletController extends Controller
 {
     public function __construct(
         protected WalletService $walletService,
-        protected TopupService $topupService
+        protected TopupService $topupService,
+        protected NotificationService $notificationService
     ) {}
 
     /**
@@ -26,9 +31,10 @@ class WalletController extends Controller
     {
         $user = $request->user()->load('primaryAddress.region');
         $wallet = $user->getOrCreateWallet();
-        $transactions = $wallet->transactions()->with('region')->paginate(15);
+        $transactions = $wallet->transactions()->with('region')->latest()->paginate(15);
+        $withdrawalRequests = WithdrawalRequest::where('user_id', $user->id)->latest()->take(5)->get();
 
-        return view('pelanggan.wallet.index', compact('user', 'wallet', 'transactions'));
+        return view('pelanggan.wallet.index', compact('user', 'wallet', 'transactions', 'withdrawalRequests'));
     }
 
     /**
@@ -99,5 +105,120 @@ class WalletController extends Controller
         } catch (DomainException $e) {
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * Show customer withdrawal form (CUS-17).
+     */
+    public function withdraw(Request $request): View|RedirectResponse
+    {
+        $user = $request->user()->load('primaryAddress.region');
+        $wallet = $user->getOrCreateWallet();
+
+        if (! $user->primaryAddress) {
+            return redirect()->route('pelanggan.addresses.index')
+                ->with('error', 'Silakan tentukan alamat utama domisili terlebih dahulu sebelum mengajukan penarikan saldo.');
+        }
+
+        $minAmount = (float) Parameter::get('min_withdrawal_amount', 50000);
+        $maxAmount = (float) Parameter::get('max_withdrawal_amount', 5000000);
+        $fee = (float) Parameter::get('withdrawal_fee_amount', 0);
+
+        $hasPending = WithdrawalRequest::where('user_id', $user->id)
+            ->where('status', WithdrawalRequest::STATUS_PENDING)
+            ->exists();
+
+        return view('pelanggan.wallet.withdraw', compact('user', 'wallet', 'minAmount', 'maxAmount', 'fee', 'hasPending'));
+    }
+
+    /**
+     * Process customer withdrawal submission (CUS-17).
+     */
+    public function storeWithdrawal(Request $request): RedirectResponse
+    {
+        $user = $request->user()->load('primaryAddress');
+        $wallet = $user->getOrCreateWallet();
+
+        if (! $user->primaryAddress) {
+            return redirect()->route('pelanggan.addresses.index')
+                ->with('error', 'Alamat utama wajib diisi untuk penetapan wilayah operasional transaksi.');
+        }
+
+        $hasPending = WithdrawalRequest::where('user_id', $user->id)
+            ->where('status', WithdrawalRequest::STATUS_PENDING)
+            ->exists();
+
+        if ($hasPending) {
+            return redirect()->route('pelanggan.wallet.index')
+                ->with('error', 'Anda masih memiliki permohonan penarikan dana yang sedang menunggu verifikasi admin.');
+        }
+
+        $minAmount = (float) Parameter::get('min_withdrawal_amount', 50000);
+        $maxAmount = (float) Parameter::get('max_withdrawal_amount', 5000000);
+        $fee = (float) Parameter::get('withdrawal_fee_amount', 0);
+
+        $validated = $request->validate([
+            'bank_name' => ['required', 'string', 'max:100'],
+            'account_number' => ['required', 'string', 'max:50'],
+            'account_holder_name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', "min:{$minAmount}", "max:{$maxAmount}"],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ], [
+            'bank_name.required' => 'Nama bank wajib diisi.',
+            'account_number.required' => 'Nomor rekening tujuan wajib diisi.',
+            'account_holder_name.required' => 'Nama pemilik rekening wajib diisi.',
+            'amount.min' => 'Nominal penarikan minimal Rp '.number_format($minAmount, 0, ',', '.').'.',
+            'amount.max' => 'Nominal penarikan maksimal Rp '.number_format($maxAmount, 0, ',', '.').'.',
+        ]);
+
+        $amount = (float) $validated['amount'];
+
+        if ($amount > (float) $wallet->balance) {
+            return back()->withInput()->withErrors([
+                'amount' => 'Saldo dompet tidak mencukupi untuk melakukan penarikan senilai Rp '.number_format($amount, 0, ',', '.').'.',
+            ]);
+        }
+
+        $netAmount = max(0, $amount - $fee);
+        $regionId = $user->primaryAddress->region_id;
+
+        DB::transaction(function () use ($user, $amount, $fee, $netAmount, $regionId, $validated) {
+            $withdrawal = WithdrawalRequest::create([
+                'withdrawal_code' => WithdrawalRequest::generateCode(),
+                'user_id' => $user->id,
+                'region_id' => $regionId,
+                'amount' => $amount,
+                'fee' => $fee,
+                'net_amount' => $netAmount,
+                'bank_name' => $validated['bank_name'],
+                'account_number' => $validated['account_number'],
+                'account_holder_name' => $validated['account_holder_name'],
+                'status' => WithdrawalRequest::STATUS_PENDING,
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            // Deduct customer wallet immediately
+            $this->walletService->debit(
+                $user,
+                $amount,
+                'customer_withdrawal',
+                (string) $withdrawal->id,
+                "Penarikan saldo ke {$validated['bank_name']} ({$withdrawal->withdrawal_code})",
+                $regionId
+            );
+
+            // Notify Regional Admins
+            $this->notificationService->sendToRegionAdmins(
+                $regionId,
+                'customer_withdrawal_pending',
+                'Antrean Penarikan Saldo Pelanggan',
+                "Pelanggan {$user->name} mengajukan penarikan dana sebesar Rp ".number_format($amount, 0, ',', '.')." ({$withdrawal->withdrawal_code}).",
+                ['withdrawal_id' => $withdrawal->id, 'withdrawal_code' => $withdrawal->withdrawal_code, 'amount' => $amount],
+                'high'
+            );
+        });
+
+        return redirect()->route('pelanggan.wallet.index')
+            ->with('status', 'Permohonan penarikan saldo berhasil diajukan dan sedang dalam antrean verifikasi admin wilayah.');
     }
 }
