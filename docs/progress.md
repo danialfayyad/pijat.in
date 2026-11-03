@@ -24,9 +24,15 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 | **S4** | Pemesanan Terjadwal, Matching FCFS, & Jadwal Mitra | Selesai | 28 Okt 2026 | 29 Okt 2026 | 23/23 tests pass (OrderBookingTest: 10/10, PartnerServicePreferenceTest: 4/4, ScheduledOrderMatchingTest: 6/6, OrderTrackingTest: 3/3), 123/123 total suite pass, Pint clean; CUS-04, CUS-06, CUS-07, SYS-08, MIT-08, MIT-06, MIT-07, CUS-10 Selesai Penuh |
 | **S5** | Pemesanan Instan, Penawaran Sekuensial 60s, & Lock | Selesai | 29 Okt 2026 | 29 Okt 2026 | 6/6 tests pass (InstantOrderMatchingTest), 131/131 total suite pass, Pint clean; CUS-08, MIT-04, MIT-05, SYS-01 Selesai Penuh |
 | **S6** | Pelaksanaan Layanan, Tracking OTW, Tiba 50m, Selesai | Selesai | 31 Okt 2026 | 31 Okt 2026 | 200/200 total test suite pass, Pint clean; Validasi 50m Tiba (MIT-10), Timer durasi pijat (MIT-09), In-app Chat Pesanan (CUS-11, MIT-13), Rating Bintang 1-5 (CUS-14, MIT-14), Riwayat Nota (CUS-15, MIT-17), Idempotensi (SYS-09) Selesai Penuh |
+
 | **S7** | Pembatalan, Reschedule, Refund, & Potongan Kompensasi| Selesai | 02 Nov 2026 | 03 Nov 2026 | 14/14 tests pass (OrderCancellationTest, MitraCancellationTest, OrderAutoCancellationTest, OrderMonitoringTest); CUS-12, CUS-13, MIT-11, MIT-12, ADM-04, SYS-02 Selesai Penuh |
 | **S8** | Aduan Wilayah, Poin Sanksi, Banding, & Resolusi Masalah | Selesai (Backoffice) | 30 Okt 2026 | 31 Okt 2026 | ADM-08, ADM-07, ADM-06 Selesai Penuh; ADM-09 dikonsolidasikan ke Manajemen Mitra (S11) per DEC-13; Panic Button ditiadakan per DEC-11 |
 | **S9** | Saldo Mitra & Finansial Wilayah | Selesai | 03 Nov 2026 | 03 Nov 2026 | 22/22 tests pass (OrderSettlementTest, PartnerFinanceTest, CustomerWithdrawalTest, AdminFinanceTest, SuperAdminFinanceTest), 274/274 total suite pass, Pint clean; CUS-17, MIT-15, MIT-16, ADM-11, SA-04, SA-08, SYS-03 Selesai Penuh (DEC-14 diterapkan) |
+
+| **S7** | Pembatalan, Reschedule, Refund, & Potongan Kompensasi| Selesai Penuh | 31 Okt 2026 | 01 Nov 2026 | CUS-12, CUS-13, MIT-11, MIT-12, SYS-02 Selesai Penuh; 219/219 total suite pass |
+| **S8** | Aduan Wilayah, Poin Sanksi, Banding, & Resolusi Masalah | Selesai Penuh | 30 Okt 2026 | 02 Nov 2026 | ADM-08, ADM-07, ADM-06, CUS-19, CUS-20, MIT-18, MIT-19, SYS-04 Selesai Penuh; ADM-09 dikonsolidasikan ke Manajemen Mitra (S11) per DEC-13; Panic Button ditiadakan per DEC-11; 53/53 tests pass, 276/276 total suite pass |
+| **S9** | Saldo Mitra 24 Jam, Penarikan Dana, Keuangan Wilayah | Siap Dikerjakan | - | - | Tergantung S7, S8 (S8 kini selesai) |
+
 | **S10**| Perpindahan Domisili Customer & Mitra Antarwilayah | Belum Dimulai | - | - | Tergantung S2, S3 |
 | **S11**| Manajemen Pengguna, Audit, & Pelengkap Sistem | Selesai Penuh | 31 Okt 2026 | 02 Nov 2026 | 26/26 tests pass (ADM-05, ADM-14, ADM-16, SA-01, SA-03, SA-05, SYS-06, SYS-07, CUS-21, MIT-21), 238/238 total suite pass, Pint clean; Manajemen parameter operasional, log audit, dokumen legal, moderasi pengguna, isolasi notifikasi wilayah, pembersihan retensi UU PDP & Web Push VAPID selesai |
 

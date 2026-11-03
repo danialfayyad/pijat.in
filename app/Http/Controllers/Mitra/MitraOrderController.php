@@ -204,10 +204,10 @@ class MitraOrderController extends Controller
     {
         $user = $request->user();
 
-        $myOrders = Order::query()
+        // 1. Orderan Berjalan (Sedang aktif di lapangan)
+        $runningOrders = Order::query()
             ->where('mitra_id', $user->id)
             ->whereIn('status', [
-                OrderStatus::Dijadwalkan,
                 OrderStatus::MenujuLokasi,
                 OrderStatus::Tiba,
                 OrderStatus::SedangBerlangsung,
@@ -216,7 +216,43 @@ class MitraOrderController extends Controller
             ->orderBy('scheduled_start_time', 'asc')
             ->get();
 
-        return view('mitra.orders.my-schedule', compact('myOrders'));
+        // 2. Orderan Terjadwal (Sudah diambil & menunggu jam pelaksanaan)
+        $scheduledOrders = Order::query()
+            ->where('mitra_id', $user->id)
+            ->where('status', OrderStatus::Dijadwalkan)
+            ->with(['service', 'region'])
+            ->orderBy('scheduled_start_time', 'asc')
+            ->get();
+
+        // 3. History (Pesanan selesai atau dibatalkan)
+        $historyOrders = Order::query()
+            ->where('mitra_id', $user->id)
+            ->whereIn('status', [
+                OrderStatus::Selesai,
+                OrderStatus::Dibatalkan,
+            ])
+            ->with(['service', 'region'])
+            ->latest('updated_at')
+            ->take(50)
+            ->get();
+
+        // Backward compatibility: gabungan aktif dan terjadwal
+        $myOrders = $runningOrders->concat($scheduledOrders);
+
+        $requestedTab = $request->query('tab');
+        if (in_array($requestedTab, ['berjalan', 'terjadwal', 'history'], true)) {
+            $defaultTab = $requestedTab;
+        } else {
+            $defaultTab = $runningOrders->isNotEmpty() ? 'berjalan' : 'terjadwal';
+        }
+
+        return view('mitra.orders.my-schedule', compact(
+            'runningOrders',
+            'scheduledOrders',
+            'historyOrders',
+            'myOrders',
+            'defaultTab'
+        ));
     }
 
     /**
@@ -372,6 +408,16 @@ class MitraOrderController extends Controller
         if (! in_array($targetStatus, $validNextStatuses, true)) {
             return redirect()->back()
                 ->with('error', 'Transisi status tidak valid dari '.$currentStatus->label().' ke '.$targetStatus->label().'.');
+        }
+
+        // Option A: Early departure guard for scheduled orders (maximum 45 minutes before scheduled start time)
+        if ($targetStatus === OrderStatus::MenujuLokasi && ! $order->canPartnerDepartNow(45)) {
+            $earliest = $order->earliestPartnerDepartureTime(45);
+            $tz = $order->region?->timezone ?? 'Asia/Jakarta';
+            $formattedTime = $earliest ? $earliest->copy()->setTimezone($tz)->format('H:i').' WIB' : '45 menit sebelum jadwal';
+
+            return redirect()->route('mitra.orders.show', $order)
+                ->with('error', "Perjalanan belum dapat dimulai. Untuk pesanan terjadwal, Anda baru dapat berangkat paling cepat 45 menit sebelum jam layanan (mulai pukul {$formattedTime}).");
         }
 
         // MIT-10: Geofence radius validation (50 meters) on arrival with graceful fallback

@@ -4,7 +4,9 @@ use App\Http\Controllers\OrderChatController;
 use App\Http\Controllers\OrderRatingController;
 use App\Http\Controllers\Pelanggan\AddressController;
 use App\Http\Controllers\Pelanggan\CatalogController;
+use App\Http\Controllers\Pelanggan\CustomerComplaintController;
 use App\Http\Controllers\Pelanggan\CustomerDashboardController;
+use App\Http\Controllers\Pelanggan\CustomerPenaltyController;
 use App\Http\Controllers\Pelanggan\OrderBookingController;
 use App\Http\Controllers\Pelanggan\WalletController;
 use Illuminate\Support\Facades\Route;
@@ -47,4 +49,15 @@ Route::middleware(['auth', 'role:pelanggan'])->prefix('pelanggan')->name('pelang
     Route::post('/wallet/withdraw', [WalletController::class, 'storeWithdrawal'])->name('wallet.withdraw.store');
     Route::get('/wallet/invoices/{invoice}', [WalletController::class, 'invoice'])->name('wallet.invoice');
     Route::post('/wallet/invoices/{invoice}/simulate-pay', [WalletController::class, 'simulatePay'])->name('wallet.simulate-pay');
+
+    // Customer Complaints / Aduan (CUS-19)
+    Route::get('/aduan', [CustomerComplaintController::class, 'index'])->name('complaints.index');
+    Route::get('/orders/{order}/aduan/buat', [CustomerComplaintController::class, 'create'])->name('complaints.create');
+    Route::post('/orders/{order}/aduan', [CustomerComplaintController::class, 'store'])->name('complaints.store');
+    Route::get('/aduan/{complaint}', [CustomerComplaintController::class, 'show'])->name('complaints.show');
+
+    // Customer Sanctions & Appeals (CUS-20)
+    Route::get('/sanksi', [CustomerPenaltyController::class, 'index'])->name('penalties.index');
+    Route::get('/sanksi/banding', [CustomerPenaltyController::class, 'createAppeal'])->name('penalties.appeal.create');
+    Route::post('/sanksi/banding', [CustomerPenaltyController::class, 'storeAppeal'])->name('penalties.appeal.store');
 });

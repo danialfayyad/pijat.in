@@ -28,11 +28,47 @@
             margin: 0.25rem auto 1rem !important;
             border: none !important;
             border-radius: 9999px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            position: relative !important;
+            box-sizing: border-box !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon .swal2-icon-content {
+            font-size: 1.6rem !important;
+            font-weight: 800 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1 !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-question,
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-info {
+            background-color: #ecfdf5 !important;
+            color: #059669 !important;
+            box-shadow: 0 0 0 8px #f0fdf4 !important;
         }
         div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-warning {
             background-color: #fef3c7 !important;
             color: #d97706 !important;
             box-shadow: 0 0 0 8px #fffbeb !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-success {
+            background-color: #ecfdf5 !important;
+            color: #059669 !important;
+            box-shadow: 0 0 0 8px #f0fdf4 !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-error {
+            background-color: #fef2f2 !important;
+            color: #e11d48 !important;
+            box-shadow: 0 0 0 8px #fff1f2 !important;
+        }
+        /* Sembunyikan elemen animasi garis/ring default SweetAlert2 yang bocor keluar kontainer */
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-success [class^='swal2-success-circular-line'],
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-success .swal2-success-fix,
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-success .swal2-success-ring,
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-success [class^='swal2-success-line'] {
+            display: none !important;
         }
         div:where(.swal2-container) .swal-admin-theme .swal2-title {
             font-size: 1.05rem !important;
@@ -50,8 +86,8 @@
             padding: 0 0.25rem !important;
         }
         div:where(.swal2-container) .swal-admin-theme .swal2-actions {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
+            display: flex !important;
+            flex-direction: row !important;
             gap: 0.625rem !important;
             margin: 0 !important;
             width: 100% !important;
@@ -59,7 +95,8 @@
         }
         div:where(.swal2-container) .swal-admin-theme .swal2-cancel {
             margin: 0 !important;
-            width: 100% !important;
+            flex: 1 1 0% !important;
+            width: auto !important;
             min-height: 42px !important;
             padding: 0.625rem 1rem !important;
             font-size: 0.75rem !important;
@@ -71,19 +108,47 @@
             cursor: pointer !important;
             transition: all 0.15s ease-in-out !important;
         }
+        div:where(.swal2-container) .swal-admin-theme .swal2-cancel:hover {
+            background-color: #e2e8f0 !important;
+            color: #1e293b !important;
+        }
         div:where(.swal2-container) .swal-admin-theme .swal2-confirm {
             margin: 0 !important;
-            width: 100% !important;
+            flex: 1 1 0% !important;
+            width: auto !important;
             min-height: 42px !important;
             padding: 0.625rem 1rem !important;
             font-size: 0.75rem !important;
             font-weight: 700 !important;
             border-radius: 0.75rem !important;
-            background-color: #e11d48 !important; /* rose-600 */
+            background-color: #059669 !important;
             color: #ffffff !important;
+            box-shadow: 0 1px 2px 0 rgba(5, 150, 105, 0.2) !important;
+            transition: all 0.15s ease-in-out !important;
             border: none !important;
             cursor: pointer !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-confirm:hover {
+            background-color: #047857 !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-confirm:active {
+            background-color: #065f46 !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-danger-btn {
+            margin: 0 !important;
+            flex: 1 1 0% !important;
+            width: auto !important;
+            min-height: 42px !important;
+            padding: 0.625rem 1rem !important;
+            font-size: 0.75rem !important;
+            font-weight: 700 !important;
+            border-radius: 0.75rem !important;
+            background-color: #e11d48 !important;
+            color: #ffffff !important;
+            box-shadow: 0 1px 2px 0 rgba(225, 29, 72, 0.2) !important;
             transition: all 0.15s ease-in-out !important;
+            border: none !important;
+            cursor: pointer !important;
         }
     </style>
 
@@ -95,6 +160,7 @@
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'warning',
+                    iconHtml: '!',
                     title: 'Batalkan Pesanan?',
                     text: message,
                     showCancelButton: true,
@@ -105,7 +171,7 @@
                     customClass: {
                         popup: 'swal-admin-theme',
                         icon: 'swal2-warning',
-                        confirmButton: 'swal2-confirm',
+                        confirmButton: 'swal2-danger-btn',
                         cancelButton: 'swal2-cancel'
                     }
                 }).then((result) => {
@@ -125,7 +191,7 @@
 
     <div class="relative w-full h-full overflow-hidden select-none"
          x-data="{
-            isExpanded: false,
+            isExpanded: ['selesai', 'dibatalkan'].includes('{{ $order->status->value }}'),
             touchStartY: 0,
             touchCurrentY: 0,
             isDragging: false,
@@ -142,6 +208,14 @@
             remainingTimeFormatted: '{{ $order->duration_minutes }}:00',
             timerInterval: null,
             selectedRating: {{ $myRating?->score ?? 0 }},
+            tempRating: {{ $myRating?->score ?? 0 }},
+            ratingLabels: {
+                1: 'Sangat Buruk',
+                2: 'Kurang Puas',
+                3: 'Cukup',
+                4: 'Puas',
+                5: 'Sangat Puas'
+            },
             hasRated: {{ $myRating ? 'true' : 'false' }},
             isSubmittingRating: false,
 
@@ -213,9 +287,42 @@
                 }
             },
 
+            confirmSubmitRating() {
+                if (this.hasRated || this.isSubmittingRating || this.tempRating === 0) return;
+                const score = this.tempRating;
+                const label = this.ratingLabels[score] || `${score} Bintang`;
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'question',
+                        iconHtml: '?',
+                        title: 'Kirim Penilaian?',
+                        text: `Apakah Anda yakin ingin memberikan nilai ${score} bintang (${label}) untuk terapis ini?`,
+                        showCancelButton: true,
+                        cancelButtonText: 'Batal',
+                        confirmButtonText: 'Ya, Kirim Ulasan',
+                        reverseButtons: true,
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'swal-admin-theme',
+                            icon: 'swal2-question',
+                            confirmButton: 'swal2-confirm',
+                            cancelButton: 'swal2-cancel'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.submitRating(score);
+                        }
+                    });
+                } else {
+                    if (confirm(`Apakah Anda yakin ingin memberikan nilai ${score} bintang (${label}) untuk terapis ini?`)) {
+                        this.submitRating(score);
+                    }
+                }
+            },
+
             async submitRating(score) {
                 if (this.hasRated || this.isSubmittingRating) return;
-                this.selectedRating = score;
                 this.isSubmittingRating = true;
                 try {
                     const res = await fetch('{{ route('pelanggan.orders.rating', $order) }}', {
@@ -229,14 +336,16 @@
                     });
                     if (res.ok) {
                         this.hasRated = true;
+                        this.selectedRating = score;
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
                                 icon: 'success',
+                                iconHtml: '✓',
                                 title: 'Ulasan Diterima',
                                 text: 'Terima kasih telah memberikan ulasan penilaian rating Anda.',
                                 confirmButtonText: 'Tutup',
                                 buttonsStyling: false,
-                                customClass: { popup: 'swal-admin-theme', confirmButton: 'swal2-confirm' }
+                                customClass: { popup: 'swal-admin-theme', icon: 'swal2-success', confirmButton: 'swal2-confirm' }
                             });
                         }
                     }
@@ -948,37 +1057,98 @@
                         </div>
 
                         <!-- Interactive 5-Star Rating (CUS-14) -->
-                        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-center">
-                            <p class="text-xs font-bold text-slate-800">
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 text-center">
+                            <div>
                                 <template x-if="hasRated">
-                                    <span>✓ Terima kasih atas ulasan <strong x-text="selectedRating"></strong>/5 bintang Anda!</span>
+                                    <div class="space-y-1">
+                                        <span class="inline-block px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">Ulasan Terkirim</span>
+                                        <p class="text-xs font-bold text-slate-800">
+                                            Terima kasih atas ulasan <strong x-text="selectedRating"></strong>/5 bintang Anda untuk terapis!
+                                        </p>
+                                    </div>
                                 </template>
                                 <template x-if="!hasRated">
-                                    <span>Berikan Penilaian Bintang untuk Terapis:</span>
+                                    <div class="space-y-0.5">
+                                        <p class="text-xs font-extrabold text-slate-900">Beri Penilaian untuk Terapis</p>
+                                        <p class="text-[11px] text-slate-500">Pilih bintang sesuai kepuasan Anda terhadap layanan pemijatan:</p>
+                                    </div>
                                 </template>
-                            </p>
-                            <div class="flex items-center justify-center space-x-2 py-1">
+                            </div>
+
+                            <div class="flex items-center justify-center space-x-2 py-0.5">
                                 <template x-for="star in [1, 2, 3, 4, 5]" :key="star">
-                                    <button type="button" @click="submitRating(star)"
+                                    <button type="button" 
+                                            @click="if (!hasRated) tempRating = star"
                                             :disabled="hasRated || isSubmittingRating"
-                                            class="text-3xl transition transform hover:scale-110 active:scale-95 disabled:cursor-default cursor-pointer">
-                                        <span :class="star <= selectedRating ? 'text-amber-400' : 'text-slate-300'">★</span>
+                                            class="text-3xl transition transform hover:scale-110 active:scale-95 disabled:cursor-default cursor-pointer select-none">
+                                        <span :class="star <= (hasRated ? selectedRating : tempRating) ? 'text-amber-400' : 'text-slate-300'">★</span>
                                     </button>
                                 </template>
                             </div>
+
+                            <template x-if="!hasRated">
+                                <div class="space-y-2 pt-2 border-t border-slate-200/70">
+                                    <p class="text-[11px] font-bold text-slate-700" x-show="tempRating > 0">
+                                        <span x-text="ratingLabels[tempRating] || ''"></span> (<span x-text="tempRating"></span> dari 5 Bintang)
+                                    </p>
+                                    <button type="button" 
+                                            @click="confirmSubmitRating()"
+                                            :disabled="tempRating === 0 || isSubmittingRating"
+                                            class="w-full min-h-[42px] py-2 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                                        <span x-show="!isSubmittingRating">Kirim Penilaian</span>
+                                        <span x-show="isSubmittingRating" class="flex items-center space-x-1">
+                                            <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                            <span>Menyimpan...</span>
+                                        </span>
+                                    </button>
+                                </div>
+                            </template>
 
                             <!-- Prompt jika rating <= 3 bintang -->
                             <template x-if="hasRated && selectedRating <= 3">
                                 <div class="pt-2 border-t border-slate-200/80 text-[11px] text-slate-600 space-y-1.5">
                                     <p class="text-rose-700 font-semibold">Ada kendala atau ketidaknyamanan selama layanan?</p>
-                                    <a href="{{ route('pelanggan.dashboard') }}"
+                                    <a href="{{ route('pelanggan.complaints.create', $order) }}"
                                        class="inline-flex items-center space-x-1 text-xs font-bold text-rose-700 hover:text-rose-800 underline">
-                                        <span>Laporkan Masalah ke Menu Bantuan</span>
+                                        <span>Ajukan Laporan Aduan Layanan (Maks. 24 Jam)</span>
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                     </a>
                                 </div>
                             </template>
                         </div>
+
+                        <!-- Opsi Aduan Layanan 24 Jam (CUS-19) -->
+                        @php
+                            $completedTime = $order->service_completed_at ?? $order->updated_at;
+                            $hoursSinceCompletion = $completedTime ? \Carbon\Carbon::now()->diffInHours($completedTime, false) : 0;
+                            $canComplain = $hoursSinceCompletion <= 24;
+                            $existingComplaint = $order->complaints()->where('complainant_id', auth()->id())->first();
+                        @endphp
+
+                        @if ($existingComplaint)
+                            <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between text-xs">
+                                <div class="truncate mr-2">
+                                    <span class="text-[10px] text-amber-800 font-bold block">TIKET: {{ $existingComplaint->complaint_code }} ({{ $existingComplaint->status->label() }})</span>
+                                    <span class="text-slate-800 font-medium truncate block">{{ $existingComplaint->title }}</span>
+                                </div>
+                                <a href="{{ route('pelanggan.complaints.show', $existingComplaint) }}"
+                                   class="px-2.5 py-1 rounded-lg bg-amber-200 text-amber-900 font-bold text-[11px] hover:bg-amber-300 transition shrink-0">
+                                    Lihat Status
+                                </a>
+                            </div>
+                        @elseif ($canComplain)
+                            <div class="pt-1">
+                                <a href="{{ route('pelanggan.complaints.create', $order) }}"
+                                   class="w-full min-h-[42px] py-2 px-3 rounded-xl border border-slate-200 hover:bg-rose-50 hover:border-rose-200 text-slate-700 hover:text-rose-700 font-bold text-xs transition flex items-center justify-center space-x-1.5">
+                                    <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    <span>Ada Kendala? Ajukan Aduan (Batas 24 Jam)</span>
+                                </a>
+                            </div>
+                        @else
+                            <div class="p-2 text-center text-[11px] text-slate-400 italic">
+                                Jendela pengajuan aduan (24 jam pasca layanan) telah ditutup.
+                            </div>
+                        @endif
                     </div>
                 @endif
 
