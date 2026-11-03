@@ -1,5 +1,5 @@
-<x-pwa-layout title="Jadwal Saya - Pijat.In" headerTitle="Jadwal Saya" :backUrl="route('mitra.dashboard')">
-    <div class="py-2 space-y-4">
+<x-pwa-layout title="Jadwal & Riwayat Tugas - Pijat.In" headerTitle="Jadwal Saya" :backUrl="route('mitra.dashboard')">
+    <div class="py-2 space-y-4" x-data="{ activeTab: '{{ $defaultTab }}' }">
 
         @if (session('status'))
             <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold shadow-xs flex items-center space-x-2.5">
@@ -13,18 +13,164 @@
         <!-- Header Ringkas -->
         <div class="flex items-center justify-between">
             <div>
-                <h2 class="text-base font-extrabold text-slate-900 tracking-tight">Jadwal Tugas Aktif</h2>
-                <p class="text-xs text-slate-500">Daftar pesanan terjadwal yang menjadi tanggung jawab Anda.</p>
+                <h2 class="text-base font-extrabold text-slate-900 tracking-tight">Tugas Kemitraan</h2>
+                <p class="text-xs text-slate-500">Kelola pesanan aktif, jadwal mendatang, dan riwayat tugas.</p>
             </div>
             <a href="{{ route('mitra.orders.scheduled') }}" 
-               class="min-h-[44px] px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs rounded-xl shadow-xs transition flex items-center space-x-1 cursor-pointer">
-                <span>+ Bursa Pesanan</span>
+               class="min-h-[44px] px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center space-x-1 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>Bursa Pesanan</span>
             </a>
         </div>
 
-        <!-- Orders List -->
-        <div class="space-y-4">
-            @forelse ($myOrders as $order)
+        <!-- 3 Tab Segmen: Berjalan, Terjadwal, History -->
+        <div class="p-1 bg-slate-100 rounded-2xl flex items-center space-x-1 text-xs select-none">
+            <!-- Tab 1: Berjalan -->
+            <button type="button" @click="activeTab = 'berjalan'"
+                    class="flex-1 min-h-[40px] py-2 px-2.5 rounded-xl font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                    :class="activeTab === 'berjalan' ? 'bg-white text-emerald-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'">
+                @if ($runningOrders->isNotEmpty())
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                @endif
+                <span>Berjalan</span>
+                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold"
+                      :class="activeTab === 'berjalan' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'">
+                    {{ $runningOrders->count() }}
+                </span>
+            </button>
+
+            <!-- Tab 2: Terjadwal -->
+            <button type="button" @click="activeTab = 'terjadwal'"
+                    class="flex-1 min-h-[40px] py-2 px-2.5 rounded-xl font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                    :class="activeTab === 'terjadwal' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'">
+                <span>Terjadwal</span>
+                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold"
+                      :class="activeTab === 'terjadwal' ? 'bg-slate-200 text-slate-800' : 'bg-slate-200 text-slate-600'">
+                    {{ $scheduledOrders->count() }}
+                </span>
+            </button>
+
+            <!-- Tab 3: History -->
+            <button type="button" @click="activeTab = 'history'"
+                    class="flex-1 min-h-[40px] py-2 px-2.5 rounded-xl font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                    :class="activeTab === 'history' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'">
+                <span>History</span>
+                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold"
+                      :class="activeTab === 'history' ? 'bg-slate-200 text-slate-800' : 'bg-slate-200 text-slate-600'">
+                    {{ $historyOrders->count() }}
+                </span>
+            </button>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 1: ORDERAN BERJALAN (ACTIVE / ONGOING)     -->
+        <!-- ============================================== -->
+        <div x-show="activeTab === 'berjalan'" class="space-y-4">
+            @forelse ($runningOrders as $order)
+                <div class="bg-white rounded-2xl p-5 border-2 border-emerald-500 shadow-sm space-y-4 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-emerald-600 text-white text-[9px] font-bold px-3 py-0.5 rounded-bl-xl uppercase tracking-wider">
+                        Sedang Aktif
+                    </div>
+
+                    <!-- Header Kartu -->
+                    <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 font-mono tracking-wider block">{{ $order->order_code }}</span>
+                            <h3 class="text-sm font-extrabold text-slate-900 mt-0.5">{{ $order->service_name }}</h3>
+                            <span class="text-[11px] text-slate-500 font-medium">{{ $order->duration_minutes }} Menit Layanan</span>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold {{ $order->status->badgeClasses() }} border">
+                            {{ $order->status->label() }}
+                        </span>
+                    </div>
+
+                    <!-- Waktu & Status Tracker Info -->
+                    <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200/90 flex items-center justify-between text-xs">
+                        <div class="flex items-center space-x-2 text-emerald-950 font-bold">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                            <span>{{ $order->status->label() }}</span>
+                        </div>
+                        <span class="font-bold text-emerald-800 font-mono text-xs">
+                            {{ $order->order_type->label() }}
+                        </span>
+                    </div>
+
+                    <!-- Informasi Penerima & Kontak -->
+                    <div class="space-y-2 text-xs border-t border-slate-100 pt-3">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Penerima Layanan</span>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500">Nama Penerima:</span>
+                            <span class="font-bold text-slate-900">{{ $order->recipient_name }} ({{ ucfirst($order->recipient_gender) }})</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500">Nomor Kontak:</span>
+                            <a href="tel:{{ $order->recipient_phone }}" class="font-bold text-emerald-700 hover:underline font-mono inline-flex items-center space-x-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                </svg>
+                                <span>{{ $order->recipient_phone ?? '-' }}</span>
+                            </a>
+                        </div>
+                        <div class="pt-1">
+                            <span class="text-slate-500 block mb-0.5">Alamat Lokasi:</span>
+                            <p class="text-slate-800 leading-relaxed font-medium bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
+                                {{ $order->service_address_text }}
+                            </p>
+                        </div>
+                    </div>
+
+                    @if ($order->medical_notes)
+                        <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-950 font-medium">
+                            <strong class="block text-amber-900 mb-0.5">Catatan Medis Penerima:</strong>
+                            {{ $order->medical_notes }}
+                        </div>
+                    @endif
+
+                    <!-- Ringkasan Pendapatan -->
+                    <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
+                        <span class="text-slate-500">Estimasi Bersih:</span>
+                        <span class="font-extrabold text-emerald-800 font-mono text-sm">
+                            Rp {{ number_format($order->total_price * 0.9, 0, ',', '.') }}
+                        </span>
+                    </div>
+
+                    <!-- Tombol Lanjutkan Layanan -->
+                    <div class="pt-1">
+                        <a href="{{ route('mitra.orders.show', $order) }}" 
+                           class="w-full min-h-[46px] py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>Lanjutkan Layanan (Buka Peta & Rute)</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            @empty
+                <div class="bg-white rounded-2xl p-8 border border-slate-200/90 shadow-xs text-center space-y-3">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-800">Tidak Ada Pesanan Berjalan</h4>
+                        <p class="text-[11px] text-slate-500 mt-1 max-w-xs mx-auto leading-relaxed">
+                            Saat ini Anda tidak memiliki tugas layanan yang sedang berjalan di lapangan.
+                        </p>
+                    </div>
+                </div>
+            @endforelse
+        </div>
+
+        <!-- ============================================== -->
+        <!-- TAB 2: ORDERAN TERJADWAL (SCHEDULED)           -->
+        <!-- ============================================== -->
+        <div x-show="activeTab === 'terjadwal'" class="space-y-4">
+            @forelse ($scheduledOrders as $order)
                 <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-4">
                     <!-- Header Kartu -->
                     <div class="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -75,7 +221,7 @@
                         </div>
                     </div>
 
-                    <!-- Catatan Kondisi Medis Penerima (MIT-07: Terbuka & Dapat Dibaca) -->
+                    <!-- Catatan Kondisi Medis Penerima (MIT-07) -->
                     <div class="p-3.5 bg-amber-50/70 rounded-xl border border-amber-200 text-xs space-y-1">
                         <div class="flex items-center space-x-1.5 text-amber-900 font-bold">
                             <svg class="w-4 h-4 text-amber-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,6 +280,67 @@
             @endforelse
         </div>
 
+        <!-- ============================================== -->
+        <!-- TAB 3: HISTORY (SELESAI / DIBATALKAN)          -->
+        <!-- ============================================== -->
+        <div x-show="activeTab === 'history'" class="space-y-3">
+            @forelse ($historyOrders as $order)
+                <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs space-y-3">
+                    <!-- Header -->
+                    <div class="flex items-start justify-between border-b border-slate-100 pb-2.5">
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 font-mono tracking-wider block">{{ $order->order_code }}</span>
+                            <h3 class="text-xs font-extrabold text-slate-900 mt-0.5">{{ $order->service_name }}</h3>
+                            <span class="text-[10px] text-slate-500">{{ $order->updated_at->translatedFormat('d M Y, H:i') }}</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $order->status->badgeClasses() }} border">
+                            {{ $order->status->label() }}
+                        </span>
+                    </div>
+
+                    <!-- Finansial & Penerima -->
+                    <div class="flex items-center justify-between text-xs">
+                        <div>
+                            <span class="text-[11px] text-slate-500 block">Penerima:</span>
+                            <span class="font-bold text-slate-800">{{ $order->recipient_name }}</span>
+                        </div>
+                        <div class="text-right">
+                            @if ($order->status === \App\Enums\OrderStatus::Selesai)
+                                <span class="text-[10px] text-emerald-600 block font-semibold">Pendapatan Bersih:</span>
+                                <span class="font-black font-mono text-emerald-800 text-xs">
+                                    Rp {{ number_format($order->total_price * 0.9, 0, ',', '.') }}
+                                </span>
+                            @else
+                                <span class="text-[10px] text-rose-500 block font-semibold">Status:</span>
+                                <span class="font-bold text-rose-700 text-xs">Dibatalkan</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if ($order->cancellation_reason)
+                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600">
+                            <strong>Alasan Pembatalan:</strong> {{ $order->cancellation_reason }}
+                        </div>
+                    @endif
+
+                    <div class="pt-1">
+                        <a href="{{ route('mitra.orders.show', $order) }}"
+                           class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] transition flex items-center justify-center space-x-1 cursor-pointer">
+                            <span>Lihat Detail Nota & Riwayat</span>
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </div>
+            @empty
+                <div class="bg-white rounded-2xl p-8 border border-slate-200/90 shadow-xs text-center space-y-2">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <h4 class="text-xs font-bold text-slate-800">Belum Ada Riwayat Pesanan</h4>
+                    <p class="text-[11px] text-slate-500">Pesanan yang telah Anda selesaikan atau batalkan akan muncul di sini.</p>
+                </div>
+            @endforelse
+        </div>
+
     </div>
 </x-pwa-layout>
-

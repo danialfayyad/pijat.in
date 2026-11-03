@@ -28,6 +28,19 @@
             margin: 0.25rem auto 1rem !important;
             border: none !important;
             border-radius: 9999px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            position: relative !important;
+            box-sizing: border-box !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon .swal2-icon-content {
+            font-size: 1.6rem !important;
+            font-weight: 800 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1 !important;
         }
         div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-question,
         div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-info {
@@ -50,6 +63,13 @@
             color: #e11d48 !important;
             box-shadow: 0 0 0 8px #fff1f2 !important;
         }
+        /* Sembunyikan elemen animasi garis/ring default SweetAlert2 yang bocor keluar kontainer */
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-success [class^='swal2-success-circular-line'],
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-success .swal2-success-fix,
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-success .swal2-success-ring,
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-success [class^='swal2-success-line'] {
+            display: none !important;
+        }
         div:where(.swal2-container) .swal-admin-theme .swal2-title {
             font-size: 1.05rem !important;
             font-weight: 800 !important;
@@ -66,8 +86,8 @@
             padding: 0 0.25rem !important;
         }
         div:where(.swal2-container) .swal-admin-theme .swal2-actions {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
+            display: flex !important;
+            flex-direction: row !important;
             gap: 0.625rem !important;
             margin: 0 !important;
             width: 100% !important;
@@ -75,7 +95,8 @@
         }
         div:where(.swal2-container) .swal-admin-theme .swal2-cancel {
             margin: 0 !important;
-            width: 100% !important;
+            flex: 1 1 0% !important;
+            width: auto !important;
             min-height: 42px !important;
             padding: 0.625rem 1rem !important;
             font-size: 0.75rem !important;
@@ -93,7 +114,8 @@
         }
         div:where(.swal2-container) .swal-admin-theme .swal2-confirm {
             margin: 0 !important;
-            width: 100% !important;
+            flex: 1 1 0% !important;
+            width: auto !important;
             min-height: 42px !important;
             padding: 0.625rem 1rem !important;
             font-size: 0.75rem !important;
@@ -114,7 +136,8 @@
         }
         div:where(.swal2-container) .swal-admin-theme .swal2-danger-btn {
             margin: 0 !important;
-            width: 100% !important;
+            flex: 1 1 0% !important;
+            width: auto !important;
             min-height: 42px !important;
             padding: 0.625rem 1rem !important;
             font-size: 0.75rem !important;
@@ -137,6 +160,7 @@
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'warning',
+                    iconHtml: '!',
                     title: 'Batalkan Pesanan Ini?',
                     text: 'PERINGATAN SANKSI: Membatalkan pesanan yang telah Anda ambil akan dikenakan sanksi 15 poin pelanggaran (SP) dan pesanan akan dikembalikan ke bursa jadwal mitra.',
                     input: 'textarea',
@@ -189,8 +213,10 @@
             const form = event.currentTarget || event.target;
 
             if (typeof Swal !== 'undefined') {
+                const glyph = icon === 'warning' ? '!' : (icon === 'success' ? '✓' : (icon === 'error' ? '✕' : '?'));
                 Swal.fire({
                     icon: icon,
+                    iconHtml: glyph,
                     title: title,
                     text: message,
                     showCancelButton: true,
@@ -217,139 +243,160 @@
             return false;
         }
         window.confirmOrderAction = confirmOrderAction;
-    </script>
 
-    <div class="relative w-full h-full overflow-hidden select-none"
-         x-data="{
-            isExpanded: false,
-            touchStartY: 0,
-            touchCurrentY: 0,
-            isDragging: false,
-            showSpecialCancelModal: false,
+        function mitraOrderTracker() {
+            return {
+                isExpanded: ['selesai', 'dibatalkan'].includes('{{ $order->status->value }}'),
+                touchStartY: 0,
+                touchCurrentY: 0,
+                isDragging: false,
+                showSpecialCancelModal: false,
 
-            mitraLat: {{ $mitraLat }},
-            mitraLng: {{ $mitraLng }},
-            customerLat: {{ $customerLat }},
-            customerLng: {{ $customerLng }},
-            orderStatus: '{{ $order->status->value }}',
-            distanceText: '{{ $distanceKm ? $distanceKm . ' km' : 'Menghitung...' }}',
-            distanceMeters: {{ $distanceKm ? round($distanceKm * 1000) : 0 }},
-            etaText: '{{ $distanceKm ? '~' . max(3, round($distanceKm * 2.5)) . ' Menit' : '-' }}',
-            serviceStartedAt: '{{ $order->service_started_at?->toIso8601String() }}',
-            durationMinutes: {{ (int) $order->duration_minutes }},
-            remainingSeconds: 0,
-            remainingTimeFormatted: '{{ $order->duration_minutes }}:00',
-            timerInterval: null,
-            selectedRating: {{ $myRating?->score ?? 0 }},
-            hasRated: {{ $myRating ? 'true' : 'false' }},
-            isSubmittingRating: false,
-            isLocating: false,
-            isLoadingRoute: true,
-            map: null,
-            mitraMarker: null,
-            customerMarker: null,
-            routeLayer: null,
-            googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&origin={{ $mitraLat }},{{ $mitraLng }}&destination={{ $customerLat }},{{ $customerLng }}',
+                mitraLat: {{ $mitraLat }},
+                mitraLng: {{ $mitraLng }},
+                customerLat: {{ $customerLat }},
+                customerLng: {{ $customerLng }},
+                orderStatus: '{{ $order->status->value }}',
+                distanceText: '{{ $distanceKm ? $distanceKm . ' km' : 'Menghitung...' }}',
+                distanceMeters: {{ $distanceKm ? round($distanceKm * 1000) : 0 }},
+                etaText: '{{ $distanceKm ? '~' . max(3, round($distanceKm * 2.5)) . ' Menit' : '-' }}',
+                serviceStartedAt: '{{ $order->service_started_at?->toIso8601String() }}',
+                durationMinutes: {{ (int) $order->duration_minutes }},
+                remainingSeconds: 0,
+                remainingTimeFormatted: '{{ $order->duration_minutes }}:00',
+                timerInterval: null,
+                selectedRating: {{ $myRating?->score ?? 0 }},
+                tempRating: {{ $myRating?->score ?? 0 }},
+                ratingLabels: {
+                    1: 'Sangat Buruk',
+                    2: 'Kurang Puas',
+                    3: 'Cukup',
+                    4: 'Puas',
+                    5: 'Sangat Puas'
+                },
+                hasRated: {{ $myRating ? 'true' : 'false' }},
+                isSubmittingRating: false,
+                isLocating: false,
+                isLoadingRoute: true,
+                map: null,
+                mitraMarker: null,
+                customerMarker: null,
+                routeLayer: null,
+                googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&origin={{ $mitraLat }},{{ $mitraLng }}&destination={{ $customerLat }},{{ $customerLng }}',
 
-            toggleSheet() {
-                this.isExpanded = !this.isExpanded;
-                this.invalidateMap();
-            },
-            expandSheet() {
-                this.isExpanded = true;
-                this.invalidateMap();
-            },
-            collapseSheet() {
-                this.isExpanded = false;
-                this.invalidateMap();
-            },
-            invalidateMap() {
-                setTimeout(() => {
-                    if (this.map) {
-                        this.map.invalidateSize();
+                toggleSheet() {
+                    this.isExpanded = !this.isExpanded;
+                    this.invalidateMap();
+                },
+                expandSheet() {
+                    this.isExpanded = true;
+                    this.invalidateMap();
+                },
+                collapseSheet() {
+                    this.isExpanded = false;
+                    this.invalidateMap();
+                },
+                invalidateMap() {
+                    setTimeout(() => {
+                        if (this.map) {
+                            this.map.invalidateSize();
+                        }
+                    }, 320);
+                },
+
+                handleTouchStart(e) {
+                    this.touchStartY = e.touches[0].clientY;
+                    this.touchCurrentY = this.touchStartY;
+                    this.isDragging = true;
+                },
+                handleTouchMove(e) {
+                    if (!this.isDragging) return;
+                    this.touchCurrentY = e.touches[0].clientY;
+                },
+                handleTouchEnd() {
+                    if (!this.isDragging) return;
+                    const diff = this.touchStartY - this.touchCurrentY;
+                    if (diff > 40) {
+                        this.expandSheet();
+                    } else if (diff < -40) {
+                        this.collapseSheet();
                     }
-                }, 320);
-            },
+                    this.isDragging = false;
+                },
 
-            handleTouchStart(e) {
-                this.touchStartY = e.touches[0].clientY;
-                this.touchCurrentY = this.touchStartY;
-                this.isDragging = true;
-            },
-            handleTouchMove(e) {
-                if (!this.isDragging) return;
-                this.touchCurrentY = e.touches[0].clientY;
-            },
-            handleTouchEnd() {
-                if (!this.isDragging) return;
-                const diff = this.touchStartY - this.touchCurrentY;
-                if (diff > 40) {
-                    this.expandSheet();
-                } else if (diff < -40) {
-                    this.collapseSheet();
-                }
-                this.isDragging = false;
-            },
+                initCountdown() {
+                    if (this.orderStatus === 'sedang_berlangsung' && this.serviceStartedAt) {
+                        const startMs = new Date(this.serviceStartedAt).getTime();
+                        const endMs = startMs + (this.durationMinutes * 60 * 1000);
+                        const update = () => {
+                            const now = Date.now();
+                            const diff = Math.max(0, Math.floor((endMs - now) / 1000));
+                            this.remainingSeconds = diff;
+                            const mins = Math.floor(diff / 60);
+                            const secs = diff % 60;
+                            this.remainingTimeFormatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+                        };
+                        update();
+                        this.timerInterval = setInterval(update, 1000);
+                    }
+                },
 
-            initCountdown() {
-                if (this.orderStatus === 'sedang_berlangsung' && this.serviceStartedAt) {
-                    const startMs = new Date(this.serviceStartedAt).getTime();
-                    const endMs = startMs + (this.durationMinutes * 60 * 1000);
-                    const update = () => {
-                        const now = Date.now();
-                        const diff = Math.max(0, Math.floor((endMs - now) / 1000));
-                        this.remainingSeconds = diff;
-                        const mins = Math.floor(diff / 60);
-                        const secs = diff % 60;
-                        this.remainingTimeFormatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-                    };
-                    update();
-                    this.timerInterval = setInterval(update, 1000);
-                }
-            },
+                confirmArrival(event) {
+                    event.preventDefault();
+                    const form = event.currentTarget || event.target;
 
-            confirmArrival(event) {
-                event.preventDefault();
-                const form = event.currentTarget || event.target;
+                    let latInput = form.querySelector('input[name="latitude"]');
+                    if (!latInput) {
+                        latInput = document.createElement('input');
+                        latInput.type = 'hidden';
+                        latInput.name = 'latitude';
+                        form.appendChild(latInput);
+                    }
+                    latInput.value = this.mitraLat;
 
-                let latInput = form.querySelector('input[name="latitude"]');
-                if (!latInput) {
-                    latInput = document.createElement('input');
-                    latInput.type = 'hidden';
-                    latInput.name = 'latitude';
-                    form.appendChild(latInput);
-                }
-                latInput.value = this.mitraLat;
+                    let lngInput = form.querySelector('input[name="longitude"]');
+                    if (!lngInput) {
+                        lngInput = document.createElement('input');
+                        lngInput.type = 'hidden';
+                        lngInput.name = 'longitude';
+                        form.appendChild(lngInput);
+                    }
+                    lngInput.value = this.mitraLng;
 
-                let lngInput = form.querySelector('input[name="longitude"]');
-                if (!lngInput) {
-                    lngInput = document.createElement('input');
-                    lngInput.type = 'hidden';
-                    lngInput.name = 'longitude';
-                    form.appendChild(lngInput);
-                }
-                lngInput.value = this.mitraLng;
-
-                const meters = this.distanceMeters || 0;
-                if (meters > 50) {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Verifikasi Lokasi Tiba',
-                            html: `Jarak Anda terdeteksi <b>${Math.round(meters)} meter</b> dari titik pelanggan.<br><span class="text-xs text-slate-500 mt-2 block">Apakah Anda sudah benar-benar berada di depan alamat pelanggan?</span>`,
-                            showCancelButton: true,
-                            cancelButtonText: 'Periksa Peta',
-                            confirmButtonText: 'Ya, Saya Sudah di Lokasi',
-                            reverseButtons: true,
-                            buttonsStyling: false,
-                            customClass: {
-                                popup: 'swal-admin-theme',
-                                icon: 'swal2-warning',
-                                confirmButton: 'swal2-confirm',
-                                cancelButton: 'swal2-cancel'
-                            }
-                        }).then((result) => {
-                            if (result.isConfirmed) {
+                    const meters = this.distanceMeters || 0;
+                    if (meters > 50) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                iconHtml: '!',
+                                title: 'Verifikasi Lokasi Tiba',
+                                html: `Jarak Anda terdeteksi <b>${Math.round(meters)} meter</b> dari titik pelanggan.<br><span class="text-xs text-slate-500 mt-2 block">Apakah Anda sudah benar-benar berada di depan alamat pelanggan?</span>`,
+                                showCancelButton: true,
+                                cancelButtonText: 'Periksa Peta',
+                                confirmButtonText: 'Ya, Saya Sudah di Lokasi',
+                                reverseButtons: true,
+                                buttonsStyling: false,
+                                customClass: {
+                                    popup: 'swal-admin-theme',
+                                    icon: 'swal2-warning',
+                                    confirmButton: 'swal2-confirm',
+                                    cancelButton: 'swal2-cancel'
+                                }
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    let forceInput = form.querySelector('input[name="force_arrived"]');
+                                    if (!forceInput) {
+                                        forceInput = document.createElement('input');
+                                        forceInput.type = 'hidden';
+                                        forceInput.name = 'force_arrived';
+                                        form.appendChild(forceInput);
+                                    }
+                                    forceInput.value = '1';
+                                    form.submit();
+                                }
+                            });
+                        } else {
+                            if (confirm(`Jarak Anda terdeteksi ${Math.round(meters)} meter. Konfirmasi Anda sudah di lokasi pelanggan?`)) {
                                 let forceInput = form.querySelector('input[name="force_arrived"]');
                                 if (!forceInput) {
                                     forceInput = document.createElement('input');
@@ -360,262 +407,291 @@
                                 forceInput.value = '1';
                                 form.submit();
                             }
-                        });
-                    } else {
-                        if (confirm(`Jarak Anda terdeteksi ${Math.round(meters)} meter. Konfirmasi Anda sudah di lokasi pelanggan?`)) {
-                            let forceInput = form.querySelector('input[name="force_arrived"]');
-                            if (!forceInput) {
-                                forceInput = document.createElement('input');
-                                forceInput.type = 'hidden';
-                                forceInput.name = 'force_arrived';
-                                form.appendChild(forceInput);
-                            }
-                            forceInput.value = '1';
-                            form.submit();
                         }
+                    } else {
+                        confirmOrderAction(event, 'Konfirmasi Tiba?', 'Konfirmasi bahwa Anda sudah tiba di lokasi pelanggan?', 'Ya, Sudah Tiba', 'question');
                     }
-                } else {
-                    confirmOrderAction(event, 'Konfirmasi Tiba?', 'Konfirmasi bahwa Anda sudah tiba di lokasi pelanggan?', 'Ya, Sudah Tiba', 'question');
-                }
-            },
+                },
 
-            confirmCompleteService(event) {
-                event.preventDefault();
-                const form = event.currentTarget || event.target;
+                confirmCompleteService(event) {
+                    event.preventDefault();
+                    const form = event.currentTarget || event.target;
 
-                if (this.remainingSeconds > 0) {
+                    if (this.remainingSeconds > 0) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                iconHtml: '!',
+                                title: 'Selesaikan Lebih Awal?',
+                                html: `Durasi layanan paket ${this.durationMinutes} menit masih tersisa <b>${this.remainingTimeFormatted}</b>.<br><span class="text-xs text-slate-500 mt-2 block">Apakah Anda yakin ingin menyelesaikan sesi pemijatan sekarang?</span>`,
+                                showCancelButton: true,
+                                cancelButtonText: 'Lanjutkan Layanan',
+                                confirmButtonText: 'Ya, Selesaikan',
+                                reverseButtons: true,
+                                buttonsStyling: false,
+                                customClass: {
+                                    popup: 'swal-admin-theme',
+                                    icon: 'swal2-warning',
+                                    confirmButton: 'swal2-confirm',
+                                    cancelButton: 'swal2-cancel'
+                                }
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    form.submit();
+                                }
+                            });
+                        } else {
+                            if (confirm(`Durasi masih tersisa ${this.remainingTimeFormatted}. Yakin ingin menyelesaikan layanan lebih awal?`)) {
+                                form.submit();
+                            }
+                        }
+                    } else {
+                        confirmOrderAction(event, 'Selesaikan Layanan?', 'Sesi pemijatan telah selesai dilaksanakan secara lengkap?', 'Ya, Selesaikan', 'question');
+                    }
+                },
+
+                confirmSubmitRating() {
+                    if (this.hasRated || this.isSubmittingRating || this.tempRating === 0) return;
+                    const score = this.tempRating;
+                    const label = this.ratingLabels[score] || `${score} Bintang`;
+
                     if (typeof Swal !== 'undefined') {
                         Swal.fire({
-                            icon: 'warning',
-                            title: 'Selesaikan Lebih Awal?',
-                            html: `Durasi layanan paket ${this.durationMinutes} menit masih tersisa <b>${this.remainingTimeFormatted}</b>.<br><span class="text-xs text-slate-500 mt-2 block">Apakah Anda yakin ingin menyelesaikan sesi pemijatan sekarang?</span>`,
+                            icon: 'question',
+                            iconHtml: '?',
+                            title: 'Kirim Penilaian?',
+                            text: `Apakah Anda yakin ingin memberikan nilai ${score} bintang (${label}) untuk pelanggan ini?`,
                             showCancelButton: true,
-                            cancelButtonText: 'Lanjutkan Layanan',
-                            confirmButtonText: 'Ya, Selesaikan',
+                            cancelButtonText: 'Batal',
+                            confirmButtonText: 'Ya, Kirim Penilaian',
                             reverseButtons: true,
                             buttonsStyling: false,
                             customClass: {
                                 popup: 'swal-admin-theme',
-                                icon: 'swal2-warning',
+                                icon: 'swal2-question',
                                 confirmButton: 'swal2-confirm',
                                 cancelButton: 'swal2-cancel'
                             }
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                form.submit();
+                                this.submitRating(score);
                             }
                         });
                     } else {
-                        if (confirm(`Durasi masih tersisa ${this.remainingTimeFormatted}. Yakin ingin menyelesaikan layanan lebih awal?`)) {
-                            form.submit();
+                        if (confirm(`Apakah Anda yakin ingin memberikan nilai ${score} bintang (${label}) untuk pelanggan ini?`)) {
+                            this.submitRating(score);
                         }
                     }
-                } else {
-                    confirmOrderAction(event, 'Selesaikan Layanan?', 'Sesi pemijatan telah selesai dilaksanakan secara lengkap?', 'Ya, Selesaikan', 'question');
-                }
-            },
+                },
 
-            async submitRating(score) {
-                if (this.hasRated || this.isSubmittingRating) return;
-                this.selectedRating = score;
-                this.isSubmittingRating = true;
-                try {
-                    const res = await fetch('{{ route('mitra.orders.rating', $order) }}', {
+                async submitRating(score) {
+                    if (this.hasRated || this.isSubmittingRating) return;
+                    this.isSubmittingRating = true;
+                    try {
+                        const res = await fetch('{{ route('mitra.orders.rating', $order) }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ score: score })
+                        });
+                        if (res.ok) {
+                            this.hasRated = true;
+                            this.selectedRating = score;
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    iconHtml: '✓',
+                                    title: 'Penilaian Terkirim',
+                                    text: 'Terima kasih telah memberikan ulasan penilaian kepada pelanggan.',
+                                    confirmButtonText: 'Tutup',
+                                    buttonsStyling: false,
+                                    customClass: { popup: 'swal-admin-theme', icon: 'swal2-success', confirmButton: 'swal2-confirm' }
+                                });
+                            }
+                        }
+                    } catch (e) {
+                    } finally {
+                        this.isSubmittingRating = false;
+                    }
+                },
+
+                initMap() {
+                    this.map = L.map('mitra-order-map', {
+                        zoomControl: false
+                    }).setView([this.customerLat, this.customerLng], 14);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '© OpenStreetMap'
+                    }).addTo(this.map);
+
+                    // Marker Pelanggan (Rumah)
+                    const customerIcon = L.divIcon({
+                        className: 'custom-customer-pin',
+                        html: `<div class='w-9 h-9 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-xl border-2 border-white text-base animate-bounce'>🏠</div>`,
+                        iconSize: [36, 36],
+                        iconAnchor: [18, 36]
+                    });
+
+                    this.customerMarker = L.marker([this.customerLat, this.customerLng], { icon: customerIcon }).addTo(this.map);
+                    this.customerMarker.bindPopup(`<strong>Lokasi Pelanggan</strong><br>{{ addslashes($order->recipient_name) }}<br><span style='font-size:11px;'>{{ addslashes($order->service_address_text) }}</span>`).openPopup();
+
+                    // Marker Terapis (Pijat)
+                    const mitraIcon = L.divIcon({
+                        className: 'custom-mitra-pin',
+                        html: `<div class='w-9 h-9 rounded-full bg-emerald-700 text-white flex items-center justify-center shadow-xl border-2 border-white text-base'>💆</div>`,
+                        iconSize: [36, 36],
+                        iconAnchor: [18, 36]
+                    });
+
+                    this.mitraMarker = L.marker([this.mitraLat, this.mitraLng], { icon: mitraIcon }).addTo(this.map);
+                    this.mitraMarker.bindPopup(`<strong>Posisi Anda (Terapis)</strong>`);
+
+                    // Gambar rute mengikuti jalan nyata
+                    this.fetchRoadRoute(this.mitraLat, this.mitraLng, this.customerLat, this.customerLng);
+
+                    // Jalankan timer hitung mundur jika sesi sedang berlangsung
+                    this.initCountdown();
+
+                    // Deteksi GPS Browser Realtime & Live Broadcast ke Server
+                    if (navigator.geolocation) {
+                        this.isLocating = true;
+                        navigator.geolocation.getCurrentPosition((pos) => {
+                            this.mitraLat = pos.coords.latitude;
+                            this.mitraLng = pos.coords.longitude;
+                            this.googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${this.mitraLat},${this.mitraLng}&destination=${this.customerLat},${this.customerLng}`;
+                            if (this.mitraMarker) {
+                                this.mitraMarker.setLatLng([this.mitraLat, this.mitraLng]);
+                            }
+                            this.fetchRoadRoute(this.mitraLat, this.mitraLng, this.customerLat, this.customerLng);
+                            this.sendLocationToServer(this.mitraLat, this.mitraLng);
+                            this.isLocating = false;
+                        }, (err) => {
+                            console.log('GPS error:', err);
+                            this.isLocating = false;
+                        }, { enableHighAccuracy: true, timeout: 8000 });
+
+                        // Live Tracking kontinyu jika pesanan sedang aktif (menuju lokasi / tiba)
+                        if (['dijadwalkan', 'menuju_lokasi', 'tiba', 'sedang_berlangsung'].includes(this.orderStatus)) {
+                            navigator.geolocation.watchPosition((pos) => {
+                                this.mitraLat = pos.coords.latitude;
+                                this.mitraLng = pos.coords.longitude;
+                                if (this.mitraMarker) {
+                                    this.mitraMarker.setLatLng([this.mitraLat, this.mitraLng]);
+                                }
+                                this.sendLocationToServer(this.mitraLat, this.mitraLng);
+                            }, (err) => {}, { enableHighAccuracy: true, maximumAge: 10000 });
+                        }
+                    }
+                },
+
+                sendLocationToServer(lat, lng) {
+                    fetch('{{ route('mitra.location.ping') }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
-                        body: JSON.stringify({ score: score })
-                    });
-                    if (res.ok) {
-                        this.hasRated = true;
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Penilaian Terkirim',
-                                text: 'Terima kasih telah memberikan penilaian pelanggan.',
-                                confirmButtonText: 'Tutup',
-                                buttonsStyling: false,
-                                customClass: { popup: 'swal-admin-theme', confirmButton: 'swal2-confirm' }
-                            });
-                        }
-                    }
-                } catch (e) {
-                } finally {
-                    this.isSubmittingRating = false;
-                }
-            },
+                        body: JSON.stringify({
+                            latitude: lat,
+                            longitude: lng
+                        })
+                    }).catch(() => {});
+                },
 
-            initMap() {
-                this.map = L.map('mitra-order-map', {
-                    zoomControl: false
-                }).setView([this.customerLat, this.customerLng], 14);
+                async fetchRoadRoute(startLat, startLng, destLat, destLng) {
+                    this.isLoadingRoute = true;
+                    try {
+                        const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${destLng},${destLat}?overview=full&geometries=geojson`;
+                        const res = await fetch(url);
+                        const data = await res.json();
+                        if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+                            const route = data.routes[0];
+                            const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '© OpenStreetMap'
-                }).addTo(this.map);
-
-                // Marker Pelanggan (Rumah)
-                const customerIcon = L.divIcon({
-                    className: 'custom-customer-pin',
-                    html: `<div class='w-9 h-9 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-xl border-2 border-white text-base animate-bounce'>🏠</div>`,
-                    iconSize: [36, 36],
-                    iconAnchor: [18, 36]
-                });
-
-                this.customerMarker = L.marker([this.customerLat, this.customerLng], { icon: customerIcon }).addTo(this.map);
-                this.customerMarker.bindPopup(`<strong>Lokasi Pelanggan</strong><br>{{ addslashes($order->recipient_name) }}<br><span style='font-size:11px;'>{{ addslashes($order->service_address_text) }}</span>`).openPopup();
-
-                // Marker Terapis (Pijat)
-                const mitraIcon = L.divIcon({
-                    className: 'custom-mitra-pin',
-                    html: `<div class='w-9 h-9 rounded-full bg-emerald-700 text-white flex items-center justify-center shadow-xl border-2 border-white text-base'>💆</div>`,
-                    iconSize: [36, 36],
-                    iconAnchor: [18, 36]
-                });
-
-                this.mitraMarker = L.marker([this.mitraLat, this.mitraLng], { icon: mitraIcon }).addTo(this.map);
-                this.mitraMarker.bindPopup(`<strong>Posisi Anda (Terapis)</strong>`);
-
-                // Gambar rute mengikuti jalan nyata
-                this.fetchRoadRoute(this.mitraLat, this.mitraLng, this.customerLat, this.customerLng);
-
-                // Jalankan timer hitung mundur jika sesi sedang berlangsung
-                this.initCountdown();
-
-                // Deteksi GPS Browser Realtime & Live Broadcast ke Server
-                if (navigator.geolocation) {
-                    this.isLocating = true;
-                    navigator.geolocation.getCurrentPosition((pos) => {
-                        this.mitraLat = pos.coords.latitude;
-                        this.mitraLng = pos.coords.longitude;
-                        this.googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${this.mitraLat},${this.mitraLng}&destination=${this.customerLat},${this.customerLng}`;
-                        if (this.mitraMarker) {
-                            this.mitraMarker.setLatLng([this.mitraLat, this.mitraLng]);
-                        }
-                        this.fetchRoadRoute(this.mitraLat, this.mitraLng, this.customerLat, this.customerLng);
-                        this.sendLocationToServer(this.mitraLat, this.mitraLng);
-                        this.isLocating = false;
-                    }, (err) => {
-                        console.log('GPS error:', err);
-                        this.isLocating = false;
-                    }, { enableHighAccuracy: true, timeout: 8000 });
-
-                    // Live Tracking kontinyu jika pesanan sedang aktif (menuju lokasi / tiba)
-                    if (['dijadwalkan', 'menuju_lokasi', 'tiba', 'sedang_berlangsung'].includes(this.orderStatus)) {
-                        navigator.geolocation.watchPosition((pos) => {
-                            this.mitraLat = pos.coords.latitude;
-                            this.mitraLng = pos.coords.longitude;
-                            if (this.mitraMarker) {
-                                this.mitraMarker.setLatLng([this.mitraLat, this.mitraLng]);
+                            if (this.routeLayer) {
+                                this.map.removeLayer(this.routeLayer);
                             }
-                            this.sendLocationToServer(this.mitraLat, this.mitraLng);
-                        }, (err) => {}, { enableHighAccuracy: true, maximumAge: 10000 });
-                    }
-                }
-            },
 
-            sendLocationToServer(lat, lng) {
-                fetch('{{ route('mitra.location.ping') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        latitude: lat,
-                        longitude: lng
-                    })
-                }).catch(() => {});
-            },
+                            this.routeLayer = L.polyline(coords, {
+                                color: '#059669',
+                                weight: 5,
+                                opacity: 0.9,
+                                lineJoin: 'round'
+                            }).addTo(this.map);
 
-            async fetchRoadRoute(startLat, startLng, destLat, destLng) {
-                this.isLoadingRoute = true;
-                try {
-                    const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${destLng},${destLat}?overview=full&geometries=geojson`;
-                    const res = await fetch(url);
-                    const data = await res.json();
-                    if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
-                        const route = data.routes[0];
-                        const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
+                            this.fitRouteBounds();
 
-                        if (this.routeLayer) {
-                            this.map.removeLayer(this.routeLayer);
+                            const distKm = (route.distance / 1000).toFixed(1);
+                            this.distanceMeters = Math.round(route.distance);
+                            this.distanceText = distKm + ' km (Jalur Jalan)';
+                            const etaMin = Math.max(3, Math.round(route.duration / 60));
+                            this.etaText = `~${etaMin} Menit`;
+                            this.isLoadingRoute = false;
+                            return;
                         }
-
-                        this.routeLayer = L.polyline(coords, {
-                            color: '#059669',
-                            weight: 5,
-                            opacity: 0.9,
-                            lineJoin: 'round'
-                        }).addTo(this.map);
-
-                        this.fitRouteBounds();
-
-                        const distKm = (route.distance / 1000).toFixed(1);
-                        this.distanceMeters = Math.round(route.distance);
-                        this.distanceText = distKm + ' km (Jalur Jalan)';
-                        const etaMin = Math.max(3, Math.round(route.duration / 60));
-                        this.etaText = `~${etaMin} Menit`;
-                        this.isLoadingRoute = false;
-                        return;
+                    } catch (e) {
+                        console.warn('OSRM fallback to straight line:', e);
                     }
-                } catch (e) {
-                    console.warn('OSRM fallback to straight line:', e);
+
+                    // Fallback
+                    if (this.routeLayer) {
+                        this.map.removeLayer(this.routeLayer);
+                    }
+                    this.routeLayer = L.polyline([
+                        [startLat, startLng],
+                        [destLat, destLng]
+                    ], {
+                        color: '#059669',
+                        weight: 4,
+                        opacity: 0.8,
+                        dashArray: '8, 8'
+                    }).addTo(this.map);
+
+                    this.fitRouteBounds();
+
+                    const dist = this.calcHaversine(startLat, startLng, destLat, destLng);
+                    this.distanceText = dist + ' km';
+                    const etaMin = Math.max(5, Math.round(dist * 3));
+                    this.etaText = `~${etaMin} Menit`;
+                    this.isLoadingRoute = false;
+                },
+
+                fitRouteBounds() {
+                    if (!this.map) return;
+                    const bounds = this.routeLayer 
+                        ? this.routeLayer.getBounds() 
+                        : L.latLngBounds([[this.mitraLat, this.mitraLng], [this.customerLat, this.customerLng]]);
+                    // Beri padding bawah yang lega agar rute berada di area atas peta (tidak tertutup bottom sheet)
+                    this.map.fitBounds(bounds, {
+                        paddingTop: 50,
+                        paddingBottom: 240,
+                        paddingLeft: 30,
+                        paddingRight: 30
+                    });
+                },
+
+                calcHaversine(lat1, lon1, lat2, lon2) {
+                    const R = 6371;
+                    const dLat = (lat2 - lat1) * Math.PI / 180;
+                    const dLon = (lon2 - lon1) * Math.PI / 180;
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                              Math.sin(dLon/2) * Math.sin(dLon/2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    return (R * c).toFixed(1);
                 }
+            };
+        }
+        window.mitraOrderTracker = mitraOrderTracker;
+    </script>
 
-                // Fallback
-                if (this.routeLayer) {
-                    this.map.removeLayer(this.routeLayer);
-                }
-                this.routeLayer = L.polyline([
-                    [startLat, startLng],
-                    [destLat, destLng]
-                ], {
-                    color: '#059669',
-                    weight: 4,
-                    opacity: 0.8,
-                    dashArray: '8, 8'
-                }).addTo(this.map);
-
-                this.fitRouteBounds();
-
-                const dist = this.calcHaversine(startLat, startLng, destLat, destLng);
-                this.distanceText = dist + ' km';
-                const etaMin = Math.max(5, Math.round(dist * 3));
-                this.etaText = `~${etaMin} Menit`;
-                this.isLoadingRoute = false;
-            },
-
-            fitRouteBounds() {
-                if (!this.map) return;
-                const bounds = this.routeLayer 
-                    ? this.routeLayer.getBounds() 
-                    : L.latLngBounds([[this.mitraLat, this.mitraLng], [this.customerLat, this.customerLng]]);
-                // Beri padding bawah yang lega agar rute berada di area atas peta (tidak tertutup bottom sheet)
-                this.map.fitBounds(bounds, {
-                    paddingTop: 50,
-                    paddingBottom: 240,
-                    paddingLeft: 30,
-                    paddingRight: 30
-                });
-            },
-
-            calcHaversine(lat1, lon1, lat2, lon2) {
-                const R = 6371;
-                const dLat = (lat2 - lat1) * Math.PI / 180;
-                const dLon = (lon2 - lon1) * Math.PI / 180;
-                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                          Math.sin(dLon/2) * Math.sin(dLon/2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                return (R * c).toFixed(1);
-            }
-         }"
+    <div class="relative w-full h-full overflow-hidden select-none"
+         x-data="mitraOrderTracker()"
          x-init="initMap()">
 
         <!-- BACKGROUND FULL MAP (Leaflet Canvas) -->
@@ -727,17 +803,38 @@
                 <div class="pt-2">
                     @if ($isAssigned)
                         @if ($order->status === \App\Enums\OrderStatus::Dijadwalkan)
+                            @php
+                                $canDepartNow = $order->canPartnerDepartNow(45);
+                                $earliestTime = $order->earliestPartnerDepartureTime(45);
+                            @endphp
                             <div class="space-y-1.5">
-                                <form action="{{ route('mitra.orders.update-status', $order) }}" method="POST"
-                                      onsubmit="return confirmOrderAction(event, 'Mulai Perjalanan?', 'Mulai perjalanan menuju lokasi pelanggan sekarang?', 'Ya, Berangkat', 'question');">
-                                    @csrf
-                                    <input type="hidden" name="status" value="menuju_lokasi">
-                                    <button type="submit" 
-                                        class="w-full min-h-[46px] py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                                        <span>Mulai Berangkat (Menuju Lokasi)</span>
+                                @if ($canDepartNow)
+                                    <form action="{{ route('mitra.orders.update-status', $order) }}" method="POST"
+                                          onsubmit="return confirmOrderAction(event, 'Mulai Perjalanan?', 'Mulai perjalanan menuju lokasi pelanggan sekarang?', 'Ya, Berangkat', 'question');">
+                                        @csrf
+                                        <input type="hidden" name="status" value="menuju_lokasi">
+                                        <button type="submit" 
+                                            class="w-full min-h-[46px] py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                            <span>Mulai Berangkat (Menuju Lokasi)</span>
+                                        </button>
+                                    </form>
+                                @else
+                                    <div class="p-2.5 bg-amber-50 rounded-xl border border-amber-200 text-center space-y-1">
+                                        <div class="flex items-center justify-center space-x-1.5 text-amber-900 font-bold text-xs">
+                                            <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span>Jadwal: {{ $order->scheduled_start_time?->translatedFormat('H:i') }} WIB</span>
+                                        </div>
+                                        <p class="text-[11px] text-amber-800">
+                                            Berangkat aktif <strong>45 mnt sebelum jadwal</strong> (pukul <strong>{{ $earliestTime?->format('H:i') }} WIB</strong>).
+                                        </p>
+                                    </div>
+                                    <button type="button" disabled
+                                        class="w-full min-h-[46px] py-2.5 px-4 bg-slate-200 text-slate-400 font-bold text-xs rounded-xl transition flex items-center justify-center space-x-2 cursor-not-allowed select-none">
+                                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                        <span>Belum Waktunya Berangkat (Terkunci)</span>
                                     </button>
-                                </form>
+                                @endif
                                 <form action="{{ route('mitra.orders.cancel', $order) }}" method="POST"
                                       onsubmit="return confirmMitraCancellation(event);">
                                     @csrf
@@ -800,24 +897,52 @@
                                 </form>
                             </div>
                         @elseif ($order->status === \App\Enums\OrderStatus::Selesai)
-                            <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200/90 text-center space-y-2">
-                                <p class="text-xs font-bold text-emerald-950">
+                            <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200/90 text-center space-y-2.5">
+                                <div>
                                     <template x-if="hasRated">
-                                        <span>✓ Anda telah memberi nilai <strong x-text="selectedRating"></strong>/5 bintang untuk pelanggan.</span>
+                                        <div class="space-y-1">
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">Penilaian Selesai</span>
+                                            <p class="text-xs font-bold text-emerald-950">
+                                                Anda telah memberi nilai <strong x-text="selectedRating"></strong>/5 bintang untuk pelanggan.
+                                            </p>
+                                        </div>
                                     </template>
                                     <template x-if="!hasRated">
-                                        <span>Beri Penilaian untuk Pelanggan:</span>
+                                        <div class="space-y-0.5">
+                                            <p class="text-xs font-extrabold text-emerald-950">Beri Penilaian untuk Pelanggan</p>
+                                            <p class="text-[11px] text-emerald-800">Pilih bintang sesuai pelayanan Anda:</p>
+                                        </div>
                                     </template>
-                                </p>
+                                </div>
+
                                 <div class="flex items-center justify-center space-x-2 py-0.5">
                                     <template x-for="star in [1, 2, 3, 4, 5]" :key="star">
-                                        <button type="button" @click="submitRating(star)"
+                                        <button type="button" 
+                                                @click="if (!hasRated) tempRating = star"
                                                 :disabled="hasRated || isSubmittingRating"
-                                                class="text-2xl transition transform hover:scale-110 active:scale-95 disabled:cursor-default cursor-pointer">
-                                            <span :class="star <= selectedRating ? 'text-amber-400' : 'text-slate-300'">★</span>
+                                                class="text-3xl transition transform hover:scale-110 active:scale-95 disabled:cursor-default cursor-pointer select-none">
+                                            <span :class="star <= (hasRated ? selectedRating : tempRating) ? 'text-amber-400' : 'text-slate-300'">★</span>
                                         </button>
                                     </template>
                                 </div>
+
+                                <template x-if="!hasRated">
+                                    <div class="space-y-2 pt-1 border-t border-emerald-200/60">
+                                        <p class="text-[11px] font-bold text-emerald-900" x-show="tempRating > 0">
+                                            <span x-text="ratingLabels[tempRating] || ''"></span> (<span x-text="tempRating"></span> dari 5 Bintang)
+                                        </p>
+                                        <button type="button" 
+                                                @click="confirmSubmitRating()"
+                                                :disabled="tempRating === 0 || isSubmittingRating"
+                                                class="w-full min-h-[42px] py-2 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                                            <span x-show="!isSubmittingRating">Kirim Penilaian</span>
+                                            <span x-show="isSubmittingRating" class="flex items-center space-x-1">
+                                                <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                                <span>Menyimpan...</span>
+                                            </span>
+                                        </button>
+                                    </div>
+                                </template>
                             </div>
                         @endif
                     @else
@@ -836,6 +961,16 @@
                                 </button>
                             </form>
                         @endif
+                    @endif
+
+                    @if ($isAssigned)
+                        <div class="pt-1 text-center">
+                            <a href="{{ route('mitra.orders.incident.create', $order) }}"
+                               class="inline-flex items-center space-x-1 text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:underline">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                <span>Laporkan Kendala / Insiden Lapangan</span>
+                            </a>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -1048,17 +1183,38 @@
                 @if ($isAssigned)
                     <div class="pt-1 space-y-2">
                         @if ($order->status === \App\Enums\OrderStatus::Dijadwalkan)
-                            <div class="space-y-1.5">
-                                <form action="{{ route('mitra.orders.update-status', $order) }}" method="POST"
-                                      onsubmit="return confirmOrderAction(event, 'Mulai Perjalanan?', 'Mulai perjalanan menuju lokasi pelanggan sekarang?', 'Ya, Berangkat', 'question');">
-                                    @csrf
-                                    <input type="hidden" name="status" value="menuju_lokasi">
-                                    <button type="submit" 
-                                        class="w-full min-h-[46px] py-3 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                                        <span>Mulai Berangkat (Menuju Lokasi)</span>
+                            @php
+                                $canDepartNow = $order->canPartnerDepartNow(45);
+                                $earliestTime = $order->earliestPartnerDepartureTime(45);
+                            @endphp
+                            <div class="space-y-2">
+                                @if ($canDepartNow)
+                                    <form action="{{ route('mitra.orders.update-status', $order) }}" method="POST"
+                                          onsubmit="return confirmOrderAction(event, 'Mulai Perjalanan?', 'Mulai perjalanan menuju lokasi pelanggan sekarang?', 'Ya, Berangkat', 'question');">
+                                        @csrf
+                                        <input type="hidden" name="status" value="menuju_lokasi">
+                                        <button type="submit" 
+                                            class="w-full min-h-[46px] py-3 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                            <span>Mulai Berangkat (Menuju Lokasi)</span>
+                                        </button>
+                                    </form>
+                                @else
+                                    <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-center space-y-1">
+                                        <div class="flex items-center justify-center space-x-1.5 text-amber-900 font-bold text-xs">
+                                            <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span>Jadwal Layanan: {{ $order->scheduled_start_time?->translatedFormat('d M Y, H:i') }} WIB</span>
+                                        </div>
+                                        <p class="text-[11px] text-amber-800 leading-relaxed">
+                                            Perjalanan menuju lokasi pelanggan dapat dimulai paling cepat <strong>45 menit sebelum jadwal</strong> (mulai pukul <strong>{{ $earliestTime?->format('H:i') }} WIB</strong>).
+                                        </p>
+                                    </div>
+                                    <button type="button" disabled
+                                        class="w-full min-h-[46px] py-3 px-4 bg-slate-200 text-slate-400 font-bold text-xs rounded-xl transition flex items-center justify-center space-x-2 cursor-not-allowed select-none">
+                                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                        <span>Belum Waktunya Berangkat (Terkunci)</span>
                                     </button>
-                                </form>
+                                @endif
                                 <form action="{{ route('mitra.orders.cancel', $order) }}" method="POST"
                                       onsubmit="return confirmMitraCancellation(event);">
                                     @csrf
@@ -1121,28 +1277,70 @@
                                 </form>
                             </div>
                         @elseif ($order->status === \App\Enums\OrderStatus::Selesai)
-                            <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 text-center text-xs text-emerald-950 font-bold space-y-2">
-                                <p class="text-sm">✓ Layanan Selesai</p>
-                                <p class="text-[11px] text-emerald-800 font-normal">Pendapatan telah dikreditkan ke dompet kemitraan Anda.</p>
-                                <div class="pt-2 border-t border-emerald-200/70 space-y-1">
-                                    <p class="text-[11.5px] font-bold text-emerald-950">
-                                        <template x-if="hasRated">
-                                            <span>✓ Anda telah memberikan nilai <strong x-text="selectedRating"></strong>/5 bintang untuk pelanggan.</span>
-                                        </template>
-                                        <template x-if="!hasRated">
-                                            <span>Beri Penilaian untuk Pelanggan:</span>
-                                        </template>
-                                    </p>
+                            <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-center space-y-3">
+                                <div>
+                                    <span class="inline-flex items-center space-x-1 text-emerald-800 font-extrabold text-sm">
+                                        <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                        <span>Layanan Selesai</span>
+                                    </span>
+                                    <p class="text-[11px] text-emerald-800 mt-0.5">Pendapatan telah dikreditkan ke dompet kemitraan Anda.</p>
+                                </div>
+
+                                <div class="pt-3 border-t border-emerald-200/80 space-y-2.5">
+                                    <template x-if="hasRated">
+                                        <div class="space-y-1">
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">Penilaian Selesai</span>
+                                            <p class="text-xs font-bold text-emerald-950">
+                                                Anda telah memberikan nilai <strong x-text="selectedRating"></strong>/5 bintang untuk pelanggan.
+                                            </p>
+                                        </div>
+                                    </template>
+                                    <template x-if="!hasRated">
+                                        <div class="space-y-0.5">
+                                            <p class="text-xs font-extrabold text-emerald-950">Beri Penilaian untuk Pelanggan</p>
+                                            <p class="text-[11px] text-emerald-800">Pilih bintang sesuai pelayanan Anda:</p>
+                                        </div>
+                                    </template>
+
                                     <div class="flex items-center justify-center space-x-2 py-0.5">
                                         <template x-for="star in [1, 2, 3, 4, 5]" :key="star">
-                                            <button type="button" @click="submitRating(star)"
+                                            <button type="button" 
+                                                    @click="if (!hasRated) tempRating = star"
                                                     :disabled="hasRated || isSubmittingRating"
-                                                    class="text-2xl transition transform hover:scale-110 active:scale-95 disabled:cursor-default cursor-pointer">
-                                                <span :class="star <= selectedRating ? 'text-amber-400' : 'text-slate-300'">★</span>
+                                                    class="text-3xl transition transform hover:scale-110 active:scale-95 disabled:cursor-default cursor-pointer select-none">
+                                                <span :class="star <= (hasRated ? selectedRating : tempRating) ? 'text-amber-400' : 'text-slate-300'">★</span>
                                             </button>
                                         </template>
                                     </div>
+
+                                    <template x-if="!hasRated">
+                                        <div class="space-y-2 pt-2 border-t border-emerald-200/60">
+                                            <p class="text-[11px] font-bold text-emerald-900" x-show="tempRating > 0">
+                                                <span x-text="ratingLabels[tempRating] || ''"></span> (<span x-text="tempRating"></span> dari 5 Bintang)
+                                            </p>
+                                            <button type="button" 
+                                                    @click="confirmSubmitRating()"
+                                                    :disabled="tempRating === 0 || isSubmittingRating"
+                                                    class="w-full min-h-[42px] py-2 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                                                <span x-show="!isSubmittingRating">Kirim Penilaian</span>
+                                                <span x-show="isSubmittingRating" class="flex items-center space-x-1">
+                                                    <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                                    <span>Menyimpan...</span>
+                                                </span>
+                                            </button>
+                                        </div>
+                                    </template>
                                 </div>
+                            </div>
+                        @endif
+
+                        @if ($isAssigned)
+                            <div class="pt-2 text-center">
+                                <a href="{{ route('mitra.orders.incident.create', $order) }}"
+                                   class="inline-flex items-center justify-center space-x-1.5 w-full py-2.5 px-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-bold text-xs transition cursor-pointer">
+                                    <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    <span>Laporkan Kendala / Insiden Lapangan (MIT-19)</span>
+                                </a>
                             </div>
                         @endif
                     </div>

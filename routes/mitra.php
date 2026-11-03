@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Mitra\MitraComplaintController;
 use App\Http\Controllers\Mitra\MitraDashboardController;
 use App\Http\Controllers\Mitra\MitraOrderController;
+use App\Http\Controllers\Mitra\MitraPenaltyController;
 use App\Http\Controllers\Mitra\MitraProfileController;
 use App\Http\Controllers\Mitra\OnboardingController;
 use App\Http\Controllers\OrderChatController;
@@ -34,7 +36,12 @@ Route::middleware(['auth', 'role:mitra'])->prefix('mitra')->name('mitra.')->grou
     Route::get('/orders/{order}/chat/messages', [OrderChatController::class, 'getMessages'])->name('orders.chat.messages');
     Route::post('/orders/{order}/chat/messages', [OrderChatController::class, 'sendMessage'])->name('orders.chat.send');
 
-    Route::post('/orders/{order}/rating', [OrderRatingController::class, 'rateByMitra'])->name('orders.rating');
-    Route::get('/orders/{order}/chat/messages', [OrderChatController::class, 'getMessages'])->name('orders.chat.messages');
-    Route::post('/orders/{order}/chat/messages', [OrderChatController::class, 'sendMessage'])->name('orders.chat.send');
+    // Mitra Incident & Complaints (MIT-19)
+    Route::get('/orders/{order}/laporkan-insiden', [MitraComplaintController::class, 'create'])->name('orders.incident.create');
+    Route::post('/orders/{order}/laporkan-insiden', [MitraComplaintController::class, 'store'])->name('orders.incident.store');
+
+    // Sanksi & Banding SP (MIT-18)
+    Route::get('/sanksi', [MitraPenaltyController::class, 'index'])->name('penalties.index');
+    Route::get('/sanksi/banding', [MitraPenaltyController::class, 'createAppeal'])->name('penalties.appeal.create');
+    Route::post('/sanksi/banding', [MitraPenaltyController::class, 'storeAppeal'])->name('penalties.appeal.store');
 });

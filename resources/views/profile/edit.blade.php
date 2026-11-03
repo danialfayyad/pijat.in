@@ -83,6 +83,55 @@
                 @endif
             </div>
 
+            @if (auth()->user()->isPelanggan())
+                <!-- Quick Navigation: Riwayat, Alamat, Aduan & Sanksi -->
+                <div class="grid grid-cols-2 gap-3">
+                    <a href="{{ route('pelanggan.orders.index') }}"
+                       class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs hover:border-emerald-300 transition flex items-center space-x-3 cursor-pointer">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-xs font-bold text-slate-900 leading-tight">Riwayat Pesanan</span>
+                            <span class="text-[10px] text-slate-400">Semua pesanan</span>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('pelanggan.addresses.index') }}"
+                       class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs hover:border-emerald-300 transition flex items-center space-x-3 cursor-pointer">
+                        <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-xs font-bold text-slate-900 leading-tight">Daftar Alamat</span>
+                            <span class="text-[10px] text-slate-400">Kelola lokasi</span>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('pelanggan.complaints.index') }}"
+                       class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs hover:border-emerald-300 transition flex items-center space-x-3 cursor-pointer">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-xs font-bold text-slate-900 leading-tight">Pusat Aduan</span>
+                            <span class="text-[10px] text-slate-400">Riwayat keluhan</span>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('pelanggan.penalties.index') }}"
+                       class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs hover:border-emerald-300 transition flex items-center space-x-3 cursor-pointer">
+                        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-xs font-bold text-slate-900 leading-tight">Status Sanksi</span>
+                            <span class="text-[10px] text-slate-400 font-mono">{{ auth()->user()->penalty_points }} Poin</span>
+                        </div>
+                    </a>
+                </div>
+            @endif
+
             <!-- Card 1: Informasi Profil -->
             <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs">
                 @include('profile.partials.update-profile-information-form')
