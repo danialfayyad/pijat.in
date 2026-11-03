@@ -64,6 +64,22 @@ class UserFactory extends Factory
         ]);
     }
 
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => Role::Admin,
+            'status' => UserStatus::Terverifikasi,
+        ]);
+    }
+
+    public function superadmin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => Role::Superadmin,
+            'status' => UserStatus::Terverifikasi,
+        ]);
+    }
+
     public function belumLengkap(): static
     {
         return $this->state(fn (array $attributes) => [

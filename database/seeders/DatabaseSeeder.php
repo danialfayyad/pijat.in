@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             PartnerVerificationDummySeeder::class,
             ParameterSeeder::class,
             LegalDocumentSeeder::class,
+            FinanceSeeder::class,
         ]);
     }
 }

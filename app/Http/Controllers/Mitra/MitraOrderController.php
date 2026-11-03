@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderRating;
 use App\Models\User;
 use App\Services\OrderCancellationService;
+use App\Services\OrderSettlementService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,7 +21,8 @@ class MitraOrderController extends Controller
     public const MAX_SCHEDULED_RADIUS_KM = 10.0;
 
     public function __construct(
-        protected OrderCancellationService $cancellationService
+        protected OrderCancellationService $cancellationService,
+        protected OrderSettlementService $settlementService
     ) {}
 
     /**
@@ -437,6 +439,10 @@ class MitraOrderController extends Controller
                 'actor_role' => 'mitra',
                 'note' => $notes[$targetStatus->value] ?? 'Status pesanan diperbarui oleh mitra',
             ]);
+
+            if ($targetStatus === OrderStatus::Selesai) {
+                $this->settlementService->settle($order);
+            }
         });
 
         $successMessages = [

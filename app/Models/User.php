@@ -173,6 +173,14 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasMany<WithdrawalRequest, $this>
+     */
+    public function withdrawalRequests(): HasMany
+    {
+        return $this->hasMany(WithdrawalRequest::class);
+    }
+
+    /**
      * @return HasMany<ComplianceAgreement, $this>
      */
     public function complianceAgreements(): HasMany
