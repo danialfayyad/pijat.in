@@ -276,3 +276,63 @@ test('pembaruan status bersifat idempoten terhadap pengiriman berulang saat siny
     $retry->assertRedirect(route('mitra.orders.show', $order));
     expect($order->fresh()->status)->toBe(OrderStatus::Tiba);
 });
+
+test('mitra tidak dapat berangkat lebih cepat dari 45 menit sebelum jadwal pesanan terjadwal', function () {
+    $order = Order::create([
+        'order_code' => 'ORD-EARLY-DEPART-01',
+        'order_type' => OrderType::Terjadwal,
+        'customer_id' => $this->customer->id,
+        'customer_address_id' => $this->address->id,
+        'mitra_id' => $this->mitra->id,
+        'region_id' => $this->region->id,
+        'service_id' => $this->service->id,
+        'service_package_id' => $this->package->id,
+        'service_name' => $this->service->name,
+        'duration_minutes' => 60,
+        'total_price' => 100000,
+        'recipient_name' => 'Danial',
+        'recipient_gender' => 'pria',
+        'service_address_text' => 'Jl. Semeru No. 10',
+        'service_coordinate' => ['lat' => -8.1776, 'lng' => 113.7197],
+        'scheduled_start_time' => Carbon::now()->addHours(3), // 3 jam lagi (misal jam 15:00 saat sekarang jam 12:00)
+        'status' => OrderStatus::Dijadwalkan,
+    ]);
+
+    expect($order->canPartnerDepartNow(45))->toBeFalse();
+
+    $response = $this->actingAs($this->mitra)
+        ->post(route('mitra.orders.update-status', $order), ['status' => 'menuju_lokasi']);
+
+    $response->assertSessionHas('error');
+    expect($order->fresh()->status)->toBe(OrderStatus::Dijadwalkan);
+});
+
+test('mitra dapat berangkat jika berada dalam rentang 45 menit sebelum jadwal pesanan terjadwal', function () {
+    $order = Order::create([
+        'order_code' => 'ORD-VALID-DEPART-01',
+        'order_type' => OrderType::Terjadwal,
+        'customer_id' => $this->customer->id,
+        'customer_address_id' => $this->address->id,
+        'mitra_id' => $this->mitra->id,
+        'region_id' => $this->region->id,
+        'service_id' => $this->service->id,
+        'service_package_id' => $this->package->id,
+        'service_name' => $this->service->name,
+        'duration_minutes' => 60,
+        'total_price' => 100000,
+        'recipient_name' => 'Danial',
+        'recipient_gender' => 'pria',
+        'service_address_text' => 'Jl. Semeru No. 10',
+        'service_coordinate' => ['lat' => -8.1776, 'lng' => 113.7197],
+        'scheduled_start_time' => Carbon::now()->addMinutes(30), // 30 menit lagi (di dalam window 45 menit)
+        'status' => OrderStatus::Dijadwalkan,
+    ]);
+
+    expect($order->canPartnerDepartNow(45))->toBeTrue();
+
+    $response = $this->actingAs($this->mitra)
+        ->post(route('mitra.orders.update-status', $order), ['status' => 'menuju_lokasi']);
+
+    $response->assertRedirect(route('mitra.orders.show', $order));
+    expect($order->fresh()->status)->toBe(OrderStatus::MenujuLokasi);
+});

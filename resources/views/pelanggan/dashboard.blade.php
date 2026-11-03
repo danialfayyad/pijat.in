@@ -120,6 +120,24 @@
                     @endforeach
                 </div>
             </div>
+        @else
+            <!-- Shortcut Cepat ke Riwayat Pesanan saat Tidak Ada Pesanan Berjalan -->
+            <a href="{{ route('pelanggan.orders.index') }}" 
+               class="p-3.5 bg-white hover:bg-slate-50 active:scale-[0.99] rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between text-xs transition cursor-pointer group">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 group-hover:bg-emerald-50 group-hover:text-emerald-700 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-slate-900 block leading-tight group-hover:text-emerald-800 transition">Riwayat & Status Pesanan</span>
+                        <span class="text-[11px] text-slate-500">Lihat semua riwayat pesanan selesai atau dibatalkan</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-1 text-slate-400 group-hover:text-emerald-700 transition">
+                    <span class="text-xs font-bold">Buka</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+            </a>
         @endif
 
         <!-- Bebas Preferensi Gender Terapis (Opsi A) -->

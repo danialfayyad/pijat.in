@@ -371,7 +371,7 @@
                 "Pengajuan aduan berhasil membekukan pelepasan pendapatan pesanan tersebut di saldo mitra."
             ],
             "verification": "Kirim aduan dalam rentang < 24 jam (berhasil) dan setelah > 24 jam (form aduan terkunci).",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-20",
@@ -390,7 +390,7 @@
                 "Berkas banding masuk ke antrean verifikasi Admin Wilayah Akun customer saat pengajuan."
             ],
             "verification": "Terbitkan SP pada customer dan uji pengajuan banding dari antarmuka customer.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "CUS-21",
@@ -790,7 +790,7 @@
                 "Pengajuan banding masuk ke antrean Admin Wilayah Akun mitra saat itu."
             ],
             "verification": "Simulasi mitra SP2 mengunggah surat pernyataan banding, pastikan masuk antrean admin.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-19",
@@ -808,7 +808,7 @@
                 "Penekanan tombol darurat mengirimkan notifikasi prioritas tinggi ke admin wilayah pesanan."
             ],
             "verification": "Uji tombol darurat di sisi mitra saat layanan berlangsung.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "MIT-20",
@@ -1386,7 +1386,7 @@
                 "Penerbitan SP otomatis meningkatkan tingkat sanksi (SP1 -> SP2 -> SP3) dan menerapkan pembekuan/pemblokiran."
             ],
             "verification": "Uji pemicu pembatalan customer no-show, verifikasi SP1 customer terbit otomatis dan pesanan dipotong 50%.",
-            "passes": false
+            "passes": true
         },
         {
             "id": "SYS-05",

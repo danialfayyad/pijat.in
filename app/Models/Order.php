@@ -187,6 +187,14 @@ class Order extends Model
     }
 
     /**
+     * @return HasMany<Complaint, $this>
+     */
+    public function complaints(): HasMany
+    {
+        return $this->hasMany(Complaint::class);
+    }
+
+    /**
      * Scope orders to specific region ID or list of IDs.
      */
     public function scopeInRegions(Builder $query, array|int $regionIds): Builder
@@ -257,6 +265,34 @@ class Order extends Model
     public function canBeCancelledByAdmin(): bool
     {
         return ! $this->status->isTerminal();
+    }
+
+    /**
+     * Check if the partner is permitted to start traveling toward the customer now.
+     * Instant orders can always be started immediately.
+     * Scheduled orders can only be started within the allowed buffer window (default 45 minutes).
+     */
+    public function canPartnerDepartNow(int $bufferMinutes = 45): bool
+    {
+        if ($this->order_type !== OrderType::Terjadwal || ! $this->scheduled_start_time) {
+            return true;
+        }
+
+        $earliestDepartureTime = $this->scheduled_start_time->copy()->subMinutes($bufferMinutes);
+
+        return Carbon::now()->gte($earliestDepartureTime);
+    }
+
+    /**
+     * Get the earliest allowed departure timestamp for the partner.
+     */
+    public function earliestPartnerDepartureTime(int $bufferMinutes = 45): ?Carbon
+    {
+        if ($this->order_type !== OrderType::Terjadwal || ! $this->scheduled_start_time) {
+            return null;
+        }
+
+        return $this->scheduled_start_time->copy()->subMinutes($bufferMinutes);
     }
 
     /**
