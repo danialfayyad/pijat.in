@@ -34,7 +34,7 @@ test('superadmin can view operational parameters list grouped by categories', fu
 
     $response->assertOk()
         ->assertSee('Manajemen Parameter Operasional')
-        ->assertSee('Finansial &amp; Bagi Hasil', false)
+        ->assertSee('Keuangan &amp; Bagi Hasil', false)
         ->assertSee('platform_commission_percent')
         ->assertSee('dispatch_max_radius_km');
 });

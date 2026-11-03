@@ -11,40 +11,20 @@ use Illuminate\View\View;
 class ParameterController extends Controller
 {
     /**
-     * Group definitions with labels and icons for display.
+     * Group definitions with labels and descriptions for display.
      */
     public const GROUPS = [
         'financial' => [
-            'label' => 'Finansial & Bagi Hasil',
-            'desc' => 'Persentase komisi platform, batas dompet, denda pembatalan, dan batas pencairan dana.',
+            'label' => 'Keuangan & Bagi Hasil',
+            'desc' => 'Pengaturan persentase komisi platform, limit saldo dompet, serta batas minimal dan biaya penarikan dana mitra.',
         ],
-        'operational_hours' => [
-            'label' => 'Jam Operasional Layanan',
-            'desc' => 'Jadwal jam buka dan jam tutup pemesanan layanan waktu setempat.',
+        'operational' => [
+            'label' => 'Operasional & Jangkauan',
+            'desc' => 'Jam operasional layanan wilayah dan radius jangkauan penugasan mitra terapis.',
         ],
-        'dispatch' => [
-            'label' => 'Algoritma Penugasan & Matching',
-            'desc' => 'Radius penugasan, batas waktu respon mitra, dan jendela pemesanan terjadwal.',
-        ],
-        'order' => [
-            'label' => 'Aturan Batasan Pesanan',
-            'desc' => 'Batas maksimal pesanan aktif pelanggan dan kuota penjadwalan ulang (reschedule).',
-        ],
-        'location' => [
-            'label' => 'GPS & Geofencing Lokasi',
-            'desc' => 'Interval pelacakan posisi mitra, radius geofence tombol tiba, dan toleransi akurasi GPS.',
-        ],
-        'timeout' => [
-            'label' => 'Batas Waktu & SLA Sistem',
-            'desc' => 'Batas kadaluwarsa pembayaran, waktu tunggu pelanggan di lokasi, dan batas waktu pengajuan komplain.',
-        ],
-        'penalty' => [
-            'label' => 'Kebijakan Sanksi & Banding',
-            'desc' => 'Jeda waktu pengajuan ulang banding sanksi bagi mitra yang ditolak.',
-        ],
-        'privacy' => [
-            'label' => 'Privasi & Retensi Data (UU PDP)',
-            'desc' => 'Masa penyimpanan riwayat percakapan chat dan catatan medis sebelum dihapus otomatis.',
+        'compliance' => [
+            'label' => 'Privasi Data (UU PDP)',
+            'desc' => 'Batas masa retensi penyimpanan riwayat percakapan chat dan catatan medis sebelum dihapus otomatis.',
         ],
     ];
 

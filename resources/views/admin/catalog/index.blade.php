@@ -64,7 +64,7 @@
 
         <!-- Toolbar Kontrol: Status Tabs, Search & Action -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <!-- Filter Status Tabs (Meniru gaya tab yang sudah ada) -->
+            <!-- Filter Status Tabs -->
             <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
                 <a href="{{ route('admin.catalog.index', ['status' => 'aktif']) }}"
                    class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $currentStatus === 'aktif' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
@@ -73,7 +73,6 @@
                     @else
                         Katalog Aktif
                     @endif
-                    <span class="ml-1 opacity-90 font-mono text-[11px]">({{ $activeCount }})</span>
                 </a>
 
                 <a href="{{ route('admin.catalog.index', ['status' => 'nonaktif']) }}"
@@ -83,7 +82,6 @@
                     @else
                         Katalog Nonaktif
                     @endif
-                    <span class="ml-1 opacity-90 font-mono text-[11px]">({{ $inactiveCount }})</span>
                 </a>
             </div>
 
@@ -146,10 +144,10 @@
                                 </div>
                             </div>
 
-                            <!-- Status Dot/Badge -->
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shrink-0 {{ $service->is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
-                                <span class="w-1.5 h-1.5 rounded-full {{ $service->is_active ? 'bg-emerald-500' : 'bg-slate-400' }}"></span>
-                                {{ $service->is_active ? 'Aktif' : 'Nonaktif' }}
+                            <!-- Status Indicator (Clean inline dot indicator, tanpa pill kapsul AI slop) -->
+                            <span class="inline-flex items-center gap-1.5 text-xs font-medium shrink-0 {{ $service->is_active ? 'text-emerald-700' : 'text-slate-400' }}">
+                                <span class="w-1.5 h-1.5 rounded-full {{ $service->is_active ? 'bg-emerald-500 ring-2 ring-emerald-100' : 'bg-slate-400 ring-2 ring-slate-100' }}"></span>
+                                <span>{{ $service->is_active ? 'Aktif' : 'Nonaktif' }}</span>
                             </span>
                         </div>
 

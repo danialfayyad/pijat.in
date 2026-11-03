@@ -17,10 +17,15 @@ class AdminNotificationController extends Controller
     public function index(Request $request, NotificationService $notificationService): View
     {
         $admin = $request->user();
+        $filter = $request->query('filter', 'all');
 
-        $notifications = $admin->systemNotifications()
-            ->latest()
-            ->paginate(15);
+        $query = $admin->systemNotifications()->latest();
+
+        if ($filter === 'unread') {
+            $query->unread();
+        }
+
+        $notifications = $query->paginate(15)->withQueryString();
 
         $queueSummary = $notificationService->getAdminQueueSummary($admin);
         $unreadCount = $admin->systemNotifications()->unread()->count();
@@ -29,6 +34,7 @@ class AdminNotificationController extends Controller
             'notifications' => $notifications,
             'queueSummary' => $queueSummary,
             'unreadCount' => $unreadCount,
+            'currentFilter' => $filter,
         ]);
     }
 

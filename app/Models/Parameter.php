@@ -30,7 +30,7 @@ class Parameter extends Model
         return Cache::rememberForever($cacheKey, function () use ($key, $default) {
             $param = static::where('key', $key)->first();
             if (! $param) {
-                return $default;
+                return config("pijatin.{$key}", $default);
             }
 
             return $param->castValue($param->value);

@@ -14,6 +14,11 @@ class AuditLog extends Model
 
     public $timestamps = false;
 
+    protected $appends = [
+        'module_label',
+        'action_label',
+    ];
+
     protected $fillable = [
         'user_id',
         'module',
@@ -40,6 +45,40 @@ class AuditLog extends Model
             'new_values' => 'array',
             'created_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Get human-friendly Indonesian label for module.
+     */
+    public function getModuleLabelAttribute(): string
+    {
+        return match ($this->module) {
+            'legal' => 'Dokumen Legal',
+            'parameter' => 'Parameter Operasional',
+            'region' => 'Wilayah Layanan',
+            'admin' => 'Manajemen Admin',
+            'catalog' => 'Katalog Layanan',
+            'user' => 'Pengguna & Mitra',
+            'penalty' => 'Poin & Sanksi',
+            'retention' => 'Pembersihan Data Sistem',
+            default => ucfirst($this->module),
+        };
+    }
+
+    /**
+     * Get human-friendly Indonesian label for action.
+     */
+    public function getActionLabelAttribute(): string
+    {
+        return match ($this->action) {
+            'update' => 'Diperbarui',
+            'create' => 'Dibuat',
+            'delete' => 'Dihapus',
+            'activate' => 'Diaktifkan',
+            'deactivate' => 'Dinonaktifkan',
+            'status_change' => 'Perubahan Status',
+            default => ucfirst($this->action),
+        };
     }
 
     /**

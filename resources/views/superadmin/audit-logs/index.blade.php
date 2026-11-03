@@ -72,10 +72,24 @@
                 <!-- Modul -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Modul Sistem</label>
+                    @php
+                        $moduleOptions = [
+                            'legal' => 'Dokumen Legal & Kebijakan',
+                            'parameter' => 'Parameter Operasional',
+                            'region' => 'Wilayah Layanan',
+                            'admin' => 'Manajemen Admin',
+                            'catalog' => 'Katalog Layanan',
+                            'user' => 'Pengguna & Mitra',
+                            'penalty' => 'Poin & Sanksi',
+                            'retention' => 'Pembersihan Data Sistem',
+                        ];
+                    @endphp
                     <select name="module" class="w-full text-xs rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 py-2">
                         <option value="">Semua Modul</option>
                         @foreach ($modules as $mod)
-                            <option value="{{ $mod }}" @selected(request('module') === $mod)>{{ ucfirst($mod) }}</option>
+                            <option value="{{ $mod }}" @selected(request('module') === $mod)>
+                                {{ $moduleOptions[$mod] ?? ucfirst($mod) }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -161,11 +175,11 @@
                                 </td>
                                 <td class="px-5 py-3.5 whitespace-nowrap">
                                     <div class="flex items-center gap-1.5">
-                                        <span class="px-2 py-0.5 rounded-md font-semibold text-[10px] bg-slate-100 text-slate-700 uppercase">
-                                            {{ $log->module }}
+                                        <span class="px-2 py-0.5 rounded-md font-semibold text-[11px] bg-slate-100 text-slate-700">
+                                            {{ $log->module_label }}
                                         </span>
                                         <span class="text-slate-400">&bull;</span>
-                                        <span class="font-medium text-slate-600">{{ $log->action }}</span>
+                                        <span class="font-medium text-slate-600 text-xs">{{ $log->action_label }}</span>
                                     </div>
                                 </td>
                                 <td class="px-5 py-3.5 max-w-xs truncate text-slate-700">
@@ -232,7 +246,7 @@
                         </div>
                         <div>
                             <span class="text-slate-400 text-[11px] block">Modul & Tindakan</span>
-                            <span class="font-semibold text-slate-800 text-xs uppercase" x-text="activeLog ? activeLog.module + ' (' + activeLog.action + ')' : '-'"></span>
+                            <span class="font-semibold text-slate-800 text-xs" x-text="activeLog ? (activeLog.module_label || activeLog.module) + ' • ' + (activeLog.action_label || activeLog.action) : '-'"></span>
                         </div>
                         <div class="col-span-2 pt-2 border-t border-slate-200/60">
                             <span class="text-slate-400 text-[11px] block">Catatan Alasan Resmi</span>

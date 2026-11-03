@@ -1,160 +1,193 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Pusat Notifikasi dan Antrean Tugas</h1>
-                <p class="text-sm text-slate-500 mt-1">Pemantauan tugas masuk dan notifikasi operasional pada wilayah tugas Anda.</p>
-            </div>
-            @if ($unreadCount > 0)
-                <form method="POST" action="{{ route('admin.notifications.read-all') }}">
-                    @csrf
-                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs">
-                        <svg class="w-4 h-4 mr-1.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        Tandai Semua Dibaca ({{ $unreadCount }})
-                    </button>
-                </form>
-            @endif
-        </div>
+        <h2 class="font-bold text-xl text-slate-800 leading-tight">
+            {{ __('Pusat Notifikasi dan Antrean Tugas') }}
+        </h2>
     </x-slot>
 
-    <div class="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
+    <div class="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
         @if (session('success'))
-            <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl flex items-center shadow-xs">
-                <svg class="w-5 h-5 mr-3 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center shadow-2xs text-xs font-semibold">
+                <svg class="w-4 h-4 mr-2 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
-                <span class="text-sm font-medium">{{ session('success') }}</span>
+                <span>{{ session('success') }}</span>
             </div>
         @endif
 
-        <!-- Task Queue Summary Cards (ADM-14) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <!-- Verifikasi Mitra Card -->
-            <a href="{{ route('admin.mitra.index') }}" class="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-emerald-500 hover:shadow-md transition">
-                <div class="flex items-center justify-between">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                    </div>
-                    <span class="text-2xl font-black text-slate-900 group-hover:text-emerald-700 transition">{{ $queueSummary['pending_verifications'] }}</span>
-                </div>
-                <div class="mt-3">
-                    <h2 class="text-sm font-bold text-slate-800">Antrean Verifikasi Mitra</h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Berkas pendaftaran mitra baru menunggu verifikasi.</p>
-                </div>
+        <!-- Pintasan Antrean Tugas Operasional (Konsisten & Rapi) -->
+        <div class="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+            <span class="text-xs font-semibold text-slate-500 shrink-0">Antrean Tugas:</span>
+
+            <a href="{{ route('admin.mitra.index') }}" 
+               class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/80 shadow-2xs text-slate-700 font-medium inline-flex items-center gap-2 transition shrink-0">
+                <span>Antrean Verifikasi Mitra</span>
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold {{ $queueSummary['pending_verifications'] > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80' : 'bg-slate-100 text-slate-400' }}">
+                    {{ $queueSummary['pending_verifications'] }}
+                </span>
             </a>
 
-            <!-- Laporan Aduan Card -->
-            <a href="{{ route('admin.complaints.index') }}" class="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-emerald-500 hover:shadow-md transition">
-                <div class="flex items-center justify-between">
-                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                    </div>
-                    <span class="text-2xl font-black text-slate-900 group-hover:text-amber-600 transition">{{ $queueSummary['open_complaints'] }}</span>
-                </div>
-                <div class="mt-3">
-                    <h2 class="text-sm font-bold text-slate-800">Laporan Aduan Terbuka</h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Aduan pelanggan/mitra yang membutuhkan investigasi.</p>
-                </div>
+            <a href="{{ route('admin.complaints.index') }}" 
+               class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/80 shadow-2xs text-slate-700 font-medium inline-flex items-center gap-2 transition shrink-0">
+                <span>Laporan Aduan Terbuka</span>
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold {{ $queueSummary['open_complaints'] > 0 ? 'bg-amber-50 text-amber-700 border border-amber-200/80' : 'bg-slate-100 text-slate-400' }}">
+                    {{ $queueSummary['open_complaints'] }}
+                </span>
             </a>
 
-            <!-- Banding Sanksi Card -->
-            <a href="{{ route('admin.appeals.index') }}" class="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-emerald-500 hover:shadow-md transition">
-                <div class="flex items-center justify-between">
-                    <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                    </div>
-                    <span class="text-2xl font-black text-slate-900 group-hover:text-rose-600 transition">{{ $queueSummary['pending_appeals'] }}</span>
-                </div>
-                <div class="mt-3">
-                    <h2 class="text-sm font-bold text-slate-800">Pengajuan Banding Sanksi</h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Berkas banding sanksi poin menunggu peninjauan.</p>
-                </div>
+            <a href="{{ route('admin.appeals.index') }}" 
+               class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/80 shadow-2xs text-slate-700 font-medium inline-flex items-center gap-2 transition shrink-0">
+                <span>Pengajuan Banding Sanksi</span>
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold {{ $queueSummary['pending_appeals'] > 0 ? 'bg-rose-50 text-rose-700 border border-rose-200/80' : 'bg-slate-100 text-slate-400' }}">
+                    {{ $queueSummary['pending_appeals'] }}
+                </span>
             </a>
         </div>
 
-        <!-- Notification Feed List -->
+        <!-- Master Table Card (Konsisten dengan menu-menu admin lainnya) -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <!-- Header Table & Toolbar -->
+            <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 class="text-base font-bold text-slate-900">Riwayat Notifikasi Masuk</h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Daftar pemberitahuan aktivitas operasional dan peringatan sistem.</p>
+                    <h3 class="font-bold text-slate-800 text-base">Daftar Pemberitahuan Masuk</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Pemantauan tugas operasional, verifikasi, dan peringatan darurat sistem.</p>
                 </div>
-                <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-600">
-                    Total {{ $notifications->total() }} Notifikasi
-                </span>
+
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <!-- Filter Tabs -->
+                    <div class="flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl">
+                        <a href="{{ route('admin.notifications.index', ['filter' => 'all']) }}" 
+                           class="px-3 py-1 rounded-lg text-xs font-semibold transition {{ ($currentFilter ?? 'all') === 'all' ? 'bg-white text-slate-800 shadow-2xs' : 'text-slate-500 hover:text-slate-800' }}">
+                            Semua
+                        </a>
+                        <a href="{{ route('admin.notifications.index', ['filter' => 'unread']) }}" 
+                           class="px-3 py-1 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1.5 {{ ($currentFilter ?? '') === 'unread' ? 'bg-white text-slate-800 shadow-2xs' : 'text-slate-500 hover:text-slate-800' }}">
+                            <span>Belum Dibaca</span>
+                            @if ($unreadCount > 0)
+                                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-600 text-white">
+                                    {{ $unreadCount }}
+                                </span>
+                            @endif
+                        </a>
+                    </div>
+
+                    @if ($unreadCount > 0)
+                        <form method="POST" action="{{ route('admin.notifications.read-all') }}">
+                            @csrf
+                            <button type="submit" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-xs transition border border-slate-200 shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>Tandai Semua Dibaca</span>
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </div>
 
-            @if ($notifications->isEmpty())
-                <div class="p-12 text-center">
-                    <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                    </div>
-                    <h3 class="text-sm font-bold text-slate-800">Belum Ada Notifikasi</h3>
-                    <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Kotak masuk Anda bersih. Notifikasi baru terkait antrean verifikasi atau peristiwa penting akan muncul di sini.</p>
-                </div>
-            @else
-                <div class="divide-y divide-slate-100">
-                    @foreach ($notifications as $item)
-                        <div class="p-5 flex flex-col sm:flex-row sm:items-start justify-between gap-4 transition {{ $item->read_at ? 'bg-white hover:bg-slate-50/50' : 'bg-emerald-50/30 hover:bg-emerald-50/50' }}">
-                            <div class="flex items-start space-x-4">
-                                <div class="mt-1 w-9 h-9 rounded-xl flex items-center justify-center shrink-0 {{ $item->priority === 'high' ? 'bg-rose-100 text-rose-600' : ($item->read_at ? 'bg-slate-100 text-slate-500' : 'bg-emerald-100 text-emerald-700') }}">
-                                    @if ($item->priority === 'high')
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                        </svg>
-                                    @else
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                        </svg>
-                                    @endif
-                                </div>
-                                <div class="space-y-1">
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <h3 class="text-sm font-bold text-slate-900">{{ $item->title }}</h3>
-                                        @if ($item->priority === 'high')
-                                            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700">Prioritas Tinggi</span>
-                                        @endif
-                                        @if (! $item->read_at)
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                                                Baru
-                                            </span>
-                                        @endif
-                                    </div>
-                                    <p class="text-xs text-slate-600 leading-relaxed">{{ $item->body }}</p>
-                                    <div class="text-[11px] text-slate-400 pt-1">
-                                        {{ $item->created_at->diffForHumans() }} ({{ $item->created_at->format('d M Y H:i') }})
-                                    </div>
-                                </div>
-                            </div>
-                            @if (! $item->read_at)
-                                <div class="shrink-0 self-end sm:self-center">
-                                    <form method="POST" action="{{ route('admin.notifications.read', $item) }}">
-                                        @csrf
-                                        <button type="submit" class="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-white border border-emerald-300 rounded-xl hover:bg-emerald-50 transition shadow-xs">
-                                            Tandai Dibaca
-                                        </button>
-                                    </form>
-                                </div>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
+            <!-- Table Notifikasi -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-600">
+                    <thead class="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100">
+                        <tr>
+                            <th class="px-5 py-3.5">Waktu</th>
+                            <th class="px-5 py-3.5">Pemberitahuan</th>
+                            <th class="px-5 py-3.5">Kategori</th>
+                            <th class="px-5 py-3.5 text-center">Status</th>
+                            <th class="px-5 py-3.5 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse ($notifications as $item)
+                            @php
+                                $isUnread = ! $item->read_at;
 
-                @if ($notifications->hasPages())
-                    <div class="p-4 border-t border-slate-100 bg-slate-50/50">
-                        {{ $notifications->links() }}
-                    </div>
-                @endif
+                                $categoryLabel = match(true) {
+                                    str_contains(strtolower($item->title), 'verifikasi') || str_contains(strtolower($item->title), 'mitra') => 'Verifikasi Mitra',
+                                    str_contains(strtolower($item->title), 'aduan') => 'Laporan Aduan',
+                                    str_contains(strtolower($item->title), 'banding') => 'Banding Sanksi',
+                                    str_contains(strtolower($item->title), 'legal') || str_contains(strtolower($item->title), 'dokumen') => 'Dokumen Legal',
+                                    str_contains(strtolower($item->title), 'parameter') => 'Parameter Sistem',
+                                    default => 'Operasional Sistem',
+                                };
+                            @endphp
+                            <tr class="hover:bg-slate-50/60 transition {{ $isUnread ? 'bg-slate-50/30' : '' }}">
+                                <!-- Waktu -->
+                                <td class="px-5 py-4 whitespace-nowrap">
+                                    <div class="text-slate-700 font-medium">
+                                        {{ $item->created_at->locale('id')->diffForHumans() }}
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5">
+                                        {{ $item->created_at->format('d M Y, H:i') }} WIB
+                                    </div>
+                                </td>
+
+                                <!-- Pemberitahuan -->
+                                <td class="px-5 py-4">
+                                    <span class="font-bold text-slate-800 text-xs sm:text-sm">
+                                        {{ $item->title }}
+                                    </span>
+                                </td>
+
+                                <!-- Kategori -->
+                                <td class="px-5 py-4 whitespace-nowrap">
+                                    <span class="font-medium text-slate-700">
+                                        {{ $categoryLabel }}
+                                    </span>
+                                </td>
+
+                                <!-- Status Dot Indikator -->
+                                <td class="px-5 py-4 whitespace-nowrap text-center">
+                                    @if ($isUnread)
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100"></span>
+                                            <span>Belum Dibaca</span>
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                                            <span>Dibaca</span>
+                                        </span>
+                                    @endif
+                                </td>
+
+                                <!-- Aksi -->
+                                <td class="px-5 py-4 whitespace-nowrap text-right space-x-1.5">
+                                    @if ($item->action_url)
+                                        <a href="{{ $item->action_url }}" 
+                                           class="px-3 py-1.5 bg-white hover:bg-slate-50 text-emerald-700 hover:text-emerald-800 font-semibold rounded-xl text-xs transition border border-slate-200 shadow-2xs inline-flex items-center gap-1 cursor-pointer">
+                                            <span>{{ $item->action_label }}</span>
+                                            <span>&rarr;</span>
+                                        </a>
+                                    @endif
+
+                                    @if ($isUnread)
+                                        <form method="POST" action="{{ route('admin.notifications.read', $item) }}" class="inline-block">
+                                            @csrf
+                                            <button type="submit" 
+                                                    title="Tandai telah dibaca" 
+                                                    class="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 font-medium rounded-xl text-xs transition border border-slate-200 shadow-2xs cursor-pointer">
+                                                Tandai Dibaca
+                                            </button>
+                                        </form>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-5 py-10 text-center text-slate-400 text-xs">
+                                    Belum ada notifikasi yang terekam sesuai filter ini.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            @if ($notifications->hasPages())
+                <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+                    {{ $notifications->links() }}
+                </div>
             @endif
         </div>
     </div>
