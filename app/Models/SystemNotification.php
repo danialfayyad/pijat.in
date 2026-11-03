@@ -70,4 +70,64 @@ class SystemNotification extends Model
 
         return true;
     }
+
+    /**
+     * Get target action URL for deep linking.
+     */
+    public function getActionUrlAttribute(): ?string
+    {
+        if (! empty($this->data['action_url'])) {
+            return (string) $this->data['action_url'];
+        }
+
+        if (str_contains($this->event_code, 'EMERGENCY')) {
+            return route('admin.orders.index');
+        }
+
+        if (str_contains(strtolower($this->title), 'verifikasi') || str_contains(strtolower($this->title), 'mitra')) {
+            return route('admin.mitra.index');
+        }
+
+        if (str_contains(strtolower($this->title), 'aduan')) {
+            return route('admin.complaints.index');
+        }
+
+        if (str_contains(strtolower($this->title), 'banding')) {
+            return route('admin.appeals.index');
+        }
+
+        if (str_contains(strtolower($this->title), 'legal') || str_contains(strtolower($this->title), 'dokumen')) {
+            return route('superadmin.legal-documents.index');
+        }
+
+        return null;
+    }
+
+    /**
+     * Get action button label for the notification.
+     */
+    public function getActionLabelAttribute(): string
+    {
+        if (str_contains($this->event_code, 'EMERGENCY')) {
+            return 'Tangani Pesanan';
+        }
+
+        if (str_contains(strtolower($this->title), 'verifikasi') || str_contains(strtolower($this->title), 'mitra')) {
+            return 'Tinjau Berkas';
+        }
+
+        if (str_contains(strtolower($this->title), 'aduan')) {
+            return 'Investigasi Aduan';
+        }
+
+        if (str_contains(strtolower($this->title), 'banding')) {
+            return 'Tinjau Banding';
+        }
+
+        if (str_contains(strtolower($this->title), 'legal') || str_contains(strtolower($this->title), 'dokumen')) {
+            return 'Buka Dokumen';
+        }
+
+        return 'Buka Rincian';
+    }
 }
