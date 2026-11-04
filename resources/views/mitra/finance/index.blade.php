@@ -18,17 +18,19 @@
             </div>
         @endif
 
-        <!-- Card Saldo Tersedia -->
+        <!-- Card Saldo Tersedia (Siap Ditarik) -->
         <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden">
-            <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center space-x-2">
                     <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
                     <span class="text-xs font-semibold text-slate-300">Saldo Tersedia</span>
                 </div>
-                <span class="text-[11px] px-2 py-0.5 rounded-md bg-white/10 text-slate-200 font-medium">Bisa Ditarik</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                    Siap Ditarik
+                </span>
             </div>
 
-            <div class="text-2xl font-extrabold tracking-tight mb-4 text-white">
+            <div class="text-2xl font-extrabold tracking-tight mb-3 text-white">
                 Rp {{ number_format($wallet->balance, 0, ',', '.') }}
             </div>
 
@@ -45,13 +47,67 @@
 
             <div class="mt-4 pt-3 border-t border-white/10 flex gap-2">
                 <a href="{{ route('mitra.finance.withdraw') }}"
-                   class="flex-1 py-2.5 px-3 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl text-center shadow-md transition active:scale-95 flex items-center justify-center gap-1.5">
+                   class="flex-1 py-2.5 px-3 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl text-center shadow-md transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     Tarik Saldo
                 </a>
             </div>
+        </div>
+
+        <!-- Card Saldo Tertahan (24 Jam Escrow) (MIT-15, SYS-03) -->
+        <div class="bg-amber-50/80 rounded-2xl p-4 border border-amber-200 shadow-xs relative overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="text-xs font-bold text-amber-900">Saldo Tertahan (24 Jam)</span>
+                </div>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold border border-amber-300">
+                    Masa Tunggu
+                </span>
+            </div>
+
+            <div class="text-xl font-extrabold text-amber-950 mb-2">
+                Rp {{ number_format($wallet->held_balance, 0, ',', '.') }}
+            </div>
+
+            <p class="text-[11px] text-amber-800 leading-relaxed">
+                Pendapatan pesanan selesai ditahan selama 24 jam sebagai masa jaminan komplain pelanggan. Saldo akan otomatis dipindahkan ke <strong>Saldo Tersedia</strong> tepat 24 jam setelah pesanan selesai jika tidak ada aduan aktif.
+            </p>
+
+            @if ($heldTransactions->isNotEmpty())
+                <div class="mt-3 pt-3 border-t border-amber-200/80 space-y-2">
+                    <span class="text-[10px] font-bold text-amber-900 uppercase tracking-wider block">Daftar Menunggu Pencairan:</span>
+                    @foreach ($heldTransactions as $ht)
+                        @php
+                            $releaseTime = $ht->created_at->addHours(24);
+                            $hoursRemaining = max(0, now()->diffInHours($releaseTime, false));
+                            $minutesRemaining = max(0, now()->diffInMinutes($releaseTime, false) % 60);
+                        @endphp
+                        <div class="bg-white rounded-xl p-2.5 border border-amber-200/60 flex items-center justify-between text-xs">
+                            <div>
+                                <span class="font-bold text-slate-800 block text-[11px]">{{ $ht->description }}</span>
+                                <span class="text-[10px] text-slate-500">
+                                    Selesai: {{ $ht->created_at->format('d M, H:i') }}
+                                </span>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-bold text-amber-900 text-xs block">+Rp {{ number_format($ht->amount, 0, ',', '.') }}</span>
+                                <span class="text-[9px] font-semibold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full">
+                                    @if ($hoursRemaining > 0)
+                                        ~{{ $hoursRemaining }}j {{ $minutesRemaining }}m lagi
+                                    @else
+                                        Segera Cair
+                                    @endif
+                                </span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
 
         <!-- Rekening Terverifikasi -->
@@ -125,7 +181,7 @@
             </div>
         @endif
 
-        <!-- Riwayat Mutasi Dompet -->
+        <!-- Riwayat Mutasi Dompet (Filter 7 Hari & 30 Hari - MIT-15) -->
         <div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-xs">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-xs font-bold text-slate-900">Mutasi Dompet</h3>
@@ -185,4 +241,3 @@
         </div>
     </div>
 </x-pwa-layout>
-

@@ -20,6 +20,8 @@ Route::middleware(['auth', 'role:admin,superadmin', 'admin.region'])->prefix('ad
     Route::get('/mitra/{mitra}', [PartnerVerificationController::class, 'show'])->name('mitra.show');
     Route::post('/mitra/{mitra}/approve', [PartnerVerificationController::class, 'approve'])->name('mitra.approve');
     Route::post('/mitra/{mitra}/reject', [PartnerVerificationController::class, 'reject'])->name('mitra.reject');
+    Route::post('/mitra/relokasi/{relocationRequest}/approve', [PartnerVerificationController::class, 'approveRelocation'])->name('mitra.relocation.approve');
+    Route::post('/mitra/relokasi/{relocationRequest}/reject', [PartnerVerificationController::class, 'rejectRelocation'])->name('mitra.relocation.reject');
 
     // Operational Order Monitoring & Intervention (ADM-04)
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');

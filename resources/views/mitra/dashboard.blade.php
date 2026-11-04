@@ -337,8 +337,14 @@
                     <span class="text-[11px] font-semibold text-slate-500">Saldo Dompet</span>
                     <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                 </div>
-                <div class="text-lg font-black text-slate-900 font-mono">Rp {{ number_format($user->wallet?->balance ?? 0, 0, ',', '.') }}</div>
-                <span class="text-[11px] text-emerald-700 font-semibold block mt-1 truncate">Tarik Saldo &rarr;</span>
+                <div class="text-base font-black text-slate-900 font-mono">Rp {{ number_format($user->wallet?->balance ?? 0, 0, ',', '.') }}</div>
+                @if (($user->wallet?->held_balance ?? 0) > 0)
+                    <span class="text-[10px] text-amber-700 font-bold block truncate mt-0.5">
+                        +Rp {{ number_format($user->wallet->held_balance, 0, ',', '.') }} tertahan
+                    </span>
+                @else
+                    <span class="text-[11px] text-emerald-700 font-semibold block mt-1 truncate">Tarik Saldo &rarr;</span>
+                @endif
             </a>
 
             <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs flex flex-col justify-between">

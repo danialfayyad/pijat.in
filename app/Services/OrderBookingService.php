@@ -262,6 +262,10 @@ class OrderBookingService
                 if ($orderType === OrderType::Instan) {
                     $this->matchingService->dispatchNextOffer($order);
                 }
+            } else {
+                // CUS-09: Insufficient balance -> generate deficit invoice via Xendit / QRIS
+                $deficit = (float) $package->price - (float) $wallet->balance;
+                app(TopupService::class)->createOrderDeficitInvoice($order, $deficit);
             }
 
             return $order;

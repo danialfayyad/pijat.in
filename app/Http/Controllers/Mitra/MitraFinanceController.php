@@ -67,6 +67,18 @@ class MitraFinanceController extends Controller
             ->where('is_verified', true)
             ->first();
 
+        // Orders currently held in 24h escrow
+        $heldTransactions = WalletTransaction::where('wallet_id', $wallet->id)
+            ->where('reference_type', 'order_held_pending')
+            ->whereNotIn('reference_id', function ($sub) use ($wallet) {
+                $sub->select('reference_id')
+                    ->from('wallet_transactions')
+                    ->where('wallet_id', $wallet->id)
+                    ->where('reference_type', 'order_earning');
+            })
+            ->latest()
+            ->get();
+
         return view('mitra.finance.index', compact(
             'wallet',
             'range',
@@ -75,7 +87,8 @@ class MitraFinanceController extends Controller
             'totalWithdrawn',
             'pendingWithdrawal',
             'withdrawalRequests',
-            'bankAccount'
+            'bankAccount',
+            'heldTransactions'
         ));
     }
 
@@ -86,6 +99,11 @@ class MitraFinanceController extends Controller
     {
         $user = $request->user()->load('partnerProfile');
         $wallet = $user->getOrCreateWallet();
+
+        if ($user->hasPendingRelocation()) {
+            return redirect()->route('mitra.finance.index')
+                ->with('error', 'Akun Anda sedang dalam proses verifikasi perpindahan domisili ke wilayah lain. Penarikan dana ditahan sementara sampai verifikasi selesai.');
+        }
 
         $bankAccount = BankAccount::where('user_id', $user->id)
             ->where('is_verified', true)
@@ -125,6 +143,11 @@ class MitraFinanceController extends Controller
         if ($user->isSuspended()) {
             return redirect()->route('mitra.finance.index')
                 ->with('error', 'Akun Anda sedang dalam masa penangguhan (suspend). Pengajuan penarikan dana tidak diizinkan.');
+        }
+
+        if ($user->hasPendingRelocation()) {
+            return redirect()->route('mitra.finance.index')
+                ->with('error', 'Akun Anda sedang dalam proses verifikasi perpindahan domisili ke wilayah lain. Penarikan dana ditahan sementara sampai verifikasi selesai.');
         }
 
         $bankAccount = BankAccount::where('user_id', $user->id)

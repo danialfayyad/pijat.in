@@ -195,6 +195,22 @@ class Order extends Model
     }
 
     /**
+     * @return HasMany<TopupInvoice, $this>
+     */
+    public function topupInvoices(): HasMany
+    {
+        return $this->hasMany(TopupInvoice::class)->latest();
+    }
+
+    public function latestPendingTopupInvoice(): ?TopupInvoice
+    {
+        return $this->topupInvoices()
+            ->where('status', 'PENDING')
+            ->where('expires_at', '>', now())
+            ->first();
+    }
+
+    /**
      * Scope orders to specific region ID or list of IDs.
      */
     public function scopeInRegions(Builder $query, array|int $regionIds): Builder

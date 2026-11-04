@@ -49,6 +49,7 @@ Route::middleware(['auth', 'role:pelanggan'])->prefix('pelanggan')->name('pelang
     Route::post('/wallet/withdraw', [WalletController::class, 'storeWithdrawal'])->name('wallet.withdraw.store');
     Route::get('/wallet/invoices/{invoice}', [WalletController::class, 'invoice'])->name('wallet.invoice');
     Route::post('/wallet/invoices/{invoice}/simulate-pay', [WalletController::class, 'simulatePay'])->name('wallet.simulate-pay');
+    Route::post('/wallet/invoices/{invoice}/check-status', [WalletController::class, 'checkStatus'])->name('wallet.check-status');
 
     // Customer Complaints / Aduan (CUS-19)
     Route::get('/aduan', [CustomerComplaintController::class, 'index'])->name('complaints.index');

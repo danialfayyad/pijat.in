@@ -39,8 +39,24 @@ Pijat.in is presented as a massage and wellness marketplace. The public landing 
   - Pembatalan Khusus Mitra di Lokasi (MIT-11, DEC-03): Mitra dapat membatalkan di status `Tiba` karena Customer Tidak Ada di Lokasi (mitra dapat kompensasi 50%, pelanggan disanksi 15 poin), Gender Penerima Tidak Sesuai (mitra dapat kompensasi 50%), dan Kontraindikasi Medis Berbahaya (refund pelanggan 100%, mitra bebas sanksi 100% per DEC-03).
   - Pembatalan Otomatis Sistem (SYS-02): Command `orders:process-cancellations` (terjadwal setiap menit) secara otomatis membatalkan pesanan instan tanpa mitra $> 30$ menit (refund 100%), pesanan terjadwal bursa yang melewati batas H-2 jam (refund 100%), pesanan belum dibayar $> 15$ menit, dan kedaluwarsa invoice top-up saldo $> 15$ menit.
 - Master Wilayah & Admin Seeders: `MasterWilayahSeeder` populates operational regions (Jember, Yogyakarta, Surabaya, Blitar, Jakarta Selatan, dll.) with official boundary polygons/MultiPolygons from GeoJSON datasets, and `AdminSeeder` creates Superadmin and Regional Admins with automatic region assignments and emergency duty handling (`can_handle_emergency = true`).
-- All 219 unit & feature tests in Pest passing (987 assertions) with Pint style formatting compliant.
-
+- Partner 24-Hour Held Balance, Payouts & Regional Finance (Slice 9 / S9):
+  - 24-Hour Held Balance Escrow (SYS-03, MIT-15): Partner earnings (80%) are held in `held_balance` for 24 hours post-order completion while platform commission (20%) is recorded. Scheduler command `app:release-held-balances` automatically moves funds to `balance` (available) after 24 hours if no active customer complaints exist.
+  - Partner Wallet & Withdrawal (MIT-15, MIT-16): PWA screen displaying Saldo Tersedia & Saldo Tertahan separately, 7/30-day mutation filters, withdrawal request flow to verified bank accounts (`bank_accounts`) with anti-concurrency and suspension locks.
+  - Customer Wallet Withdrawal (CUS-17): Customer wallet balance withdrawal to verified bank accounts with primary address validation and minimum amount rules.
+  - Regional Finance & Approval (ADM-11): Regional Admin finance dashboard, cash flow ledger (top-up, refunds, payouts), withdrawal approval/rejection queue with transfer references, and CSV/print-ready reporting.
+  - Superadmin Floating Balance & Cross-Region Reporting (SA-04, SA-08): Centralized monitoring of global floating balance liabilities vs Xendit settlements, and multi-region financial performance comparison with CSV exports.
+- Partner Inter-Region Relocation & Audit Preservation (Slice 10 / S10 / MIT-22, ADM-16):
+  - Partner relocation request flow (`/mitra/pindah-wilayah`) with interactive Leaflet map pin and address text in any active operating region.
+  - Strict prerequisite: Blocked if partner has active or scheduled orders (`dijadwalkan`, `menuju_lokasi`, `tiba`, `sedang_berlangsung`).
+  - Account frozen: While pending destination regional admin review, partner cannot toggle online (`is_active = false`) and wallet withdrawals are locked.
+  - Destination Regional Admin review tab (`/admin/mitra/verifikasi?tab=relokasi`) with approve/reject actions and mandatory rejection reason.
+  - Audit history preserved (ADM-16): When approved, `region_id` and address update seamlessly while historical orders, ratings, and penalty ledger remain intact for full cross-region audit inspection.
+- Customer Order Payment Gateway & Xendit Checkout (Slice 3 / CUS-09):
+  - Wallet balance instant debit on sufficient balance.
+  - Automatic 15-minute deficit top-up invoice generation via Xendit / QRIS on insufficient balance with direct redirect to invoice page (Opsi 1).
+  - Atomic auto-settlement on webhook / payment: credits customer wallet, debits order, transitions order to `MencariMitra`, triggers offer dispatch for instant orders, and redirects customer back to live order tracking.
+  - 15-minute expiration countdown & auto-cancellation via `orders:process-cancellations`.
+- All 323 unit & feature tests in Pest passing (1,507 assertions) with Pint style formatting compliant.
 
 ## Role model and authentication map
 
