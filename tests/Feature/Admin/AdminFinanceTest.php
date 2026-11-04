@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use App\Models\WithdrawalRequest;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->regionA = Region::where('status', 'aktif')->first() ?? Region::factory()->create([
@@ -78,9 +80,13 @@ test('admin cannot process withdrawal outside their assigned region (ADM-11)', f
 });
 
 test('admin can approve withdrawal request and user is notified (ADM-11)', function () {
+    Storage::fake('public');
+    $proof = UploadedFile::fake()->image('proof.jpg');
+
     $response = $this->actingAs($this->adminA)
         ->post(route('admin.finance.withdrawals.approve', $this->withdrawalA), [
             'transfer_reference' => 'TRF-BCA-987654',
+            'proof_file' => $proof,
         ]);
 
     $response->assertRedirect();
@@ -88,6 +94,7 @@ test('admin can approve withdrawal request and user is notified (ADM-11)', funct
     $this->withdrawalA->refresh();
     expect($this->withdrawalA->status)->toBe(WithdrawalRequest::STATUS_APPROVED)
         ->and($this->withdrawalA->transfer_reference)->toBe('TRF-BCA-987654')
+        ->and($this->withdrawalA->proof_path)->not->toBeNull()
         ->and($this->withdrawalA->processed_by)->toBe($this->adminA->id)
         ->and($this->withdrawalA->processed_at)->not->toBeNull();
 

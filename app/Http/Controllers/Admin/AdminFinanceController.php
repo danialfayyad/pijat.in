@@ -138,7 +138,7 @@ class AdminFinanceController extends Controller
 
         $validated = $request->validate([
             'transfer_reference' => ['nullable', 'string', 'max:100'],
-            'proof_file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:4096'],
+            'proof_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:4096'],
         ]);
 
         $proofPath = null;

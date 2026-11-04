@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Models\Order;
+use App\Models\Parameter;
 use App\Models\Region;
 use App\Models\Service;
 use App\Models\User;
@@ -43,7 +44,7 @@ class OrderFactory extends Factory
             'service_name' => fake()->randomElement(['Pijat Tradisional Jawa', 'Refleksi Kaki & Relaksasi', 'Pijat Aromaterapi']),
             'duration_minutes' => $duration,
             'total_price' => $price,
-            'commission_percent' => 10.00,
+            'commission_percent' => (float) Parameter::get('platform_commission_percent', 20.00),
             'recipient_name' => fake()->name(),
             'recipient_gender' => fake()->randomElement(['pria', 'wanita']),
             'recipient_phone' => fake()->phoneNumber(),

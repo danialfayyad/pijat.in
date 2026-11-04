@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
+use App\Models\Parameter;
 use App\Models\Region;
 use App\Models\Service;
 use App\Models\User;
@@ -26,6 +27,7 @@ class OrderSeeder extends Seeder
         $blitar = Region::where('name', 'like', '%BLITAR%')->first() ?? Region::first();
         $jember = Region::where('name', 'like', '%JEMBER%')->first() ?? Region::latest()->first();
         $service = Service::first() ?? Service::factory()->create();
+        $commissionPercent = (float) Parameter::get('platform_commission_percent', 20.00);
 
         // 1. Pesanan Macet (Instant order looking for partner > 30 minutes)
         if ($blitar) {
@@ -39,7 +41,7 @@ class OrderSeeder extends Seeder
                 'service_name' => $service->name,
                 'duration_minutes' => 90,
                 'total_price' => 140000,
-                'commission_percent' => 10.00,
+                'commission_percent' => $commissionPercent,
                 'recipient_name' => 'Bambang Supriyadi',
                 'recipient_gender' => 'pria',
                 'recipient_phone' => '081234567890',
@@ -75,7 +77,7 @@ class OrderSeeder extends Seeder
                 'service_name' => $service->name,
                 'duration_minutes' => 60,
                 'total_price' => 100000,
-                'commission_percent' => 10.00,
+                'commission_percent' => $commissionPercent,
                 'recipient_name' => 'Dewi Lestari',
                 'recipient_gender' => 'wanita',
                 'recipient_phone' => '081398765432',
@@ -141,7 +143,7 @@ class OrderSeeder extends Seeder
                 'service_name' => $service->name,
                 'duration_minutes' => 120,
                 'total_price' => 180000,
-                'commission_percent' => 10.00,
+                'commission_percent' => $commissionPercent,
                 'recipient_name' => 'Ahmad Fauzi',
                 'recipient_gender' => 'pria',
                 'recipient_phone' => '082155667788',
@@ -177,7 +179,7 @@ class OrderSeeder extends Seeder
                 'service_name' => $service->name,
                 'duration_minutes' => 60,
                 'total_price' => 100000,
-                'commission_percent' => 10.00,
+                'commission_percent' => $commissionPercent,
                 'recipient_name' => 'Rini Astuti',
                 'recipient_gender' => 'wanita',
                 'recipient_phone' => '085711223344',
@@ -213,7 +215,7 @@ class OrderSeeder extends Seeder
                 'service_name' => $service->name,
                 'duration_minutes' => 90,
                 'total_price' => 140000,
-                'commission_percent' => 10.00,
+                'commission_percent' => $commissionPercent,
                 'recipient_name' => 'Hendro Utomo',
                 'recipient_gender' => 'pria',
                 'recipient_phone' => '087812349900',
