@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Parameter;
 use App\Models\Region;
 use App\Models\TopupInvoice;
 use App\Models\Wallet;
@@ -77,6 +78,8 @@ class FinanceReportController extends Controller
             ];
         });
 
+        $platformCommissionPercent = (float) Parameter::get('platform_commission_percent', 20.0);
+
         return view('superadmin.finance.index', compact(
             'totalCustomerBalance',
             'totalPartnerBalance',
@@ -84,7 +87,8 @@ class FinanceReportController extends Controller
             'totalTopupSettled',
             'totalDisbursed',
             'totalPlatformCommission',
-            'regionStats'
+            'regionStats',
+            'platformCommissionPercent'
         ));
     }
 

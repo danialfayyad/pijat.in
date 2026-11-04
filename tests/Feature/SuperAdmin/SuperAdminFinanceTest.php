@@ -1,9 +1,11 @@
 <?php
 
+use App\Models\Parameter;
 use App\Models\Region;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
+use Illuminate\Support\Facades\Cache;
 
 beforeEach(function () {
     $this->region = Region::where('status', 'aktif')->first() ?? Region::factory()->create([
@@ -74,4 +76,23 @@ test('regular admin cannot access superadmin financial monitoring (SA-04)', func
         ->get(route('superadmin.finance.index'));
 
     $response->assertForbidden();
+});
+
+test('superadmin finance view reflects dynamic commission percentage parameter', function () {
+    Parameter::updateOrCreate(
+        ['key' => 'platform_commission_percent'],
+        [
+            'value' => '25.00',
+            'type' => 'decimal',
+            'group' => 'finance',
+            'label' => 'Persentase Komisi Platform',
+        ]
+    );
+    Cache::forget('sys_param_platform_commission_percent');
+
+    $response = $this->actingAs($this->superadmin)
+        ->get(route('superadmin.finance.index'));
+
+    $response->assertOk()
+        ->assertSee('Pendapatan bersih (25%)');
 });

@@ -7,6 +7,7 @@ use App\Enums\OrderType;
 use App\Models\CustomerAddress;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
+use App\Models\Parameter;
 use App\Models\ServicePackage;
 use App\Models\User;
 use Carbon\Carbon;
@@ -210,7 +211,7 @@ class OrderBookingService
                 'service_name' => $package->service->name.' ('.$package->duration_minutes.' Menit)',
                 'duration_minutes' => $package->duration_minutes,
                 'total_price' => $package->price,
-                'commission_percent' => 10.00,
+                'commission_percent' => (float) Parameter::get('platform_commission_percent', 20.00),
                 'recipient_type' => $recipientType,
                 'recipient_name' => $recipientName,
                 'recipient_gender' => $recipientGender,
