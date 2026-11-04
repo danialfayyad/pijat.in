@@ -145,7 +145,7 @@ class User extends Authenticatable
      */
     public function getOrCreateWallet(): Wallet
     {
-        return $this->wallet()->firstOrCreate([], ['balance' => 0, 'currency' => 'IDR']);
+        return $this->wallet()->firstOrCreate([], ['balance' => 0, 'held_balance' => 0, 'currency' => 'IDR']);
     }
 
     /**
@@ -178,6 +178,34 @@ class User extends Authenticatable
     public function withdrawalRequests(): HasMany
     {
         return $this->hasMany(WithdrawalRequest::class);
+    }
+
+    /**
+     * @return HasMany<PartnerRelocationRequest, $this>
+     */
+    public function relocationRequests(): HasMany
+    {
+        return $this->hasMany(PartnerRelocationRequest::class, 'partner_id');
+    }
+
+    /**
+     * Determine if partner has a pending relocation request (MIT-22).
+     */
+    public function hasPendingRelocation(): bool
+    {
+        return $this->relocationRequests()->where('status', PartnerRelocationRequest::STATUS_PENDING)->exists();
+    }
+
+    /**
+     * Get latest pending relocation request (MIT-22).
+     */
+    public function pendingRelocationRequest(): ?PartnerRelocationRequest
+    {
+        return $this->relocationRequests()
+            ->where('status', PartnerRelocationRequest::STATUS_PENDING)
+            ->with(['fromRegion', 'toRegion'])
+            ->latest()
+            ->first();
     }
 
     /**

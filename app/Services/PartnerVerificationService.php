@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\Role;
 use App\Enums\UserStatus;
+use App\Models\PartnerRelocationRequest;
 use App\Models\User;
 use DomainException;
 use Illuminate\Database\Eloquent\Collection;
@@ -34,6 +35,7 @@ class PartnerVerificationService
     {
         $query = User::where('role', Role::Mitra)
             ->where('status', UserStatus::MenungguVerifikasi)
+            ->whereDoesntHave('relocationRequests', fn ($q) => $q->where('status', PartnerRelocationRequest::STATUS_PENDING))
             ->with(['partnerProfile.region', 'primaryBankAccount', 'complianceAgreements']);
 
         if (! $admin->isSuperadmin()) {
@@ -47,6 +49,28 @@ class PartnerVerificationService
             $query->whereHas('partnerProfile', function ($q) use ($filterRegionId) {
                 $q->where('region_id', $filterRegionId);
             });
+        }
+
+        return $query->latest()->get();
+    }
+
+    /**
+     * Get pending relocation requests targeted to admin's assigned regions (MIT-22).
+     *
+     * @return Collection<int, PartnerRelocationRequest>
+     */
+    public function getPendingRelocations(User $admin, ?int $filterRegionId = null): Collection
+    {
+        $query = PartnerRelocationRequest::pending()
+            ->with(['partner.partnerProfile', 'fromRegion', 'toRegion']);
+
+        if (! $admin->isSuperadmin()) {
+            $assignedRegionIds = $admin->assignedRegions()->pluck('regions.id')->toArray();
+            $query->whereIn('to_region_id', $assignedRegionIds);
+        }
+
+        if ($filterRegionId) {
+            $query->where('to_region_id', $filterRegionId);
         }
 
         return $query->latest()->get();
@@ -118,6 +142,98 @@ class PartnerVerificationService
                 'rejection_code' => $rejectionCode,
                 'rejection_reason' => $fullReason,
             ]);
+        });
+    }
+
+    /**
+     * Approve partner relocation to destination region (MIT-22).
+     */
+    public function approveRelocation(User $admin, PartnerRelocationRequest $relocationRequest): void
+    {
+        if (! $admin->canAccessRegion($relocationRequest->to_region_id)) {
+            throw new DomainException('Anda tidak memiliki otorisasi untuk menyetujui relokasi ke wilayah di luar penugasan Anda.');
+        }
+
+        if (! $relocationRequest->isPending()) {
+            throw new DomainException('Permohonan relokasi ini telah diproses sebelumnya.');
+        }
+
+        $partner = $relocationRequest->partner;
+        $profile = $partner->partnerProfile;
+
+        if (! $profile) {
+            throw new DomainException('Profil kemitraan tidak ditemukan.');
+        }
+
+        DB::transaction(function () use ($admin, $relocationRequest, $partner, $profile) {
+            $relocationRequest->update([
+                'status' => PartnerRelocationRequest::STATUS_APPROVED,
+                'reviewed_by' => $admin->id,
+                'reviewed_at' => now(),
+            ]);
+
+            $partner->update([
+                'region_id' => $relocationRequest->to_region_id,
+                'status' => UserStatus::Terverifikasi,
+            ]);
+
+            $profile->update([
+                'region_id' => $relocationRequest->to_region_id,
+                'address_text' => $relocationRequest->address_text,
+                'latitude' => $relocationRequest->latitude,
+                'longitude' => $relocationRequest->longitude,
+                'coordinate' => ['lat' => (float) $relocationRequest->latitude, 'lng' => (float) $relocationRequest->longitude],
+                'verified_at' => now(),
+                'verified_by' => $admin->id,
+            ]);
+
+            app(NotificationService::class)->sendToUser(
+                $partner,
+                'partner_relocation_approved',
+                'Perpindahan Wilayah Disetujui',
+                "Selamat! Permohonan pindah domisili Anda ke {$relocationRequest->toRegion->name} telah disetujui. Akun dan wilayah operasional Anda kini aktif.",
+                ['relocation_id' => $relocationRequest->id, 'to_region_id' => $relocationRequest->to_region_id],
+                'high'
+            );
+        });
+    }
+
+    /**
+     * Reject partner relocation request (MIT-22).
+     */
+    public function rejectRelocation(User $admin, PartnerRelocationRequest $relocationRequest, string $reason): void
+    {
+        if (! $admin->canAccessRegion($relocationRequest->to_region_id)) {
+            throw new DomainException('Anda tidak memiliki otorisasi untuk menolak relokasi ke wilayah di luar penugasan Anda.');
+        }
+
+        if (! $relocationRequest->isPending()) {
+            throw new DomainException('Permohonan relokasi ini telah diproses sebelumnya.');
+        }
+
+        $partner = $relocationRequest->partner;
+
+        DB::transaction(function () use ($admin, $relocationRequest, $partner, $reason) {
+            $relocationRequest->update([
+                'status' => PartnerRelocationRequest::STATUS_REJECTED,
+                'rejection_reason' => $reason,
+                'reviewed_by' => $admin->id,
+                'reviewed_at' => now(),
+            ]);
+
+            // Keep partner in original region with verified status restored
+            $partner->update([
+                'status' => UserStatus::Terverifikasi,
+            ]);
+
+            app(NotificationService::class)->sendToUser(
+                $partner,
+                'partner_relocation_rejected',
+                'Perpindahan Wilayah Ditolak',
+                "Permohonan pindah domisili ke {$relocationRequest->toRegion->name} ditolak. Alasan: {$reason}.",
+                ['relocation_id' => $relocationRequest->id, 'rejection_reason' => $reason],
+                'high'
+            );
         });
     }
 }

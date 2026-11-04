@@ -7,6 +7,7 @@ use App\Http\Controllers\Mitra\MitraOrderController;
 use App\Http\Controllers\Mitra\MitraPenaltyController;
 use App\Http\Controllers\Mitra\MitraProfileController;
 use App\Http\Controllers\Mitra\OnboardingController;
+use App\Http\Controllers\Mitra\PartnerRelocationController;
 use App\Http\Controllers\OrderChatController;
 use App\Http\Controllers\OrderRatingController;
 use Illuminate\Support\Facades\Route;
@@ -42,7 +43,6 @@ Route::middleware(['auth', 'role:mitra'])->prefix('mitra')->name('mitra.')->grou
     Route::get('/orders/{order}/chat/messages', [OrderChatController::class, 'getMessages'])->name('orders.chat.messages');
     Route::post('/orders/{order}/chat/messages', [OrderChatController::class, 'sendMessage'])->name('orders.chat.send');
 
-
     // Mitra Incident & Complaints (MIT-19)
     Route::get('/orders/{order}/laporkan-insiden', [MitraComplaintController::class, 'create'])->name('orders.incident.create');
     Route::post('/orders/{order}/laporkan-insiden', [MitraComplaintController::class, 'store'])->name('orders.incident.store');
@@ -51,5 +51,10 @@ Route::middleware(['auth', 'role:mitra'])->prefix('mitra')->name('mitra.')->grou
     Route::get('/sanksi', [MitraPenaltyController::class, 'index'])->name('penalties.index');
     Route::get('/sanksi/banding', [MitraPenaltyController::class, 'createAppeal'])->name('penalties.appeal.create');
     Route::post('/sanksi/banding', [MitraPenaltyController::class, 'storeAppeal'])->name('penalties.appeal.store');
+
+    // Relokasi / Pindah Wilayah Mitra (MIT-22)
+    Route::get('/pindah-wilayah', [PartnerRelocationController::class, 'create'])->name('relocation.create');
+    Route::post('/pindah-wilayah', [PartnerRelocationController::class, 'store'])->name('relocation.store');
+    Route::post('/pindah-wilayah/{relocationRequest}/cancel', [PartnerRelocationController::class, 'cancel'])->name('relocation.cancel');
 
 });

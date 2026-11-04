@@ -14,5 +14,8 @@ Schedule::command('orders:process-instant-offers')->everyMinute();
 // Automatic cancellations for stuck orders and expired payments (SYS-02)
 Schedule::command('orders:process-cancellations')->everyMinute();
 
+// Release partner held balances 24 hours post-completion if no active complaints (SYS-03)
+Schedule::command('app:release-held-balances')->hourly();
+
 // Daily cleanup of expired chat messages & medical notes for UU PDP compliance (SYS-07)
 Schedule::command('app:cleanup-expired-data')->daily();

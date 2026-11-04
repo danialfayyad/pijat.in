@@ -14,6 +14,7 @@ class Wallet extends Model
     protected $fillable = [
         'user_id',
         'balance',
+        'held_balance',
         'currency',
     ];
 
@@ -24,6 +25,7 @@ class Wallet extends Model
     {
         return [
             'balance' => 'decimal:2',
+            'held_balance' => 'decimal:2',
         ];
     }
 
@@ -44,10 +46,34 @@ class Wallet extends Model
     }
 
     /**
-     * Get formatted rupiah balance.
+     * Get formatted rupiah available balance.
      */
     public function getFormattedBalanceAttribute(): string
     {
         return 'Rp '.number_format((float) $this->balance, 0, ',', '.');
+    }
+
+    /**
+     * Get formatted rupiah held balance (24 jam).
+     */
+    public function getFormattedHeldBalanceAttribute(): string
+    {
+        return 'Rp '.number_format((float) $this->held_balance, 0, ',', '.');
+    }
+
+    /**
+     * Get combined total balance (available + held).
+     */
+    public function getTotalBalanceAttribute(): float
+    {
+        return (float) $this->balance + (float) $this->held_balance;
+    }
+
+    /**
+     * Get formatted combined total balance.
+     */
+    public function getFormattedTotalBalanceAttribute(): string
+    {
+        return 'Rp '.number_format($this->total_balance, 0, ',', '.');
     }
 }

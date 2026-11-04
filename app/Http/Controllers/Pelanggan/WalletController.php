@@ -100,11 +100,48 @@ class WalletController extends Controller
         try {
             $this->topupService->markPaid($invoice, 'SIMULATED-'.strtoupper(Str::random(10)));
 
+            if ($invoice->order_id) {
+                return redirect()->route('pelanggan.orders.show', $invoice->order_id)
+                    ->with('success', "Pembayaran tagihan sebesar {$invoice->formatted_amount} berhasil! Pesanan Anda telah lunas dan sistem sedang mencarikan mitra terapis.");
+            }
+
             return redirect()->route('pelanggan.wallet.index')
                 ->with('status', "Pembayaran senilai {$invoice->formatted_amount} berhasil! Saldo dompet Anda telah diperbarui.");
         } catch (DomainException $e) {
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * Check status directly from Xendit API without waiting for webhooks (CUS-09, Localhost support).
+     */
+    public function checkStatus(Request $request, string $invoiceNumber): RedirectResponse|JsonResponse
+    {
+        $invoice = TopupInvoice::where('invoice_number', $invoiceNumber)
+            ->where('user_id', $request->user()->id)
+            ->firstOrFail();
+
+        $isPaid = $this->topupService->checkAndSyncXenditStatus($invoice);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'paid' => $isPaid,
+                'status' => $invoice->fresh()->status,
+                'message' => $isPaid ? 'Pembayaran berhasil terkonfirmasi!' : 'Pembayaran belum terdeteksi di Xendit.',
+            ]);
+        }
+
+        if ($isPaid) {
+            if ($invoice->order_id) {
+                return redirect()->route('pelanggan.orders.show', $invoice->order_id)
+                    ->with('success', 'Pembayaran terkonfirmasi oleh Xendit! Pesanan Anda telah lunas dan sistem sedang mencarikan mitra terapis.');
+            }
+
+            return redirect()->route('pelanggan.wallet.index')
+                ->with('status', "Pembayaran senilai {$invoice->formatted_amount} terkonfirmasi oleh Xendit! Saldo dompet Anda telah bertambah.");
+        }
+
+        return back()->with('warning', 'Pembayaran belum terdeteksi di Xendit. Jika Anda sudah menyelesaikan pembayaran di Xendit, silakan tunggu beberapa detik lalu tekan tombol ini kembali.');
     }
 
     /**

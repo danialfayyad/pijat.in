@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\PartnerRelocationRequest;
 use App\Models\Region;
 use App\Models\User;
 use App\Services\PartnerVerificationService;
@@ -29,10 +30,18 @@ class PartnerVerificationController extends Controller
             : $admin->assignedRegions()->where('status', 'aktif')->get();
 
         $selectedRegionId = $request->filled('region_id') ? (int) $request->input('region_id') : null;
+        $tab = $request->input('tab', 'pendaftaran');
 
         $pendingPartners = $this->verificationService->getPendingPartners($admin, $selectedRegionId);
+        $pendingRelocations = $this->verificationService->getPendingRelocations($admin, $selectedRegionId);
 
-        return view('admin.mitra.index', compact('pendingPartners', 'assignedRegions', 'selectedRegionId'));
+        return view('admin.mitra.index', compact(
+            'pendingPartners',
+            'pendingRelocations',
+            'assignedRegions',
+            'selectedRegionId',
+            'tab'
+        ));
     }
 
     /**
@@ -94,6 +103,50 @@ class PartnerVerificationController extends Controller
                 ->with('status', "Pendaftaran mitra {$mitra->name} telah ditolak dengan alasan tercatat.");
         } catch (DomainException $e) {
             return back()->withErrors(['rejection' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Approve a partner relocation request (MIT-22).
+     */
+    public function approveRelocation(PartnerRelocationRequest $relocationRequest, Request $request): RedirectResponse
+    {
+        $admin = $request->user();
+
+        try {
+            $this->verificationService->approveRelocation($admin, $relocationRequest);
+
+            return redirect()->route('admin.mitra.index', ['tab' => 'relokasi'])
+                ->with('status', "Permohonan relokasi mitra {$relocationRequest->partner->name} ke {$relocationRequest->toRegion->name} berhasil disetujui!");
+        } catch (DomainException $e) {
+            return back()->withErrors(['relocation_approval' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Reject a partner relocation request (MIT-22).
+     */
+    public function rejectRelocation(PartnerRelocationRequest $relocationRequest, Request $request): RedirectResponse
+    {
+        $admin = $request->user();
+
+        $validated = $request->validate([
+            'rejection_reason' => ['required', 'string', 'max:500'],
+        ], [
+            'rejection_reason.required' => 'Alasan penolakan relokasi wajib diisi.',
+        ]);
+
+        try {
+            $this->verificationService->rejectRelocation(
+                $admin,
+                $relocationRequest,
+                $validated['rejection_reason']
+            );
+
+            return redirect()->route('admin.mitra.index', ['tab' => 'relokasi'])
+                ->with('status', "Permohonan relokasi mitra {$relocationRequest->partner->name} telah ditolak.");
+        } catch (DomainException $e) {
+            return back()->withErrors(['relocation_rejection' => $e->getMessage()]);
         }
     }
 }

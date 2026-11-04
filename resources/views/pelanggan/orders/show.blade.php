@@ -708,6 +708,35 @@
                             </div>
                         </div>
 
+                        <!-- 15-minute payment countdown (CUS-09) -->
+                        @php
+                            $paymentDeadline = $order->created_at->addMinutes(15)->timestamp;
+                        @endphp
+                        <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between text-xs"
+                             x-data="{
+                                deadline: {{ $paymentDeadline }},
+                                timeLeft: '',
+                                updateTimer() {
+                                    const now = Math.floor(Date.now() / 1000);
+                                    const diff = Math.max(0, this.deadline - now);
+                                    const m = Math.floor(diff / 60);
+                                    const s = diff % 60;
+                                    this.timeLeft = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+                                },
+                                init() {
+                                    this.updateTimer();
+                                    setInterval(() => this.updateTimer(), 1000);
+                                }
+                             }">
+                            <span class="text-amber-950 font-semibold flex items-center">
+                                <svg class="w-4 h-4 mr-1.5 text-amber-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span>Batas Waktu Pembayaran:</span>
+                            </span>
+                            <span class="text-sm font-black font-mono text-amber-950" x-text="timeLeft">15:00</span>
+                        </div>
+
                         <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5 text-xs">
                             <div class="flex items-center justify-between text-slate-600">
                                 <span>Saldo Dompet Anda:</span>
@@ -717,6 +746,12 @@
                                 <span>Total Tagihan:</span>
                                 <span class="font-extrabold text-slate-900 font-mono">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
                             </div>
+                            @if (! $hasSufficient)
+                                <div class="flex items-center justify-between text-rose-700 pt-1 border-t border-slate-200 font-bold">
+                                    <span>Sisa Kekurangan:</span>
+                                    <span class="font-mono">Rp {{ number_format($deficit, 0, ',', '.') }}</span>
+                                </div>
+                            @endif
                         </div>
 
                         <div class="space-y-2">
@@ -728,6 +763,14 @@
                                         <span>Bayar Sekarang ({{ $userWallet->formatted_balance }})</span>
                                     </button>
                                 </form>
+                            @elseif ($pendingInvoice)
+                                <a href="{{ route('pelanggan.wallet.invoice', $pendingInvoice->invoice_number) }}"
+                                    class="w-full min-h-[44px] py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    <span>Bayar via QRIS / Xendit (+Rp {{ number_format($pendingInvoice->amount, 0, ',', '.') }})</span>
+                                </a>
                             @else
                                 <a href="{{ route('pelanggan.wallet.topup') }}"
                                     class="w-full min-h-[44px] py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">

@@ -20,7 +20,7 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 | **F0** | Fondasi Arsitektur, Kontrak, & Skema Inti | Selesai | 27 Okt 2026 | 27 Okt 2026 | Seluruh kontrak dibekukan, CLAUDE.md dan features.json dibuat |
 | **S1** | Setup Master Wilayah & Penugasan Admin | Selesai | 27 Okt 2026 | 27 Okt 2026 | 10/10 tests pass (RegionAndAdminScopingTest), 41/41 total suite pass, Pint clean, 514 Kota/Kabupaten GeoJSON preset terintegrasi |
 | **S2** | Onboarding, Verifikasi Dokumen, & Profil Mitra | Selesai | 27 Okt 2026 | 27 Okt 2026 | 11/11 tests pass (PartnerOnboardingAndVerificationTest), 53/53 total suite pass, Pint clean, registrasi NIK/KTP/selfie, pin domisili Leaflet di wilayah aktif, antrean verifikasi admin wilayah, proteksi rekening & safeguard re-verifikasi selesai |
-| **S3** | Customer, Alamat Utama, Katalog, & Dompet Top-up | Selesai | 27 Okt 2026 | 28 Okt 2026 | 25/25 tests pass (ServiceCatalogTest, CustomerAddressTest, CustomerCatalogTest, CustomerWalletTest), 100/100 total suite pass, Pint clean; CRUD Katalog Layanan Admin & PWA Customer tanpa add-on selesai; Manajemen Alamat Customer PWA, pin peta Leaflet, validasi spasial ST_Contains wilayah aktif, alamat pertama otomatis jadi alamat utama, dan perpindahan domisili instan selesai; Skema Dompet, mutasi transaksi ledger atomik, pencegahan saldo negatif, top-up mandiri teratribusi wilayah (DEC-02), dan webhook Xendit selesai |
+| **S3** | Customer, Alamat Utama, Katalog, Dompet & Checkout Xendit | Selesai (Core) | 27 Okt 2026 | 04 Nov 2026 | 31/31 tests pass (ServiceCatalogTest, CustomerAddressTest, CustomerCatalogTest, CustomerWalletTest, OrderPaymentGatewayTest), 323/323 total suite pass, Pint clean; CRUD Katalog Layanan Admin & PWA Customer tanpa add-on selesai; Manajemen Alamat Customer PWA, pin peta Leaflet, validasi spasial ST_Contains wilayah aktif, alamat pertama otomatis jadi alamat utama, dan perpindahan domisili instan selesai; Skema Dompet, mutasi transaksi ledger atomik, pencegahan saldo negatif, top-up mandiri teratribusi wilayah (DEC-02), alur checkout pembayaran pesanan via Xendit QRIS (CUS-09), auto-settlement pelunasan pesanan, dan webhook Xendit selesai |
 | **S4** | Pemesanan Terjadwal, Matching FCFS, & Jadwal Mitra | Selesai | 28 Okt 2026 | 29 Okt 2026 | 23/23 tests pass (OrderBookingTest: 10/10, PartnerServicePreferenceTest: 4/4, ScheduledOrderMatchingTest: 6/6, OrderTrackingTest: 3/3), 123/123 total suite pass, Pint clean; CUS-04, CUS-06, CUS-07, SYS-08, MIT-08, MIT-06, MIT-07, CUS-10 Selesai Penuh |
 | **S5** | Pemesanan Instan, Penawaran Sekuensial 60s, & Lock | Selesai | 29 Okt 2026 | 29 Okt 2026 | 6/6 tests pass (InstantOrderMatchingTest), 131/131 total suite pass, Pint clean; CUS-08, MIT-04, MIT-05, SYS-01 Selesai Penuh |
 | **S6** | Pelaksanaan Layanan, Tracking OTW, Tiba 50m, Selesai | Selesai | 31 Okt 2026 | 31 Okt 2026 | 200/200 total test suite pass, Pint clean; Validasi 50m Tiba (MIT-10), Timer durasi pijat (MIT-09), In-app Chat Pesanan (CUS-11, MIT-13), Rating Bintang 1-5 (CUS-14, MIT-14), Riwayat Nota (CUS-15, MIT-17), Idempotensi (SYS-09) Selesai Penuh |
@@ -31,34 +31,34 @@ Dokumen ini adalah *live document* yang wajib diperbarui pada setiap akhir sesi 
 
 | **S7** | Pembatalan, Reschedule, Refund, & Potongan Kompensasi| Selesai Penuh | 31 Okt 2026 | 01 Nov 2026 | CUS-12, CUS-13, MIT-11, MIT-12, SYS-02 Selesai Penuh; 219/219 total suite pass |
 | **S8** | Aduan Wilayah, Poin Sanksi, Banding, & Resolusi Masalah | Selesai Penuh | 30 Okt 2026 | 02 Nov 2026 | ADM-08, ADM-07, ADM-06, CUS-19, CUS-20, MIT-18, MIT-19, SYS-04 Selesai Penuh; ADM-09 dikonsolidasikan ke Manajemen Mitra (S11) per DEC-13; Panic Button ditiadakan per DEC-11; 53/53 tests pass, 276/276 total suite pass |
-| **S9** | Saldo Mitra 24 Jam, Penarikan Dana, Keuangan Wilayah | Siap Dikerjakan | - | - | Tergantung S7, S8 (S8 kini selesai) |
-
-| **S10**| Perpindahan Domisili Customer & Mitra Antarwilayah | Belum Dimulai | - | - | Tergantung S2, S3 |
+| **S9** | Saldo Mitra 24 Jam, Penarikan Dana, Keuangan Wilayah | Selesai Penuh | 03 Nov 2026 | 03 Nov 2026 | 20/20 tests pass (OrderSettlementTest, MitraFinanceTest, CustomerWithdrawalTest, AdminFinanceTest, SuperAdminFinanceTest), 309/309 total suite pass, Pint clean; CUS-17, MIT-15, MIT-16, ADM-11, SA-04, SA-08, SYS-03 Selesai Penuh |
+| **S10**| Perpindahan Domisili Customer & Mitra Antarwilayah | Selesai Penuh | 04 Nov 2026 | 04 Nov 2026 | 8/8 tests pass (PartnerRelocationTest), 317/317 total suite pass, Pint clean; MIT-22, ADM-16 Selesai Penuh |
 | **S11**| Manajemen Pengguna, Audit, & Pelengkap Sistem | Selesai Penuh | 31 Okt 2026 | 02 Nov 2026 | 26/26 tests pass (ADM-05, ADM-14, ADM-16, SA-01, SA-03, SA-05, SYS-06, SYS-07, CUS-21, MIT-21), 238/238 total suite pass, Pint clean; Manajemen parameter operasional, log audit, dokumen legal, moderasi pengguna, isolasi notifikasi wilayah, pembersihan retensi UU PDP & Web Push VAPID selesai |
 
 ---
 
 ### 3. Slice Aktif Saat Ini
 
-- **Slice**: `S11` (**Manajemen Pengguna, Audit, & Pelengkap Sistem**) $\rightarrow$ **Selesai Penuh (100%)**.
+- **Slice**: `S3` (**Payment Gateway Checkout Pesanan via Xendit / QRIS - CUS-09**) $\rightarrow$ **Selesai Penuh (100%)**.
 - **Hasil Sesi Ini**:
-  1. **Manajemen Parameter Operasional & Konfigurasi Sistem (`SA-01`)**:
-     - Tabel `parameters` dengan 34 parameter kontrak, tipe data dinamis, dan caching forever.
-     - Super Admin panel untuk pengelolaan parameter dengan proteksi non-retroaktif dan catatan alasan wajib diisi.
-     - 5/5 tests pass di `ParameterManagementTest`.
-  2. **Log Audit Terpusat (`SA-03`)**:
-     - Tabel `audit_logs` merekam seluruh mutasi sensitif, user actor, model target, old values, new values, IP, dan User Agent.
-     - Antarmuka Super Admin untuk penelusuran audit dengan filter modul, rentang tanggal, aktor, dan modal inspeksi diff JSON.
-     - 3/3 tests pass di `AuditLogTest`.
-  3. **Manajemen Dokumen Legal & SOP (`SA-05`)**:
-     - Tabel `legal_documents` dan seeder 4 dokumen resmi (SOP Kemitraan v2.2, S&K v1.0, Kebijakan Privasi v1.0, Pernyataan Risiko v1.0).
-     - Antarmuka Super Admin untuk pembaruan dokumen dengan riwayat penomoran versi.
-     - 3/3 tests pass di `LegalDocumentTest`.
-  4. **Profil Admin, Ganti Password, & Pusat Notifikasi Antrean (`ADM-14`)**:
-     - Controller `AdminProfileController` & `AdminNotificationController`.
-     - Antarmuka Pusat Notifikasi & Antrean Tugas dengan metrik antrean verifikasi mitra, laporan aduan terbuka, dan pengajuan banding sanksi.
-     - Fitur tandai telah dibaca per baris dan tandai semua telah dibaca.
-     - 3/3 tests pass di `AdminProfileTest`.
+  1. **Relasi Database & Skema (`CUS-09`)**:
+     - Menambahkan kolom `order_id` (nullable foreignId) pada tabel `topup_invoices` melalui migrasi `2026_11_04_021133_add_order_id_to_topup_invoices_table.php`.
+     - Model `TopupInvoice` & `Order` terhubung relasi `order` <-> `topupInvoices`.
+  2. **Alur Checkout & Pembuatan Tagihan Kekurangan Otomatis (Opsi 1)**:
+     - Jika saldo pelanggan mencukupi: didebit seketika dan pesanan langsung masuk `MencariMitra`.
+     - Jika saldo kurang: pesanan masuk status `MenungguPembayaran` (15 menit), sistem secara otomatis menghasilkan invoice tagihan Xendit/QRIS sebesar selisih kekurangannya (`total_price - balance`), dan pelanggan langsung diarahkan ke layar instruksi bayar Xendit/QRIS.
+  3. **Auto-Settlement Pelunasan Pesanan Atomik**:
+     - Pada `TopupService::markPaid()`, saat invoice terikat pesanan dilunasi (baik via Webhook Xendit resmi maupun simulasi bayar), saldo dikreditkan dan otomatis didebit untuk melunasi pesanan.
+     - Status pesanan berpindah seketika ke `MencariMitra`, status history tercatat, dan penawaran ke mitra terdekat (`dispatchNextOffer`) langsung dipicu jika pesanan instan.
+     - Pelanggan otomatis diarahkan kembali ke layar pelacakan terapis pesanan (`pelanggan.orders.show`).
+  4. **Antarmuka PWA Pelanggan**:
+     - Halaman invoice (`pelanggan.wallet.invoice`) menampilkan konteks tagihan pesanan, hitung mundur 15 menit, dan QRIS visual.
+     - Halaman detail pesanan (`pelanggan.orders.show`) menampilkan rincian kekurangan, hitung mundur batas bayar 15 menit, dan tombol cepat bayar via QRIS/Xendit.
+  5. **Pengujian & Verifikasi**:
+     - 6/6 tests pass di `tests/Feature/Pelanggan/OrderPaymentGatewayTest.php`.
+     - 323/323 tests pass di seluruh test suite aplikasi (`vendor/bin/pest --compact`).
+     - Pint clean (`vendor/bin/pint --format agent`).
+     - Vite bundle build sukses (`npm run build`).
   5. **Audit Riwayat Lintas Wilayah (`ADM-16`)**:
      - Admin wilayah baru dapat mengaudit rekam jejak pesanan, sebaran rating, ulasan, dan buku besar poin sanksi dari mitra yang berpindah domisili.
      - Penanganan aduan/pesanan oleh admin luar wilayah dibatasi secara ketat sebatas kasus pesanan tanpa akses ke moderasi umum pengguna.

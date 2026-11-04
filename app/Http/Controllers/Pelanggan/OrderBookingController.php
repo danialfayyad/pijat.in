@@ -335,6 +335,15 @@ class OrderBookingController extends Controller
         try {
             $order = $this->bookingService->createOrder($request->user(), $validated);
 
+            // CUS-09 (Opsi 1): Jika saldo kurang (status MenungguPembayaran), langsung arahkan ke invoice tagihan Xendit / QRIS
+            if ($order->status === OrderStatus::MenungguPembayaran) {
+                $pendingInvoice = $order->latestPendingTopupInvoice();
+                if ($pendingInvoice) {
+                    return redirect()->route('pelanggan.wallet.invoice', $pendingInvoice->invoice_number)
+                        ->with('status', 'Pesanan berhasil dibuat! Silakan selesaikan pembayaran tagihan via QRIS / Xendit dalam 15 menit.');
+                }
+            }
+
             return redirect()->route('pelanggan.orders.show', $order)
                 ->with('success', 'Pesanan Anda berhasil dibuat! Nomor pesanan: '.$order->order_code);
         } catch (ValidationException $e) {
@@ -378,7 +387,9 @@ class OrderBookingController extends Controller
             ->where('from_user_id', $request->user()->id)
             ->first();
 
-        return view('pelanggan.orders.show', compact('order', 'customerLat', 'customerLng', 'mitraLat', 'mitraLng', 'myRating'));
+        $pendingInvoice = $order->latestPendingTopupInvoice();
+
+        return view('pelanggan.orders.show', compact('order', 'customerLat', 'customerLng', 'mitraLat', 'mitraLng', 'myRating', 'pendingInvoice'));
     }
 
     /**

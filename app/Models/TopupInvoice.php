@@ -14,6 +14,7 @@ class TopupInvoice extends Model
         'invoice_number',
         'user_id',
         'region_id',
+        'order_id',
         'amount',
         'status',
         'payment_method',
@@ -49,6 +50,14 @@ class TopupInvoice extends Model
     public function region(): BelongsTo
     {
         return $this->belongsTo(Region::class);
+    }
+
+    /**
+     * @return BelongsTo<Order, $this>
+     */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
     }
 
     public function isPending(): bool

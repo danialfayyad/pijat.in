@@ -29,6 +29,32 @@
             </div>
         </div>
 
+        <!-- Saldo & Keuangan Mitra (MIT-15) -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs flex items-center justify-between">
+            <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Saldo Dompet Kemitraan</span>
+                <div class="flex items-baseline space-x-1 mt-0.5">
+                    <span class="text-xl font-black font-mono text-slate-900">
+                        Rp {{ number_format($user->wallet?->balance ?? 0, 0, ',', '.') }}
+                    </span>
+                    @if (($user->wallet?->held_balance ?? 0) > 0)
+                        <span class="text-[10px] text-amber-700 font-bold ml-1.5">
+                            (+Rp {{ number_format($user->wallet->held_balance, 0, ',', '.') }} tertahan)
+                        </span>
+                    @endif
+                </div>
+            </div>
+            <div>
+                <a href="{{ route('mitra.finance.index') }}"
+                   class="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span>Dompet & Tarik Saldo</span>
+                </a>
+            </div>
+        </div>
+
         <!-- Status Poin Sanksi & Banding (MIT-18) -->
         <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs flex items-center justify-between">
             <div>
@@ -45,6 +71,33 @@
                    class="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer {{ $user->penalty_points > 0 ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100' }}">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span>{{ $user->penalty_points > 0 ? 'Banding / Detail Sanksi' : 'Lihat Riwayat Sanksi' }}</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Wilayah Operasional & Relokasi (MIT-22) -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs flex items-center justify-between">
+            <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Wilayah Operasional Utama</span>
+                <div class="flex items-center space-x-1.5 mt-0.5">
+                    <span class="text-sm font-bold text-slate-900">
+                        {{ $user->partnerProfile?->region?->name ?? 'Belum Ditentukan' }}
+                    </span>
+                    @if ($user->hasPendingRelocation())
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                            Menunggu Verifikasi
+                        </span>
+                    @endif
+                </div>
+            </div>
+            <div>
+                <a href="{{ route('mitra.relocation.create') }}"
+                   class="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100">
+                    <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>Pindah Wilayah</span>
                 </a>
             </div>
         </div>

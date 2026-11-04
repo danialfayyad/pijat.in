@@ -145,6 +145,10 @@ class PartnerOnboardingService
             throw new DomainException('Akun Anda sedang ditangguhkan. Tidak dapat mengaktifkan status online.');
         }
 
+        if ($user->hasPendingRelocation()) {
+            throw new DomainException('Akun Anda sedang dalam proses verifikasi perpindahan domisili ke wilayah lain. Status online dinonaktifkan sementara.');
+        }
+
         $profile = $user->partnerProfile;
         if (! $profile) {
             throw new DomainException('Profil mitra tidak ditemukan.');
