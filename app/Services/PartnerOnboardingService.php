@@ -16,7 +16,8 @@ class PartnerOnboardingService
 {
     public function __construct(
         protected RegionService $regionService,
-        protected ImageCompressionService $imageCompressionService
+        protected ImageCompressionService $imageCompressionService,
+        protected NotificationService $notificationService
     ) {}
 
     /**
@@ -63,7 +64,7 @@ class PartnerOnboardingService
             $secondaryRegionId = null;
         }
 
-        return DB::transaction(function () use ($user, $data, $latitude, $longitude, $activeRegion, $secondaryRegionId) {
+        $partnerProfile = DB::transaction(function () use ($user, $data, $latitude, $longitude, $activeRegion, $secondaryRegionId) {
             // Handle file uploads
             $ktpPath = $this->storeFile($data['ktp_file'], 'partners/ktp');
             $selfiePath = $this->storeFile($data['selfie_file'], 'partners/selfie');
@@ -126,6 +127,10 @@ class PartnerOnboardingService
 
             return $partnerProfile;
         });
+
+        $this->notificationService->notifyPartnerVerificationSubmitted($user->fresh());
+
+        return $partnerProfile;
     }
 
     /**

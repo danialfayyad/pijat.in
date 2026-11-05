@@ -5,12 +5,17 @@ namespace App\Http\Controllers\Pelanggan;
 use App\Enums\AppealStatus;
 use App\Http\Controllers\Controller;
 use App\Models\PenaltyAppeal;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CustomerPenaltyController extends Controller
 {
+    public function __construct(
+        protected NotificationService $notificationService
+    ) {}
+
     /**
      * Display customer penalty points, status, and history (CUS-20).
      */
@@ -111,6 +116,8 @@ class CustomerPenaltyController extends Controller
             'points_to_reverse' => $user->penalty_points,
             'status' => AppealStatus::Menunggu,
         ]);
+
+        $this->notificationService->notifyNewPenaltyAppeal($appeal);
 
         return redirect()->route('pelanggan.penalties.index')
             ->with('success', 'Berkas banding sanksi dengan nomor '.$appeal->appeal_code.' berhasil dikirim. Admin Wilayah akan meninjau dokumen surat pernyataan Anda.');

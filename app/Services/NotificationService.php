@@ -8,8 +8,11 @@ use App\Models\Complaint;
 use App\Models\PenaltyAppeal;
 use App\Models\PushSubscription;
 use App\Models\Region;
+use App\Models\SupportMessage;
+use App\Models\SupportTicket;
 use App\Models\SystemNotification;
 use App\Models\User;
+use App\Models\WithdrawalRequest;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -204,5 +207,157 @@ class NotificationService
             'pending_appeals' => $pendingAppeals,
             'total_tasks' => $pendingVerifications + $openComplaints + $pendingAppeals,
         ];
+    }
+
+    /**
+     * Notify regional admins when a new support ticket is created.
+     *
+     * @return Collection<int, SystemNotification>
+     */
+    public function notifyNewSupportTicket(SupportTicket $ticket): Collection
+    {
+        $roleLabel = ucfirst($ticket->user_role);
+        $userName = $ticket->user?->name ?? 'Pengguna';
+
+        return $this->sendToRegionAdmins(
+            $ticket->region_id,
+            'NOTIF_ADMIN_QUEUE',
+            "Pesan Bantuan Baru: {$roleLabel} {$userName}",
+            "Tiket #{$ticket->ticket_code}: {$ticket->subject}",
+            [
+                'ticket_id' => $ticket->id,
+                'ticket_code' => $ticket->ticket_code,
+                'action_url' => route('admin.support-chats.show', $ticket),
+            ],
+            'high'
+        );
+    }
+
+    /**
+     * Notify customer or partner when an admin replies to their support ticket.
+     */
+    public function notifySupportTicketReply(SupportTicket $ticket, SupportMessage $message): ?SystemNotification
+    {
+        if (! $ticket->user) {
+            return null;
+        }
+
+        $actionUrl = $ticket->user_role === 'mitra'
+            ? route('mitra.help.ticket', $ticket)
+            : route('pelanggan.help.ticket', $ticket);
+
+        return $this->sendToUser(
+            $ticket->user,
+            'NOTIF_SUPPORT_REPLY',
+            'Balasan Bantuan dari Admin Wilayah',
+            "Admin membalas tiket #{$ticket->ticket_code}: {$ticket->subject}",
+            [
+                'ticket_id' => $ticket->id,
+                'ticket_code' => $ticket->ticket_code,
+                'action_url' => $actionUrl,
+            ],
+            'high'
+        );
+    }
+
+    /**
+     * Notify regional admins when a partner submits a withdrawal request (MIT-16).
+     *
+     * @return Collection<int, SystemNotification>
+     */
+    public function notifyWithdrawalRequested(WithdrawalRequest $withdrawal): Collection
+    {
+        $regionId = $withdrawal->region_id ?? $withdrawal->user?->partnerProfile?->region_id ?? $withdrawal->user?->region_id;
+
+        if (! $regionId) {
+            return collect();
+        }
+
+        $isCustomer = $withdrawal->user?->isPelanggan();
+        $userRoleLabel = $isCustomer ? 'Pelanggan' : 'Mitra';
+        $eventCode = $isCustomer ? 'customer_withdrawal_pending' : 'partner_withdrawal_pending';
+        $userName = $withdrawal->user?->name ?? $userRoleLabel;
+
+        return $this->sendToRegionAdmins(
+            $regionId,
+            $eventCode,
+            "Antrean Penarikan Dana {$userRoleLabel}",
+            "{$userRoleLabel} {$userName} mengajukan penarikan dana sebesar Rp ".number_format($withdrawal->amount, 0, ',', '.')." (#{$withdrawal->withdrawal_code})",
+            [
+                'withdrawal_id' => $withdrawal->id,
+                'withdrawal_code' => $withdrawal->withdrawal_code,
+                'action_url' => route('admin.finance.index'),
+            ],
+            'high'
+        );
+    }
+
+    /**
+     * Notify regional admins when a new complaint is filed (CUS-19, MIT-19).
+     *
+     * @return Collection<int, SystemNotification>
+     */
+    public function notifyNewComplaint(Complaint $complaint): Collection
+    {
+        return $this->sendToRegionAdmins(
+            $complaint->region_id,
+            'new_complaint',
+            'Laporan Aduan Baru Masuk',
+            "Tiket aduan #{$complaint->complaint_code}: {$complaint->title}",
+            [
+                'complaint_id' => $complaint->id,
+                'complaint_code' => $complaint->complaint_code,
+                'action_url' => route('admin.complaints.index'),
+            ],
+            $complaint->priority === 'darurat' ? 'high' : 'normal'
+        );
+    }
+
+    /**
+     * Notify regional admins when a partner submits verification or profile change (MIT-01, MIT-20).
+     *
+     * @return Collection<int, SystemNotification>
+     */
+    public function notifyPartnerVerificationSubmitted(User $user): Collection
+    {
+        $regionId = $user->partnerProfile?->region_id ?? $user->region_id;
+
+        if (! $regionId) {
+            return collect();
+        }
+
+        return $this->sendToRegionAdmins(
+            $regionId,
+            'partner_verification_submitted',
+            'Pendaftaran Mitra Baru Menunggu Verifikasi',
+            "Mitra {$user->name} telah memperbarui data dan membutuhkan verifikasi admin wilayah.",
+            [
+                'mitra_id' => $user->id,
+                'action_url' => route('admin.mitra.index'),
+            ],
+            'high'
+        );
+    }
+
+    /**
+     * Notify regional admins when a penalty appeal is submitted (MIT-18, CUS-20).
+     *
+     * @return Collection<int, SystemNotification>
+     */
+    public function notifyNewPenaltyAppeal(PenaltyAppeal $appeal): Collection
+    {
+        $userName = $appeal->user?->name ?? 'Pengguna';
+
+        return $this->sendToRegionAdmins(
+            $appeal->region_id,
+            'new_penalty_appeal',
+            'Pengajuan Banding Sanksi Poin Baru',
+            "Pengajuan banding sanksi sebesar {$appeal->points_to_reverse} poin dari mitra {$userName}.",
+            [
+                'appeal_id' => $appeal->id,
+                'action_url' => route('admin.appeals.index'),
+            ],
+            'high'
+        );
     }
 }

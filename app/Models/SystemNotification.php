@@ -80,6 +80,10 @@ class SystemNotification extends Model
             return (string) $this->data['action_url'];
         }
 
+        if (str_contains($this->event_code, 'withdrawal') || str_contains(strtolower($this->title), 'penarikan') || str_contains(strtolower($this->title), 'pencairan')) {
+            return route('admin.finance.index');
+        }
+
         if (str_contains($this->event_code, 'EMERGENCY')) {
             return route('admin.orders.index');
         }
@@ -96,6 +100,10 @@ class SystemNotification extends Model
             return route('admin.appeals.index');
         }
 
+        if (str_contains(strtolower($this->title), 'bantuan') || str_contains(strtolower($this->title), 'chat')) {
+            return route('admin.support-chats.index');
+        }
+
         if (str_contains(strtolower($this->title), 'legal') || str_contains(strtolower($this->title), 'dokumen')) {
             return route('superadmin.legal-documents.index');
         }
@@ -108,6 +116,10 @@ class SystemNotification extends Model
      */
     public function getActionLabelAttribute(): string
     {
+        if (str_contains($this->event_code, 'withdrawal') || str_contains(strtolower($this->title), 'penarikan') || str_contains(strtolower($this->title), 'pencairan')) {
+            return 'Tinjau Penarikan';
+        }
+
         if (str_contains($this->event_code, 'EMERGENCY')) {
             return 'Tangani Pesanan';
         }
@@ -122,6 +134,10 @@ class SystemNotification extends Model
 
         if (str_contains(strtolower($this->title), 'banding')) {
             return 'Tinjau Banding';
+        }
+
+        if (str_contains(strtolower($this->title), 'bantuan') || str_contains(strtolower($this->title), 'chat')) {
+            return 'Buka Chat';
         }
 
         if (str_contains(strtolower($this->title), 'legal') || str_contains(strtolower($this->title), 'dokumen')) {

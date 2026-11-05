@@ -3,6 +3,7 @@
 use App\Http\Controllers\SuperAdmin\AdminAssignmentController;
 use App\Http\Controllers\SuperAdmin\AuditLogController;
 use App\Http\Controllers\SuperAdmin\ComplaintCategoryController;
+use App\Http\Controllers\SuperAdmin\FaqController;
 use App\Http\Controllers\SuperAdmin\FinanceReportController;
 use App\Http\Controllers\SuperAdmin\LegalDocumentController;
 use App\Http\Controllers\SuperAdmin\ParameterController;
@@ -43,6 +44,13 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::get('/legal-documents', [LegalDocumentController::class, 'index'])->name('legal-documents.index');
     Route::get('/legal-documents/{document}/edit', [LegalDocumentController::class, 'edit'])->name('legal-documents.edit');
     Route::put('/legal-documents/{document}', [LegalDocumentController::class, 'update'])->name('legal-documents.update');
+
+    // FAQ Management (Super Admin)
+    Route::get('/faqs', [FaqController::class, 'index'])->name('faqs.index');
+    Route::post('/faqs', [FaqController::class, 'store'])->name('faqs.store');
+    Route::put('/faqs/{faq}', [FaqController::class, 'update'])->name('faqs.update');
+    Route::post('/faqs/{faq}/toggle', [FaqController::class, 'toggle'])->name('faqs.toggle');
+    Route::delete('/faqs/{faq}', [FaqController::class, 'destroy'])->name('faqs.destroy');
 
     // Financial Monitoring & Cross-Region Reports (SA-04, SA-08)
     Route::get('/finance', [FinanceReportController::class, 'index'])->name('finance.index');

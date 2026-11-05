@@ -180,26 +180,55 @@
                         @endisset
                     </div>
 
-                    <!-- Right: Quick Actions & Notifications (ADM-14) -->
-                    <div class="flex items-center space-x-3">
+                    <!-- Right: Quick Actions & Notifications (ADM-14, Web Push & Desktop Toast) -->
+                    <div class="flex items-center space-x-2 sm:space-x-3" x-data="desktopNotificationCenter()">
                         @if (Auth::user()->isAdmin() || Auth::user()->isSuperadmin())
+                            <!-- Tombol 1: Aktifkan Notifikasi (Jika belum granted) -->
+                            <button type="button"
+                                    x-show="permissionStatus === 'default' && isSupported"
+                                    x-cloak
+                                    @click="requestDesktopPermission()"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-xs cursor-pointer animate-pulse"
+                                    title="Klik untuk mengizinkan pop-up notifikasi di layar laptop Anda">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                <span>Aktifkan Notif Laptop</span>
+                            </button>
+
+                            <!-- Tombol 2: Tes Notifikasi Laptop (Jika sudah granted) -->
+                            <button type="button"
+                                    x-show="permissionStatus === 'granted'"
+                                    x-cloak
+                                    @click="testDesktopNotification()"
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 transition shadow-2xs cursor-pointer"
+                                    title="Klik untuk menguji pop-up banner notifikasi langsung di sudut layar laptop Anda">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <span>Tes Notif Laptop</span>
+                            </button>
+
+                            <!-- Indikator 3: Jika permission diblokir di browser -->
+                            <span x-show="permissionStatus === 'denied'"
+                                  x-cloak
+                                  title="Izin notifikasi diblokir di browser. Klik ikon gembok 🔒 di samping URL untuk mengizinkan."
+                                  class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200/80 rounded-xl cursor-help">
+                                <span>🔒 Notif Diblokir</span>
+                            </span>
+
                             <a href="{{ route('admin.notifications.index') }}" 
                                class="relative p-2 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition"
                                title="Notifikasi & Antrean Tugas">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                                 </svg>
-                                @php
-                                    $unreadNotifsCount = Auth::user()->systemNotifications()->whereNull('read_at')->count();
-                                @endphp
-                                @if ($unreadNotifsCount > 0)
+                                <template x-if="unreadCount > 0">
                                     <span class="absolute top-1 right-1 flex h-4 w-4">
                                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                        <span class="relative inline-flex rounded-full h-4 w-4 bg-emerald-600 text-[9px] font-bold text-white items-center justify-center">
-                                            {{ $unreadNotifsCount > 9 ? '9+' : $unreadNotifsCount }}
+                                        <span class="relative inline-flex rounded-full h-4 w-4 bg-emerald-600 text-[9px] font-bold text-white items-center justify-center"
+                                              x-text="unreadCount > 9 ? '9+' : unreadCount">
                                         </span>
                                     </span>
-                                @endif
+                                </template>
                             </a>
                             <a href="{{ route('admin.profile.edit') }}" 
                                class="p-2 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition"
@@ -222,5 +251,188 @@
 
         <!-- Global Interactive Confirmation Modal Component -->
         <x-confirm-dialog />
+
+        <!-- Web Push & Live Desktop Notification Handler (SYS-06, ADM-14) -->
+        <script>
+            function desktopNotificationCenter() {
+                return {
+                    isSupported: ('Notification' in window),
+                    permissionStatus: ('Notification' in window) ? Notification.permission : 'denied',
+                    unreadCount: {{ Auth::user()->systemNotifications()->whereNull('read_at')->count() }},
+                    lastNotifiedId: parseInt(localStorage.getItem('pijatin_last_notified_id') || '0', 10),
+                    swRegistration: null,
+
+                    init() {
+                        if ('serviceWorker' in navigator) {
+                            navigator.serviceWorker.register('/sw.js')
+                                .then(reg => {
+                                    this.swRegistration = reg;
+                                })
+                                .catch(err => console.debug('Service Worker info:', err));
+                        }
+
+                        // Poll every 10 seconds for new unread notifications
+                        setInterval(() => {
+                            this.pollLatestNotifications();
+                        }, 10000);
+                    },
+
+                    playChime() {
+                        try {
+                            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                            const osc = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                            osc.frequency.setValueAtTime(880, ctx.currentTime + 0.09);
+                            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+                            osc.connect(gain);
+                            gain.connect(ctx.destination);
+                            osc.start();
+                            osc.stop(ctx.currentTime + 0.35);
+                        } catch (e) {
+                            console.debug('Audio chime error:', e);
+                        }
+                    },
+
+                    async requestDesktopPermission() {
+                        if (!('Notification' in window)) {
+                            alert('Browser Anda tidak mendukung Web Notification API.');
+                            return;
+                        }
+
+                        try {
+                            const perm = await Notification.requestPermission();
+                            this.permissionStatus = perm;
+
+                            if (perm === 'granted') {
+                                this.testDesktopNotification();
+                                this.subscribePushManager();
+                            } else if (perm === 'denied') {
+                                alert('Izin notifikasi diblokir di browser. Klik ikon gembok 🔒 di samping address bar (URL) lalu ubah Notification menjadi Allow.');
+                            }
+                        } catch (e) {
+                            console.error('Gagal meminta izin notifikasi:', e);
+                        }
+                    },
+
+                    testDesktopNotification() {
+                        this.playChime();
+                        this.triggerDesktopAlert({
+                            id: Date.now(),
+                            title: 'Pijat.In - Notifikasi Laptop Aktif!',
+                            body: 'Tes berhasil! Banner notifikasi dan nada panggil di layar laptop Anda siap memantau antrean tugas masuk.',
+                            action_url: '{{ route("admin.notifications.index") }}'
+                        });
+                    },
+
+                    async subscribePushManager() {
+                        if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+                        try {
+                            const reg = await navigator.serviceWorker.ready;
+                            const res = await fetch('{{ route("push.public-key") }}');
+                            const { publicKey } = await res.json();
+                            if (!publicKey) return;
+
+                            const convertedKey = this.urlBase64ToUint8Array(publicKey);
+                            const subscription = await reg.pushManager.subscribe({
+                                userVisibleOnly: true,
+                                applicationServerKey: convertedKey
+                            });
+
+                            const subData = subscription.toJSON();
+                            await fetch('{{ route("push.subscribe") }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                },
+                                body: JSON.stringify({
+                                    endpoint: subscription.endpoint,
+                                    public_key: subData.keys?.p256dh || null,
+                                    auth_token: subData.keys?.auth || null,
+                                    content_encoding: 'aes128gcm'
+                                })
+                            });
+                        } catch (e) {
+                            console.debug('Push subscription info:', e);
+                        }
+                    },
+
+                    async pollLatestNotifications() {
+                        try {
+                            const res = await fetch('{{ route("admin.notifications.check-unread") }}', {
+                                headers: { 'Accept': 'application/json' }
+                            });
+                            if (!res.ok) return;
+                            const data = await res.json();
+
+                            this.unreadCount = data.unread_count;
+
+                            if (data.latest && data.latest.id > this.lastNotifiedId) {
+                                this.lastNotifiedId = data.latest.id;
+                                localStorage.setItem('pijatin_last_notified_id', data.latest.id.toString());
+
+                                if (this.permissionStatus === 'granted') {
+                                    this.triggerDesktopAlert(data.latest);
+                                }
+                            }
+                        } catch (e) {
+                            // Silent fail on temporary network hiccup
+                        }
+                    },
+
+                    triggerDesktopAlert(notifData) {
+                        this.playChime();
+                        const title = notifData.title || 'Pijat.In - Tugas Masuk';
+                        const options = {
+                            body: notifData.body || 'Ada antrean operasional atau tugas baru yang memerlukan tindakan Anda.',
+                            icon: '/favicon.ico',
+                            badge: '/favicon.ico',
+                            tag: 'pijatin_alert_' + (notifData.id || Date.now()),
+                            renotify: true,
+                            data: {
+                                action_url: notifData.action_url || '{{ route("admin.notifications.index") }}'
+                            }
+                        };
+
+                        let shown = false;
+                        if ('Notification' in window && Notification.permission === 'granted') {
+                            try {
+                                const n = new Notification(title, options);
+                                n.onclick = (e) => {
+                                    e.preventDefault();
+                                    window.focus();
+                                    window.location.href = options.data.action_url;
+                                };
+                                shown = true;
+                            } catch (err) {
+                                console.debug('Direct notification constructor skipped, trying Service Worker:', err);
+                            }
+                        }
+
+                        if (!shown && this.swRegistration && 'showNotification' in this.swRegistration) {
+                            this.swRegistration.showNotification(title, options).catch(e => console.debug('SW showNotification err:', e));
+                        }
+                    },
+
+                    urlBase64ToUint8Array(base64String) {
+                        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+                        const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+                        const rawData = window.atob(base64);
+                        const outputArray = new Uint8Array(rawData.length);
+                        for (let i = 0; i < rawData.length; ++i) {
+                            outputArray[i] = rawData.charCodeAt(i);
+                        }
+                        return outputArray;
+                    }
+                };
+            }
+            window.desktopNotificationCenter = desktopNotificationCenter;
+            if (window.Alpine) {
+                window.Alpine.data('desktopNotificationCenter', desktopNotificationCenter);
+            }
+        </script>
     </body>
 </html>

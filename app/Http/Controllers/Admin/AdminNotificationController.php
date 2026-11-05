@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SystemNotification;
 use App\Services\NotificationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -53,6 +54,20 @@ class AdminNotificationController extends Controller
     }
 
     /**
+     * Mark notification as read and navigate directly to its action URL.
+     */
+    public function navigate(Request $request, SystemNotification $notification): RedirectResponse
+    {
+        if ($notification->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $notification->markAsRead();
+
+        return redirect()->to($notification->action_url ?? route('admin.notifications.index'));
+    }
+
+    /**
      * Mark all notifications as read for current user.
      */
     public function markAllAsRead(Request $request): RedirectResponse
@@ -62,5 +77,30 @@ class AdminNotificationController extends Controller
         ]);
 
         return back()->with('success', 'Semua notifikasi ditandai telah dibaca.');
+    }
+
+    /**
+     * Polling endpoint to check for latest unread notifications for desktop OS alerts.
+     */
+    public function checkUnread(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (! $user) {
+            return response()->json(['unread_count' => 0, 'latest' => null]);
+        }
+
+        $unreadCount = $user->systemNotifications()->unread()->count();
+        $latest = $user->systemNotifications()->unread()->latest()->first();
+
+        return response()->json([
+            'unread_count' => $unreadCount,
+            'latest' => $latest ? [
+                'id' => $latest->id,
+                'title' => $latest->title,
+                'body' => $latest->body,
+                'action_url' => $latest->action_url ?? route('admin.notifications.index'),
+                'created_at' => $latest->created_at->toIso8601String(),
+            ] : null,
+        ]);
     }
 }

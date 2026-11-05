@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PartnerServicePreference;
 use App\Models\Region;
 use App\Models\Service;
+use App\Services\NotificationService;
 use App\Services\RegionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,19 +18,183 @@ use Illuminate\View\View;
 class MitraProfileController extends Controller
 {
     public function __construct(
-        protected RegionService $regionService
+        protected RegionService $regionService,
+        protected NotificationService $notificationService
     ) {}
 
     /**
-     * Show partner profile and settings (MIT-20, MIT-08).
+     * Show partner profile hub menu (MIT-20, MIT-08).
      */
     public function edit(Request $request): View
     {
         $user = $request->user()->load('partnerProfile.region', 'primaryBankAccount');
         $activeRegions = Region::active()->get(['id', 'name', 'timezone']);
         $services = Service::where('is_active', true)->get();
+        $averageRating = $user->partnerRating();
+        $completedOrdersCount = $user->completedOrdersCount();
 
-        return view('mitra.profile', compact('user', 'activeRegions', 'services'));
+        return view('mitra.profile', compact('user', 'activeRegions', 'services', 'averageRating', 'completedOrdersCount'));
+    }
+
+    /**
+     * Show personal information edit form.
+     */
+    public function editPersonal(Request $request): View
+    {
+        $user = $request->user()->load('partnerProfile');
+
+        return view('mitra.profile.personal', compact('user'));
+    }
+
+    /**
+     * Update personal information.
+     */
+    public function updatePersonal(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:25'],
+        ]);
+
+        $request->user()->update($validated);
+
+        return redirect()->route('mitra.profile')->with('status', 'Data diri berhasil diperbarui.');
+    }
+
+    /**
+     * Show bank account edit form.
+     */
+    public function editBank(Request $request): View
+    {
+        $user = $request->user()->load('primaryBankAccount');
+
+        return view('mitra.profile.bank', compact('user'));
+    }
+
+    /**
+     * Update bank account with re-verification safeguards (MIT-20).
+     */
+    public function updateBank(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'bank_name' => ['required', 'string', 'max:100'],
+            'account_number' => ['required', 'string', 'max:50'],
+            'account_holder_name' => ['required', 'string', 'max:150'],
+        ]);
+
+        $user = $request->user();
+        $currentBank = $user->primaryBankAccount;
+
+        // If account number unchanged, simple update without reverification
+        if ($currentBank && $currentBank->account_number === $validated['account_number']) {
+            $currentBank->update([
+                'bank_name' => $validated['bank_name'],
+                'account_holder_name' => $validated['account_holder_name'],
+            ]);
+
+            return redirect()->route('mitra.profile')->with('status', 'Rekening bank berhasil diperbarui.');
+        }
+
+        // If changed, triggers re-verification safeguards
+        if ($currentBank) {
+            $currentBank->update([
+                'bank_name' => $validated['bank_name'],
+                'account_number' => $validated['account_number'],
+                'account_holder_name' => $validated['account_holder_name'],
+                'is_verified' => false,
+            ]);
+        } else {
+            $user->bankAccounts()->create([
+                'bank_name' => $validated['bank_name'],
+                'account_number' => $validated['account_number'],
+                'account_holder_name' => $validated['account_holder_name'],
+                'is_primary' => true,
+                'is_verified' => false,
+            ]);
+        }
+
+        $user->update(['status' => UserStatus::MenungguVerifikasi]);
+        $this->notificationService->notifyPartnerVerificationSubmitted($user->fresh());
+
+        return redirect()->route('mitra.status')
+            ->with('status', 'Pembaruan nomor rekening memerlukan verifikasi ulang oleh Admin Wilayah.');
+    }
+
+    /**
+     * Show service preferences form (MIT-08).
+     */
+    public function editServices(Request $request): View
+    {
+        $user = $request->user()->load('partnerProfile');
+        $services = Service::where('is_active', true)->get();
+
+        return view('mitra.profile.services', compact('user', 'services'));
+    }
+
+    /**
+     * Update service preferences (MIT-08).
+     */
+    public function updateServices(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'services' => ['required', 'array', 'min:1'],
+            'services.*' => ['integer', 'exists:services,id'],
+        ], [
+            'services.min' => 'Minimal 1 jenis layanan harus tetap aktif.',
+            'services.required' => 'Minimal 1 jenis layanan harus tetap aktif.',
+        ]);
+
+        $profile = $request->user()->partnerProfile;
+        if ($profile) {
+            foreach (Service::where('is_active', true)->get() as $service) {
+                PartnerServicePreference::updateOrCreate(
+                    [
+                        'partner_profile_id' => $profile->id,
+                        'service_id' => $service->id,
+                    ],
+                    [
+                        'is_enabled' => in_array($service->id, $validated['services']),
+                    ]
+                );
+            }
+        }
+
+        return redirect()->route('mitra.profile')->with('status', 'Preferensi layanan berhasil disimpan.');
+    }
+
+    /**
+     * Show password security form.
+     */
+    public function editSecurity(): View
+    {
+        return view('mitra.profile.security');
+    }
+
+    /**
+     * Update password security.
+     */
+    public function updateSecurity(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', 'confirmed', Password::defaults()],
+        ]);
+
+        $request->user()->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return redirect()->route('mitra.profile')->with('status', 'Kata sandi berhasil diubah.');
+    }
+
+    /**
+     * Show partner verification documents.
+     */
+    public function documents(Request $request): View
+    {
+        $user = $request->user()->load('partnerProfile');
+
+        return view('mitra.profile.documents', compact('user'));
     }
 
     /**
@@ -123,6 +288,8 @@ class MitraProfileController extends Controller
         $user->update($userData);
 
         if ($requiresReverification) {
+            $this->notificationService->notifyPartnerVerificationSubmitted($user->fresh());
+
             return redirect()->route('mitra.status')
                 ->with('status', 'Pembaruan data perbankan atau domisili Anda memerlukan verifikasi ulang oleh Admin Wilayah.');
         }

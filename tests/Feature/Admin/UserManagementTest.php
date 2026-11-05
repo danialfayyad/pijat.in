@@ -7,6 +7,7 @@ use App\Models\CustomerAddress;
 use App\Models\Order;
 use App\Models\OrderRating;
 use App\Models\PartnerProfile;
+use App\Models\PenaltyLedger;
 use App\Models\Region;
 use App\Models\Service;
 use App\Models\User;
@@ -295,4 +296,73 @@ test('suspended user cannot authenticate during active suspension', function () 
 
     $response->assertSessionHasErrors('email');
     $this->assertGuest();
+});
+
+test('admin reactivating a blocked user with 150 points defaults to probation policy setting points to 29 and removing blacklist', function () {
+    $mitra = User::factory()->create([
+        'role' => Role::Mitra,
+        'status' => UserStatus::Diblokir,
+        'penalty_points' => 155,
+        'phone' => '081299112233',
+        'region_id' => $this->regionA->id,
+    ]);
+    createTestPartnerProfile($mitra, $this->regionA);
+
+    Blacklist::create([
+        'user_id' => $mitra->id,
+        'phone' => $mitra->phone,
+        'reason' => 'Akumulasi sanksi mencapai 155 poin',
+        'blocked_by' => $this->admin->id,
+    ]);
+
+    expect(Blacklist::where('user_id', $mitra->id)->exists())->toBeTrue();
+
+    $response = $this->actingAs($this->admin)->post(route('admin.users.update-status', $mitra), [
+        'action' => 'activate',
+        'reason' => 'Amnesti: Mitra telah menyelesaikan konseling dan pelatihan etika layanan.',
+        'penalty_policy' => 'probation',
+    ]);
+
+    $response->assertRedirect();
+    $mitra->refresh();
+
+    // Account restored
+    expect($mitra->status)->toBe(UserStatus::Terverifikasi);
+    expect($mitra->isBlocked())->toBeFalse();
+    expect($mitra->suspended_until)->toBeNull();
+
+    // Points reduced to probation threshold (29)
+    expect($mitra->penalty_points)->toBe(29);
+
+    // Blacklist removed so user can authenticate
+    expect(Blacklist::where('user_id', $mitra->id)->exists())->toBeFalse();
+
+    // Penalty ledger created
+    $ledger = PenaltyLedger::where('user_id', $mitra->id)->latest()->first();
+    expect($ledger)->not->toBeNull();
+    expect($ledger->balance_before)->toBe(155);
+    expect($ledger->balance_after)->toBe(29);
+    expect($ledger->points)->toBe(-126);
+});
+
+test('admin reactivating a blocked user with reset policy sets penalty points to 0', function () {
+    $customer = User::factory()->create([
+        'role' => Role::Pelanggan,
+        'status' => UserStatus::Diblokir,
+        'penalty_points' => 150,
+        'region_id' => $this->regionA->id,
+    ]);
+    createTestCustomerAddress($customer, $this->regionA);
+
+    $response = $this->actingAs($this->admin)->post(route('admin.users.update-status', $customer), [
+        'action' => 'activate',
+        'reason' => 'Pemutihan penuh atas persetujuan manajemen pusat.',
+        'penalty_policy' => 'reset',
+    ]);
+
+    $response->assertRedirect();
+    $customer->refresh();
+
+    expect($customer->status)->toBe(UserStatus::Terverifikasi);
+    expect($customer->penalty_points)->toBe(0);
 });

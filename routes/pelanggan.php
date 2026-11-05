@@ -6,6 +6,7 @@ use App\Http\Controllers\Pelanggan\AddressController;
 use App\Http\Controllers\Pelanggan\CatalogController;
 use App\Http\Controllers\Pelanggan\CustomerComplaintController;
 use App\Http\Controllers\Pelanggan\CustomerDashboardController;
+use App\Http\Controllers\Pelanggan\CustomerHelpController;
 use App\Http\Controllers\Pelanggan\CustomerPenaltyController;
 use App\Http\Controllers\Pelanggan\OrderBookingController;
 use App\Http\Controllers\Pelanggan\WalletController;
@@ -61,4 +62,12 @@ Route::middleware(['auth', 'role:pelanggan'])->prefix('pelanggan')->name('pelang
     Route::get('/sanksi', [CustomerPenaltyController::class, 'index'])->name('penalties.index');
     Route::get('/sanksi/banding', [CustomerPenaltyController::class, 'createAppeal'])->name('penalties.appeal.create');
     Route::post('/sanksi/banding', [CustomerPenaltyController::class, 'storeAppeal'])->name('penalties.appeal.store');
+
+    // Customer Help Center & Live Chat Desk
+    Route::get('/bantuan', [CustomerHelpController::class, 'index'])->name('help.index');
+    Route::get('/bantuan/chat', [CustomerHelpController::class, 'chat'])->name('help.chat');
+    Route::post('/bantuan/chat', [CustomerHelpController::class, 'storeTicket'])->name('help.store');
+    Route::get('/bantuan/chat/{ticket}', [CustomerHelpController::class, 'showTicket'])->name('help.ticket');
+    Route::post('/bantuan/chat/{ticket}/reply', [CustomerHelpController::class, 'replyTicket'])->name('help.reply');
+    Route::get('/bantuan/chat/{ticket}/messages', [CustomerHelpController::class, 'fetchMessages'])->name('help.messages');
 });
