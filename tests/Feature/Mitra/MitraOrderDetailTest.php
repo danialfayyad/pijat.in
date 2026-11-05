@@ -336,3 +336,40 @@ test('mitra dapat berangkat jika berada dalam rentang 45 menit sebelum jadwal pe
     $response->assertRedirect(route('mitra.orders.show', $order));
     expect($order->fresh()->status)->toBe(OrderStatus::MenujuLokasi);
 });
+
+test('mitra order details mask sensitive customer data when order is completed more than 24 hours ago', function () {
+    $order = Order::create([
+        'order_code' => 'ORD-ARCHIVE-TEST-MITRA',
+        'order_type' => OrderType::Instan,
+        'customer_id' => $this->customer->id,
+        'customer_address_id' => $this->address->id,
+        'mitra_id' => $this->mitra->id,
+        'region_id' => $this->region->id,
+        'service_id' => $this->service->id,
+        'service_package_id' => $this->package->id,
+        'service_name' => $this->service->name,
+        'duration_minutes' => 60,
+        'total_price' => 100000,
+        'recipient_name' => 'Danial',
+        'recipient_phone' => '082233445566',
+        'recipient_gender' => 'pria',
+        'service_address_text' => 'Jl. Semeru Sangat Rahasia No. 10',
+        'service_coordinate' => ['lat' => -8.1776, 'lng' => 113.7197],
+        'medical_notes' => 'Riwayat cedera pinggang rahasia',
+        'status' => OrderStatus::Selesai,
+        'service_completed_at' => Carbon::now()->subHours(26),
+    ]);
+
+    expect($order->isHistoryArchived())->toBeTrue();
+
+    $response = $this->actingAs($this->mitra)->get(route('mitra.orders.show', $order));
+
+    $response->assertOk();
+    $response->assertSee('Data Lokasi dan Rute Diarsipkan');
+    $response->assertSee('Arsip Riwayat (Lebih dari 24 Jam)');
+    $response->assertSee($order->masked_address);
+    $response->assertDontSee('Jl. Semeru Sangat Rahasia No. 10');
+    $response->assertSee($order->masked_phone);
+    $response->assertDontSee('082233445566');
+    $response->assertDontSee('Riwayat cedera pinggang rahasia');
+});

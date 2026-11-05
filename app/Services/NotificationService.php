@@ -13,6 +13,7 @@ use App\Models\SupportTicket;
 use App\Models\SystemNotification;
 use App\Models\User;
 use App\Models\WithdrawalRequest;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -210,6 +211,7 @@ class NotificationService
     }
 
     /**
+
      * Notify regional admins when a new support ticket is created.
      *
      * @return Collection<int, SystemNotification>
@@ -359,5 +361,14 @@ class NotificationService
             ],
             'high'
         );
+
+     * Delete notifications older than specified retention days (default 30 days / 1 month).
+     */
+    public function pruneOldNotifications(int $days = 30): int
+    {
+        $cutoff = Carbon::now()->subDays($days);
+
+        return SystemNotification::where('created_at', '<', $cutoff)->delete();
+
     }
 }

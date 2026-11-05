@@ -81,14 +81,14 @@
                 </div>
             </div>
 
-            <!-- Evidence Photos Upload -->
+            <!-- Evidence Photos Upload dengan Kompresi Otomatis -->
             <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs space-y-2">
-                <label class="block text-xs font-bold text-slate-800">
-                    Unggah Bukti Foto Pendukung (Opsional, Maks. 3 Foto)
-                </label>
-                <input type="file" name="evidence_photos[]" multiple accept="image/jpeg,image/png,image/webp"
-                    class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
-                <p class="text-[10px] text-slate-400 leading-tight">Format JPG/PNG, ukuran maksimal 2MB per foto.</p>
+                <x-image-upload-compressor 
+                    name="evidence_photos[]" 
+                    label="Unggah Bukti Foto Pendukung (Opsional)" 
+                    :multiple="true" 
+                    :maxFiles="3" 
+                    helpText="Maksimal 3 foto (format JPG/PNG/WEBP). Foto otomatis dikompresi agar ukuran di bawah 2MB." />
                 @error('evidence_photos')
                     <p class="text-[11px] text-rose-600 font-semibold">{{ $message }}</p>
                 @enderror

@@ -55,6 +55,8 @@ class TopupService
                         'payer_email' => $user->email,
                         'description' => "Pengisian saldo dompet Pijat.In ({$invoiceNumber})",
                         'invoice_duration' => self::INVOICE_EXPIRY_MINUTES * 60,
+                        'success_redirect_url' => route('pelanggan.wallet.invoice', $invoiceNumber),
+                        'failure_redirect_url' => route('pelanggan.wallet.invoice', $invoiceNumber),
                     ]);
 
                 if ($response->successful()) {
@@ -105,6 +107,8 @@ class TopupService
                         'payer_email' => $order->customer?->email ?? 'customer@pijat.in',
                         'description' => "Pembayaran pesanan {$order->order_code} ({$invoiceNumber})",
                         'invoice_duration' => self::INVOICE_EXPIRY_MINUTES * 60,
+                        'success_redirect_url' => route('pelanggan.wallet.invoice', $invoiceNumber),
+                        'failure_redirect_url' => route('pelanggan.wallet.invoice', $invoiceNumber),
                     ]);
 
                 if ($response->successful()) {

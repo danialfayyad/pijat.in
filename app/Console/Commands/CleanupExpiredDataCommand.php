@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\OrderMessage;
 use App\Models\Parameter;
+use App\Models\SystemNotification;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
@@ -48,9 +49,13 @@ class CleanupExpiredDataCommand extends Command
             ->whereNotNull('medical_notes')
             ->update(['medical_notes' => null]);
 
+        // 3. Delete system notifications created before cutoff (1 month / 30 days)
+        $deletedNotificationsCount = SystemNotification::where('created_at', '<', $cutoff)->delete();
+
         $this->info('Berhasil membersihkan:');
         $this->line("- {$deletedMessagesCount} pesan chat riwayat.");
         $this->line("- {$clearedMedicalCount} catatan medis pesanan dikosongkan.");
+        $this->line("- {$deletedNotificationsCount} notifikasi sistem lama dihapus.");
 
         // Record audit log for compliance
         AuditLog::record([
@@ -65,6 +70,7 @@ class CleanupExpiredDataCommand extends Command
                 'cutoff' => $cutoff->toIso8601String(),
                 'deleted_messages_count' => $deletedMessagesCount,
                 'cleared_medical_count' => $clearedMedicalCount,
+                'deleted_notifications_count' => $deletedNotificationsCount,
             ],
             'ip_address' => '127.0.0.1',
             'user_agent' => 'CLI/Artisan Schedule',

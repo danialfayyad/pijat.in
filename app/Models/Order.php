@@ -211,6 +211,50 @@ class Order extends Model
     }
 
     /**
+     * Determine if this order's sensitive details are archived (>24 hours post-completion or cancellation).
+     */
+    public function isHistoryArchived(): bool
+    {
+        if (! in_array($this->status, [OrderStatus::Selesai, OrderStatus::Dibatalkan], true)) {
+            return false;
+        }
+
+        $terminalAt = $this->service_completed_at ?? $this->updated_at;
+
+        return $terminalAt ? $terminalAt->diffInHours(now(), false) >= 24 : false;
+    }
+
+    /**
+     * Get masked recipient phone for archived history (e.g. +62812****5678).
+     */
+    public function getMaskedPhoneAttribute(): string
+    {
+        if (empty($this->recipient_phone)) {
+            return '-';
+        }
+
+        $phone = $this->recipient_phone;
+        $len = strlen($phone);
+        if ($len <= 6) {
+            return str_repeat('*', $len);
+        }
+
+        return substr($phone, 0, 4).str_repeat('*', max(4, $len - 7)).substr($phone, -3);
+    }
+
+    /**
+     * Get masked address text for archived history (shows region / city only).
+     */
+    public function getMaskedAddressAttribute(): string
+    {
+        if ($this->region) {
+            return 'Wilayah '.$this->region->name.' (Alamat lengkap telah diarsipkan demi privasi)';
+        }
+
+        return 'Alamat lengkap telah diarsipkan demi privasi';
+    }
+
+    /**
      * Scope orders to specific region ID or list of IDs.
      */
     public function scopeInRegions(Builder $query, array|int $regionIds): Builder

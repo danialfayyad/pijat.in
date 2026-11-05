@@ -57,13 +57,16 @@ class CustomerComplaintController extends Controller
                 ->with('error', 'Batas waktu pengajuan aduan (maksimal 24 jam sejak layanan selesai) telah berakhir.');
         }
 
-        $existingComplaint = Complaint::where('order_id', $order->id)
-            ->where('complainant_id', $user->id)
-            ->first();
+        $existingComplaint = Complaint::where('order_id', $order->id)->first();
 
         if ($existingComplaint) {
-            return redirect()->route('pelanggan.complaints.show', $existingComplaint)
-                ->with('info', 'Anda telah mengajukan aduan untuk pesanan ini.');
+            if ($existingComplaint->complainant_id === $user->id) {
+                return redirect()->route('pelanggan.complaints.show', $existingComplaint)
+                    ->with('info', 'Anda telah mengajukan aduan untuk pesanan ini.');
+            }
+
+            return redirect()->route('pelanggan.orders.show', $order)
+                ->with('info', 'Pesanan ini telah memiliki laporan aduan/kendala yang sedang dalam penanganan Admin Wilayah.');
         }
 
         $categories = ComplaintCategory::where('is_active', true)->orderBy('name')->get();
@@ -92,13 +95,11 @@ class CustomerComplaintController extends Controller
                 ->with('error', 'Batas waktu pengajuan aduan (maksimal 24 jam sejak layanan selesai) telah berakhir.');
         }
 
-        $existingComplaint = Complaint::where('order_id', $order->id)
-            ->where('complainant_id', $user->id)
-            ->first();
+        $existingComplaint = Complaint::where('order_id', $order->id)->first();
 
         if ($existingComplaint) {
             return redirect()->route('pelanggan.orders.show', $order)
-                ->with('error', 'Anda telah mengajukan aduan untuk pesanan ini.');
+                ->with('error', 'Pesanan ini telah memiliki laporan aduan/kendala.');
         }
 
         $validated = $request->validate([
