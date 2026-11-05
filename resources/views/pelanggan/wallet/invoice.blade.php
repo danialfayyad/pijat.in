@@ -138,11 +138,31 @@
                 <div class="p-4 bg-slate-50/80 rounded-xl border border-slate-200/90 space-y-3">
                     <div class="flex items-center justify-between text-xs">
                         <span class="text-slate-600 font-medium">Metode:</span>
-                        <span class="font-bold text-slate-900">{{ $invoice->payment_method }}</span>
+                        <span class="font-bold text-slate-900">{{ $invoice->payment_url ? 'Xendit Gateway (QRIS, VA, E-Wallet)' : $invoice->payment_method }}</span>
                     </div>
 
-                    @if ($invoice->payment_method === 'QRIS')
-                        <!-- QRIS Visual Mockup -->
+                    @if ($invoice->payment_url)
+                        <!-- Modern Xendit Gateway Card -->
+                        <div class="p-4 bg-white rounded-xl border border-blue-200 shadow-2xs space-y-3 text-center">
+                            <div class="w-12 h-12 mx-auto rounded-full bg-blue-50 text-blue-700 flex items-center justify-center">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-900">Tagihan Siap Dibayar di Xendit</h4>
+                                <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                                    Silakan selesaikan pembayaran di halaman aman Xendit. Tersedia pilihan QRIS, Transfer Virtual Account, atau E-Wallet.
+                                </p>
+                            </div>
+
+                            <a href="{{ $invoice->payment_url }}" target="_blank"
+                                class="w-full min-h-[46px] py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-sm transition flex items-center justify-center space-x-2 cursor-pointer">
+                                <span>Buka Halaman Checkout Xendit &rarr;</span>
+                            </a>
+                        </div>
+                    @elseif ($invoice->payment_method === 'QRIS')
+                        <!-- QRIS Visual Mockup (Fallback for local dev) -->
                         <div class="py-3 text-center space-y-2">
                             <div class="w-44 h-44 mx-auto p-3 bg-white rounded-xl border border-slate-200 shadow-xs flex items-center justify-center">
                                 <!-- QR Mockup SVG -->
@@ -153,7 +173,7 @@
                             <span class="text-xs text-slate-500 block">Pindai QRIS dengan aplikasi dompet digital atau mobile banking Anda</span>
                         </div>
                     @else
-                        <!-- Virtual Account Number -->
+                        <!-- Virtual Account Number (Fallback for local dev) -->
                         <div class="p-3 bg-white rounded-xl border border-slate-200 text-center">
                             <span class="text-xs text-slate-500 block font-medium">Nomor Virtual Account:</span>
                             <div class="text-base font-black font-mono text-slate-900 tracking-wider mt-0.5">
@@ -162,15 +182,6 @@
                         </div>
                     @endif
                 </div>
-
-                @if ($invoice->payment_url)
-                    <div class="pt-2">
-                        <a href="{{ $invoice->payment_url }}" target="_blank"
-                            class="w-full min-h-[48px] py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-sm transition flex items-center justify-center space-x-2 cursor-pointer">
-                            <span>Buka Halaman Checkout Xendit Resmi &rarr;</span>
-                        </a>
-                    </div>
-                @endif
 
                 <!-- Button Check Status to Xendit API (No Ngrok needed on localhost!) -->
                 <form action="{{ route('pelanggan.wallet.check-status', $invoice->invoice_number) }}" method="POST" class="pt-2">

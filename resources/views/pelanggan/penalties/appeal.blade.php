@@ -50,25 +50,23 @@
                     <p class="text-[11px] text-slate-400 mt-1">Minimal 10 karakter, maksimal 1000 karakter.</p>
                 </div>
 
-                <!-- Unggah Surat Pernyataan -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">
-                        Dokumen Surat Pernyataan Bermaterai / Bertanda Tangan <span class="text-rose-600">*</span>
-                    </label>
-                    <input type="file" name="statement_letter" required accept=".pdf,image/png,image/jpeg,image/jpg"
-                        class="w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-xl p-2">
-                    <p class="text-[11px] text-slate-400 mt-1">Format PDF, JPG, atau PNG. Maksimal 2MB.</p>
-                </div>
+                <!-- Unggah Surat Pernyataan dengan Kompresi Otomatis -->
+                <x-image-upload-compressor 
+                    name="statement_letter" 
+                    label="Dokumen Surat Pernyataan Bermaterai / Bertanda Tangan" 
+                    :required="true" 
+                    :multiple="false" 
+                    :maxFiles="1" 
+                    accept=".pdf,image/png,image/jpeg,image/jpg"
+                    helpText="Format PDF atau Foto (JPG/PNG). Foto otomatis dikompresi agar ukuran di bawah 2MB." />
 
-                <!-- Foto Bukti Pendukung Opsional -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">
-                        Bukti Pendukung Tambahan (Opsional)
-                    </label>
-                    <input type="file" name="evidence_photos[]" multiple accept="image/png,image/jpeg,image/jpg,image/webp"
-                        class="w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer border border-slate-200 rounded-xl p-2">
-                    <p class="text-[11px] text-slate-400 mt-1">Maksimal 3 foto pendukung (JPG/PNG, maks 2MB per file).</p>
-                </div>
+                <!-- Foto Bukti Pendukung Opsional dengan Kompresi Otomatis -->
+                <x-image-upload-compressor 
+                    name="evidence_photos[]" 
+                    label="Bukti Pendukung Tambahan (Opsional)" 
+                    :multiple="true" 
+                    :maxFiles="3" 
+                    helpText="Maksimal 3 foto pendukung (JPG/PNG/WEBP). Foto otomatis dikompresi agar ukuran di bawah 2MB." />
             </div>
 
             <div class="pt-2">

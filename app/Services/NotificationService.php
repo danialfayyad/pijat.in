@@ -10,6 +10,7 @@ use App\Models\PushSubscription;
 use App\Models\Region;
 use App\Models\SystemNotification;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -204,5 +205,15 @@ class NotificationService
             'pending_appeals' => $pendingAppeals,
             'total_tasks' => $pendingVerifications + $openComplaints + $pendingAppeals,
         ];
+    }
+
+    /**
+     * Delete notifications older than specified retention days (default 30 days / 1 month).
+     */
+    public function pruneOldNotifications(int $days = 30): int
+    {
+        $cutoff = Carbon::now()->subDays($days);
+
+        return SystemNotification::where('created_at', '<', $cutoff)->delete();
     }
 }

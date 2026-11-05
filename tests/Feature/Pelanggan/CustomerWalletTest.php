@@ -67,7 +67,11 @@ test('customer with primary address can create topup invoice with 15-minute expi
         ->and($invoice->region_id)->toBe($this->bandung->id)
         ->and($invoice->expires_at->gt(now()->addMinutes(14)))->toBeTrue();
 
-    $response->assertRedirect(route('pelanggan.wallet.invoice', $invoice->invoice_number));
+    if ($invoice->payment_url) {
+        $response->assertRedirect($invoice->payment_url);
+    } else {
+        $response->assertRedirect(route('pelanggan.wallet.invoice', $invoice->invoice_number));
+    }
 });
 
 test('customer can simulate paying invoice and wallet balance is credited with ledger transaction', function () {

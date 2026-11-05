@@ -106,8 +106,12 @@ it('creates order in MenungguPembayaran, generates deficit invoice, and redirect
         ->and($invoice->user_id)->toBe($this->customer->id)
         ->and($invoice->region_id)->toBe($this->region->id);
 
-    // Opsi 1: Redirects directly to the Xendit / QRIS invoice payment page
-    $response->assertRedirect(route('pelanggan.wallet.invoice', $invoice->invoice_number));
+    // Opsi 1: Redirects directly to the Xendit checkout URL or invoice fallback
+    if ($invoice->payment_url) {
+        $response->assertRedirect($invoice->payment_url);
+    } else {
+        $response->assertRedirect(route('pelanggan.wallet.invoice', $invoice->invoice_number));
+    }
 });
 
 it('allows customer to pay deficit invoice via simulatePay and atomically settles order into MencariMitra', function () {

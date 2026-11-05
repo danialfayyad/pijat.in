@@ -393,10 +393,15 @@
                         </div>
                     </div>
 
-                    <!-- Dokumen Pendukung SKCK -->
+                    <!-- Dokumen Pendukung SKCK dengan Kompresi Otomatis -->
                     <div class="pt-2 border-t border-slate-100">
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Dokumen Pendukung SKCK (Opsional)</label>
-                        <input type="file" name="skck_file" accept="image/*,.pdf" class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-800 hover:file:bg-slate-300 cursor-pointer">
+                        <x-image-upload-compressor 
+                            name="skck_file" 
+                            label="Dokumen Pendukung SKCK (Opsional)" 
+                            :multiple="false" 
+                            :maxFiles="1" 
+                            accept="image/*,.pdf"
+                            helpText="Format PDF atau Foto (JPG/PNG). Foto otomatis dikompresi agar ukuran di bawah 2MB." />
                     </div>
                 </div>
 

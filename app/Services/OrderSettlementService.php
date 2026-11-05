@@ -8,7 +8,6 @@ use App\Models\Order;
 use App\Models\Parameter;
 use App\Models\User;
 use App\Models\WalletTransaction;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class OrderSettlementService
@@ -19,25 +18,25 @@ class OrderSettlementService
     ) {}
 
     /**
-     * Settle completed order by holding 80% earnings in partner's held_balance (SYS-03, MIT-15).
-     * Platform commission (20%) is recorded.
+     * Settle completed order by directly crediting earnings to partner's available balance.
+     * Platform commission is recorded.
      */
     public function settle(Order $order): ?WalletTransaction
     {
-        return $this->holdEarnings($order);
+        return $this->creditEarningsImmediately($order);
     }
 
     /**
-     * Hold partner's order earnings for 24 hours post-completion (SYS-03).
+     * Directly credit partner's order earnings to available balance upon order completion.
      */
-    public function holdEarnings(Order $order): ?WalletTransaction
+    public function creditEarningsImmediately(Order $order): ?WalletTransaction
     {
         if (! $order->mitra_id) {
             return null;
         }
 
         return DB::transaction(function () use ($order) {
-            // Check idempotency: prevent double hold or double credit
+            // Check idempotency: prevent double credit
             $alreadyRecorded = WalletTransaction::where('user_id', $order->mitra_id)
                 ->whereIn('reference_type', ['order_held_pending', 'order_earning'])
                 ->where('reference_id', (string) $order->id)
@@ -56,24 +55,24 @@ class OrderSettlementService
                 return null;
             }
 
-            // Put into held_balance (24h escrow safeguard)
-            $transaction = $this->walletService->creditHeld(
+            // Langsung masuk ke saldo tersedia (available balance)
+            $transaction = $this->walletService->credit(
                 $mitra,
                 $partnerEarning,
-                'order_held_pending',
+                'order_earning',
                 (string) $order->id,
-                "Pendapatan layanan pesanan #{$order->order_code} (Ditahan 24 Jam)",
+                "Pendapatan layanan pesanan #{$order->order_code}",
                 $order->region_id
             );
 
             $formattedEarning = number_format($partnerEarning, 0, ',', '.');
             $this->notificationService->sendToUser(
                 $mitra,
-                'order_earning_held',
-                'Pendapatan Layanan Ditahan (24 Jam)',
-                "Pendapatan sebesar Rp {$formattedEarning} dari pesanan #{$order->order_code} masuk ke Saldo Tertahan dan akan cair otomatis dalam 24 jam.",
+                'order_earning_received',
+                'Pendapatan Layanan Masuk',
+                "Pendapatan sebesar Rp {$formattedEarning} dari pesanan #{$order->order_code} telah masuk ke Saldo Tersedia Anda dan siap ditarik.",
                 ['order_id' => $order->id, 'amount' => $partnerEarning, 'earning' => $partnerEarning],
-                'normal'
+                'high'
             );
 
             return $transaction;
@@ -81,15 +80,23 @@ class OrderSettlementService
     }
 
     /**
-     * Release held earnings to available balance if 24 hours have passed and no active complaints (SYS-03).
+     * Hold partner's order earnings for 24 hours post-completion (SYS-03).
      */
-    public function releaseEarnings(Order $order): ?WalletTransaction
+    public function holdEarnings(Order $order): ?WalletTransaction
+    {
+        return $this->creditEarningsImmediately($order);
+    }
+
+    /**
+     * Release held earnings to available balance.
+     */
+    public function releaseEarnings(Order $order, bool $force = true): ?WalletTransaction
     {
         if (! $order->mitra_id) {
             return null;
         }
 
-        return DB::transaction(function () use ($order) {
+        return DB::transaction(function () use ($order, $force) {
             // 1. Must have an unreleased held earning
             $heldTransaction = WalletTransaction::where('user_id', $order->mitra_id)
                 ->where('reference_type', 'order_held_pending')
@@ -110,13 +117,15 @@ class OrderSettlementService
                 return null;
             }
 
-            // 3. Check for active/open customer complaints on this order
-            $hasActiveComplaint = Complaint::where('order_id', $order->id)
-                ->whereIn('status', [ComplaintStatus::Menunggu, ComplaintStatus::Diproses])
-                ->exists();
+            if (! $force) {
+                $hasActiveCustomerComplaint = Complaint::where('order_id', $order->id)
+                    ->where('complainant_role', 'pelanggan')
+                    ->whereIn('status', [ComplaintStatus::Menunggu, ComplaintStatus::Diproses])
+                    ->exists();
 
-            if ($hasActiveComplaint) {
-                return null;
+                if ($hasActiveCustomerComplaint) {
+                    return null;
+                }
             }
 
             $partnerEarning = (float) $heldTransaction->amount;
@@ -139,8 +148,8 @@ class OrderSettlementService
             $this->notificationService->sendToUser(
                 $mitra,
                 'order_earning_released',
-                'Saldo Siap Tarik Tersedia',
-                "Pendapatan pesanan #{$order->order_code} sebesar Rp {$formattedEarning} telah cair dan siap ditarik.",
+                'Saldo Tersedia Bertambah',
+                "Pendapatan pesanan #{$order->order_code} sebesar Rp {$formattedEarning} telah masuk ke Saldo Tersedia Anda dan siap ditarik.",
                 ['order_id' => $order->id, 'amount' => $partnerEarning, 'earning' => $partnerEarning],
                 'high'
             );
@@ -150,22 +159,13 @@ class OrderSettlementService
     }
 
     /**
-     * Batch process releasing all eligible held balances completed >= 24 hours ago (SYS-03).
+     * Batch process releasing all eligible held balances directly to available balance.
      */
     public function releaseEligibleHeldBalances(): int
     {
-        $threshold = Carbon::now()->subHours(24);
-
-        // Find completed orders completed 24+ hours ago with held earnings pending
+        // Find completed orders with held earnings pending
         $orders = Order::where('status', 'selesai')
             ->whereNotNull('mitra_id')
-            ->where(function ($q) use ($threshold) {
-                $q->where('service_completed_at', '<=', $threshold)
-                    ->orWhere(function ($sub) use ($threshold) {
-                        $sub->whereNull('service_completed_at')
-                            ->where('updated_at', '<=', $threshold);
-                    });
-            })
             ->get();
 
         $releasedCount = 0;

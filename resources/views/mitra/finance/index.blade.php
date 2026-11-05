@@ -56,6 +56,7 @@
             </div>
         </div>
 
+        @if (($wallet->held_balance ?? 0) > 0)
         <!-- Card Saldo Tertahan (24 Jam Escrow) (MIT-15, SYS-03) -->
         <div class="bg-amber-50/80 rounded-2xl p-4 border border-amber-200 shadow-xs relative overflow-hidden">
             <div class="flex items-center justify-between mb-2">
@@ -82,11 +83,6 @@
                 <div class="mt-3 pt-3 border-t border-amber-200/80 space-y-2">
                     <span class="text-[10px] font-bold text-amber-900 uppercase tracking-wider block">Daftar Menunggu Pencairan:</span>
                     @foreach ($heldTransactions as $ht)
-                        @php
-                            $releaseTime = $ht->created_at->addHours(24);
-                            $hoursRemaining = max(0, now()->diffInHours($releaseTime, false));
-                            $minutesRemaining = max(0, now()->diffInMinutes($releaseTime, false) % 60);
-                        @endphp
                         <div class="bg-white rounded-xl p-2.5 border border-amber-200/60 flex items-center justify-between text-xs">
                             <div>
                                 <span class="font-bold text-slate-800 block text-[11px]">{{ $ht->description }}</span>
@@ -96,19 +92,13 @@
                             </div>
                             <div class="text-right">
                                 <span class="font-bold text-amber-900 text-xs block">+Rp {{ number_format($ht->amount, 0, ',', '.') }}</span>
-                                <span class="text-[9px] font-semibold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full">
-                                    @if ($hoursRemaining > 0)
-                                        ~{{ $hoursRemaining }}j {{ $minutesRemaining }}m lagi
-                                    @else
-                                        Segera Cair
-                                    @endif
-                                </span>
                             </div>
                         </div>
                     @endforeach
                 </div>
             @endif
         </div>
+        @endif
 
         <!-- Rekening Terverifikasi -->
         <div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-xs">

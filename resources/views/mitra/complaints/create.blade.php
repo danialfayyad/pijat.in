@@ -87,13 +87,13 @@
                     <p class="text-[11px] text-slate-400 mt-1">Minimal 10 karakter, maksimal 1000 karakter.</p>
                 </div>
 
-                <!-- Bukti Foto -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Foto Bukti Lapangan (Opsional)</label>
-                    <input type="file" name="evidence_photos[]" multiple accept="image/png,image/jpeg,image/jpg,image/webp"
-                        class="w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer border border-slate-200 rounded-xl p-2">
-                    <p class="text-[11px] text-slate-400 mt-1">Maksimal 3 foto (format JPG/PNG, maks 2MB per foto).</p>
-                </div>
+                <!-- Bukti Foto dengan Kompresi Otomatis -->
+                <x-image-upload-compressor 
+                    name="evidence_photos[]" 
+                    label="Foto Bukti Lapangan (Opsional)" 
+                    :multiple="true" 
+                    :maxFiles="3" 
+                    helpText="Maksimal 3 foto (format JPG/PNG/WEBP). Foto otomatis dikompresi agar ukuran di bawah 2MB." />
             </div>
 
             <!-- Submit Button -->

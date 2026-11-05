@@ -314,27 +314,36 @@ class MitraOrderController extends Controller
 
         $order->load(['customer', 'customerAddress', 'service', 'servicePackage', 'region', 'statusHistories']);
 
-        $orderCoords = DB::table('orders')
-            ->selectRaw('ST_Latitude(service_coordinate) as lat, ST_Longitude(service_coordinate) as lng')
-            ->where('id', $order->id)
-            ->first();
+        $isArchived = $order->isHistoryArchived();
 
-        // Customer coordinate from service_coordinate or customerAddress or fallback
-        $customerLat = (float) ($orderCoords?->lat ?? $order->customerAddress?->latitude ?? -8.1720);
-        $customerLng = (float) ($orderCoords?->lng ?? $order->customerAddress?->longitude ?? 113.7000);
-
-        // Partner coordinate from current_coordinate or base coordinate
-        $profileCoords = DB::table('partner_profiles')
-            ->selectRaw('ST_Latitude(COALESCE(current_coordinate, coordinate)) as lat, ST_Longitude(COALESCE(current_coordinate, coordinate)) as lng')
-            ->where('user_id', $user->id)
-            ->first();
-
-        $mitraLat = $profileCoords?->lat ? (float) $profileCoords->lat : $customerLat;
-        $mitraLng = $profileCoords?->lng ? (float) $profileCoords->lng : $customerLng;
-
+        $customerLat = null;
+        $customerLng = null;
+        $mitraLat = null;
+        $mitraLng = null;
         $distanceKm = null;
-        if ($profileCoords?->lat && $profileCoords?->lng) {
-            $distanceKm = $this->calculateDistance($mitraLat, $mitraLng, $customerLat, $customerLng);
+
+        if (! $isArchived) {
+            $orderCoords = DB::table('orders')
+                ->selectRaw('ST_Latitude(service_coordinate) as lat, ST_Longitude(service_coordinate) as lng')
+                ->where('id', $order->id)
+                ->first();
+
+            // Customer coordinate from service_coordinate or customerAddress or fallback
+            $customerLat = (float) ($orderCoords?->lat ?? $order->customerAddress?->latitude ?? -8.1720);
+            $customerLng = (float) ($orderCoords?->lng ?? $order->customerAddress?->longitude ?? 113.7000);
+
+            // Partner coordinate from current_coordinate or base coordinate
+            $profileCoords = DB::table('partner_profiles')
+                ->selectRaw('ST_Latitude(COALESCE(current_coordinate, coordinate)) as lat, ST_Longitude(COALESCE(current_coordinate, coordinate)) as lng')
+                ->where('user_id', $user->id)
+                ->first();
+
+            $mitraLat = $profileCoords?->lat ? (float) $profileCoords->lat : $customerLat;
+            $mitraLng = $profileCoords?->lng ? (float) $profileCoords->lng : $customerLng;
+
+            if ($profileCoords?->lat && $profileCoords?->lng) {
+                $distanceKm = $this->calculateDistance($mitraLat, $mitraLng, $customerLat, $customerLng);
+            }
         }
 
         $maxRadiusKm = self::MAX_SCHEDULED_RADIUS_KM;
@@ -353,7 +362,8 @@ class MitraOrderController extends Controller
             'mitraLng',
             'distanceKm',
             'maxRadiusKm',
-            'myRating'
+            'myRating',
+            'isArchived'
         ));
     }
 
