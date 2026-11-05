@@ -42,6 +42,14 @@
                     {{ $queueSummary['pending_appeals'] }}
                 </span>
             </a>
+
+            <a href="{{ route('admin.finance.index') }}" 
+               class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/80 shadow-2xs text-slate-700 font-medium inline-flex items-center gap-2 transition shrink-0">
+                <span>Antrean Penarikan Dana</span>
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold {{ ($queueSummary['pending_withdrawals'] ?? 0) > 0 ? 'bg-sky-50 text-sky-700 border border-sky-200/80' : 'bg-slate-100 text-slate-400' }}">
+                    {{ $queueSummary['pending_withdrawals'] ?? 0 }}
+                </span>
+            </a>
         </div>
 
         <!-- Master Table Card (Konsisten dengan menu-menu admin lainnya) -->
@@ -103,9 +111,11 @@
                                 $isUnread = ! $item->read_at;
 
                                 $categoryLabel = match(true) {
+                                    str_contains(strtolower($item->title), 'penarikan') || str_contains(strtolower($item->title), 'pencairan') => 'Keuangan Wilayah',
                                     str_contains(strtolower($item->title), 'verifikasi') || str_contains(strtolower($item->title), 'mitra') => 'Verifikasi Mitra',
                                     str_contains(strtolower($item->title), 'aduan') => 'Laporan Aduan',
                                     str_contains(strtolower($item->title), 'banding') => 'Banding Sanksi',
+                                    str_contains(strtolower($item->title), 'bantuan') || str_contains(strtolower($item->title), 'chat') => 'Live Chat Bantuan',
                                     str_contains(strtolower($item->title), 'legal') || str_contains(strtolower($item->title), 'dokumen') => 'Dokumen Legal',
                                     str_contains(strtolower($item->title), 'parameter') => 'Parameter Sistem',
                                     default => 'Operasional Sistem',
@@ -152,25 +162,36 @@
                                 </td>
 
                                 <!-- Aksi -->
-                                <td class="px-5 py-4 whitespace-nowrap text-right space-x-1.5">
-                                    @if ($item->action_url)
-                                        <a href="{{ $item->action_url }}" 
-                                           class="px-3 py-1.5 bg-white hover:bg-slate-50 text-emerald-700 hover:text-emerald-800 font-semibold rounded-xl text-xs transition border border-slate-200 shadow-2xs inline-flex items-center gap-1 cursor-pointer">
-                                            <span>{{ $item->action_label }}</span>
-                                            <span>&rarr;</span>
-                                        </a>
-                                    @endif
+                                <td class="px-5 py-3.5 whitespace-nowrap text-right">
+                                    <div class="inline-flex items-center justify-end gap-2">
+                                        @if ($item->action_url)
+                                            <a href="{{ route('admin.notifications.go', $item) }}" 
+                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-white hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-200 rounded-xl transition shadow-2xs group cursor-pointer">
+                                                <span>{{ $item->action_label }}</span>
+                                                <span class="text-emerald-500 group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+                                            </a>
+                                        @endif
 
-                                    @if ($isUnread)
-                                        <form method="POST" action="{{ route('admin.notifications.read', $item) }}" class="inline-block">
-                                            @csrf
-                                            <button type="submit" 
-                                                    title="Tandai telah dibaca" 
-                                                    class="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 font-medium rounded-xl text-xs transition border border-slate-200 shadow-2xs cursor-pointer">
-                                                Tandai Dibaca
-                                            </button>
-                                        </form>
-                                    @endif
+                                        @if ($isUnread)
+                                            <form method="POST" action="{{ route('admin.notifications.read', $item) }}" class="inline-flex">
+                                                @csrf
+                                                <button type="submit" 
+                                                        title="Tandai telah dibaca" 
+                                                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50/70 transition shadow-2xs cursor-pointer">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <!-- Spacer fixed width agar tombol aksi utama di sebelah kiri tetap presisi dan sejajar -->
+                                            <div class="w-7 h-7 hidden sm:block"></div>
+                                        @endif
+
+                                        @if (! $item->action_url && ! $isUnread)
+                                            <span class="text-slate-300 text-xs px-2 select-none">&mdash;</span>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty

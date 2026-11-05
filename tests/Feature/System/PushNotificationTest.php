@@ -1,12 +1,17 @@
 <?php
 
+use App\Enums\AppealStatus;
+use App\Enums\ComplaintStatus;
 use App\Enums\Role;
 use App\Enums\UserStatus;
+use App\Models\Complaint;
 use App\Models\Order;
+use App\Models\PenaltyAppeal;
 use App\Models\PushSubscription;
 use App\Models\Region;
 use App\Models\SystemNotification;
 use App\Models\User;
+use App\Models\WithdrawalRequest;
 use App\Services\NotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -264,4 +269,130 @@ test('admin can view task queue summary, read notifications, and mark them as re
     $readAllResponse->assertRedirect();
 
     expect($admin->systemNotifications()->unread()->count())->toBe(0);
+});
+
+test('admin clicking action url marks notification as read and navigates to target (ADM-14)', function () {
+    $admin = User::factory()->create(['role' => Role::Admin]);
+    $admin->assignedRegions()->attach($this->regionA->id);
+
+    $notif = $this->notificationService->sendToUser(
+        $admin,
+        'NOTIF_ADMIN_QUEUE',
+        'Laporan Aduan Pelanggan Masuk',
+        'Aduan baru diterima',
+        ['action_url' => route('admin.complaints.index')]
+    );
+
+    expect($notif->read_at)->toBeNull();
+
+    $response = $this->actingAs($admin)->get(route('admin.notifications.go', $notif));
+    $response->assertRedirect(route('admin.complaints.index'));
+
+    $notif->refresh();
+    expect($notif->read_at)->not->toBeNull();
+});
+
+test('desktop heartbeat check-unread returns accurate unread count and latest notification', function () {
+    $admin = User::factory()->create(['role' => Role::Admin]);
+    $admin->assignedRegions()->attach($this->regionA->id);
+
+    // Initial check: 0 unread
+    $response = $this->actingAs($admin)->getJson(route('admin.notifications.check-unread'));
+    $response->assertOk()
+        ->assertJson([
+            'unread_count' => 0,
+            'latest' => null,
+        ]);
+
+    // Send notification
+    $notif = $this->notificationService->sendToUser(
+        $admin,
+        'NOTIF_ADMIN_QUEUE',
+        'Antrean Baru',
+        'Deskripsi antrean tugas',
+        ['action_url' => route('admin.finance.index')]
+    );
+
+    // Check again
+    $response = $this->actingAs($admin)->getJson(route('admin.notifications.check-unread'));
+    $response->assertOk()
+        ->assertJson([
+            'unread_count' => 1,
+            'latest' => [
+                'id' => $notif->id,
+                'title' => 'Antrean Baru',
+                'body' => 'Deskripsi antrean tugas',
+                'action_url' => route('admin.finance.index'),
+            ],
+        ]);
+});
+
+test('operational task triggers create notifications for assigned region admins across 4 core features', function () {
+    $admin = User::factory()->create(['role' => Role::Admin]);
+    $admin->assignedRegions()->attach($this->regionA->id);
+
+    $mitra = User::factory()->create([
+        'role' => Role::Mitra,
+        'region_id' => $this->regionA->id,
+        'name' => 'Budi Terapis',
+    ]);
+
+    // 1. Withdrawal Trigger
+    $withdrawal = WithdrawalRequest::create([
+        'withdrawal_code' => 'WDR-TEST-001',
+        'user_id' => $mitra->id,
+        'bank_account_id' => null,
+        'region_id' => $this->regionA->id,
+        'amount' => 250000,
+        'fee' => 0,
+        'net_amount' => 250000,
+        'bank_name' => 'BCA',
+        'account_number' => '1234567890',
+        'account_holder_name' => 'Budi Terapis',
+        'status' => WithdrawalRequest::STATUS_PENDING,
+    ]);
+    $this->notificationService->notifyWithdrawalRequested($withdrawal);
+
+    // 2. Complaint Trigger
+    $order = Order::factory()->create([
+        'region_id' => $this->regionA->id,
+        'mitra_id' => $mitra->id,
+    ]);
+
+    $complaint = Complaint::create([
+        'order_id' => $order->id,
+        'region_id' => $this->regionA->id,
+        'complainant_id' => $mitra->id,
+        'complainant_role' => 'mitra',
+        'target_id' => null,
+        'title' => 'Alamat pelanggan tidak ditemukan',
+        'description' => 'Pelanggan tidak bisa dihubungi saat tiba di titik penjemputan.',
+        'status' => ComplaintStatus::Menunggu,
+        'priority' => 'tinggi',
+    ]);
+    $this->notificationService->notifyNewComplaint($complaint);
+
+    // 3. Partner KYC Verification Trigger
+    $this->notificationService->notifyPartnerVerificationSubmitted($mitra);
+
+    // 4. Penalty Appeal Trigger
+    $appeal = PenaltyAppeal::create([
+        'user_id' => $mitra->id,
+        'region_id' => $this->regionA->id,
+        'statement_letter_path' => 'appeals/letters/test-letter.pdf',
+        'reason' => 'Saya terlambat karena ban bocor di jalan, ada bukti bengkel.',
+        'points_to_reverse' => 10,
+        'status' => AppealStatus::Menunggu,
+    ]);
+    $this->notificationService->notifyNewPenaltyAppeal($appeal);
+
+    // Assert that the admin received all 4 notifications
+    $adminNotifications = $admin->systemNotifications()->latest()->get();
+    expect($adminNotifications->count())->toBe(4);
+
+    $titles = $adminNotifications->pluck('title')->all();
+    expect($titles)->toContain('Antrean Penarikan Dana Mitra')
+        ->toContain('Laporan Aduan Baru Masuk')
+        ->toContain('Pendaftaran Mitra Baru Menunggu Verifikasi')
+        ->toContain('Pengajuan Banding Sanksi Poin Baru');
 });

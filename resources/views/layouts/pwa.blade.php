@@ -4,9 +4,33 @@
     'backUrl' => null,
     'headerAction' => null,
     'fullBleed' => false,
-    'hideDock' => false,
+    'hideDock' => null,
     'requireLocation' => true,
 ])
+@php
+    $isRootTab = false;
+    if (Auth::check()) {
+        if (Auth::user()->isMitra()) {
+            $isRootTab = request()->routeIs([
+                'mitra.dashboard',
+                'mitra.orders.scheduled',
+                'mitra.orders.my-schedule',
+                'mitra.finance.index',
+                'mitra.profile',
+            ]);
+        } elseif (Auth::user()->isPelanggan()) {
+            $isRootTab = request()->routeIs([
+                'pelanggan.dashboard',
+                'pelanggan.catalog.index',
+                'pelanggan.wallet.index',
+                'pelanggan.orders.index',
+                'profile.edit',
+            ]);
+        }
+    }
+
+    $shouldHideDock = $hideDock ?? (!$isRootTab);
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-slate-900">
 <head>
@@ -33,10 +57,10 @@
 </head>
 <body class="h-full font-sans antialiased bg-slate-900 text-slate-800">
     <!-- PWA Outer Shell Container: Centered on desktop, full-width on mobile -->
-    <div class="{{ ($fullBleed ?? false) ? 'h-screen max-h-screen flex flex-col justify-between max-w-md mx-auto bg-slate-50 relative shadow-2xl border-x border-slate-200/80 overflow-hidden' : 'min-h-screen flex flex-col justify-between max-w-md mx-auto bg-slate-50 relative shadow-2xl border-x border-slate-200/80' }}">
+    <div class="{{ ($fullBleed ?? false) ? 'h-[100dvh] max-h-[100dvh] flex flex-col justify-between max-w-md mx-auto bg-slate-50 relative shadow-2xl border-x border-slate-200/80 overflow-hidden' : 'min-h-screen flex flex-col justify-between max-w-md mx-auto bg-slate-50 relative shadow-2xl border-x border-slate-200/80' }}">
 
         <!-- Top PWA App Bar -->
-        <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/70 px-4 py-3 flex items-center justify-between">
+        <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/70 px-4 py-3 flex items-center justify-between shrink-0">
             <div class="flex items-center space-x-2.5">
                 @if (isset($backUrl))
                     <a href="{{ $backUrl }}" class="w-8 h-8 -ml-1 rounded-full flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
@@ -95,13 +119,13 @@
         </header>
 
         <!-- Main Content Area -->
-        <main class="{{ ($fullBleed ?? false) ? 'flex-1 relative overflow-hidden h-full' : 'flex-1 pb-24 px-4 pt-3' }}">
+        <main class="{{ ($fullBleed ?? false) ? 'flex-1 relative overflow-hidden h-full flex flex-col min-h-0' : ($shouldHideDock ? 'flex-1 pb-8 px-4 pt-3' : 'flex-1 pb-24 px-4 pt-3') }}">
             {{ $slot }}
         </main>
 
         <!-- Bottom Navigation Bar (Dock) -->
         @auth
-            @if (!($hideDock ?? false))
+            @if (!$shouldHideDock)
                 @if (Auth::user()->isMitra() && Auth::user()->isTerverifikasi())
                 <!-- Mitra Verified Dock -->
                 <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 py-2 shadow-lg flex items-center justify-around" aria-label="Navigasi Utama Mitra">

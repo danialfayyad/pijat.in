@@ -59,28 +59,28 @@
         </div>
 
         <!-- Filter Status Tabs (Di Luar Tabel, Sesuai Standar Sistem) -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div class="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-none">
             <!-- Tab Semua -->
             <a href="{{ route('admin.penalties.index', array_merge(request()->except('status', 'page'), ['status' => 'semua'])) }}"
-               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $currentTab === 'semua' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+               class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition whitespace-nowrap {{ $currentTab === 'semua' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/90' }}">
                 Semua
             </a>
 
             <!-- Tab Peringatan -->
             <a href="{{ route('admin.penalties.index', array_merge(request()->except('status', 'page'), ['status' => 'peringatan'])) }}"
-               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $currentTab === 'peringatan' ? 'bg-amber-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+               class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition whitespace-nowrap {{ $currentTab === 'peringatan' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/90' }}">
                 Peringatan
             </a>
 
             <!-- Tab Tersuspend -->
             <a href="{{ route('admin.penalties.index', array_merge(request()->except('status', 'page'), ['status' => 'tersuspend'])) }}"
-               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $currentTab === 'tersuspend' ? 'bg-orange-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+               class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition whitespace-nowrap {{ $currentTab === 'tersuspend' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/90' }}">
                 Tersuspend
             </a>
 
             <!-- Tab Diblokir -->
             <a href="{{ route('admin.penalties.index', array_merge(request()->except('status', 'page'), ['status' => 'banned'])) }}"
-               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $currentTab === 'banned' ? 'bg-rose-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+               class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition whitespace-nowrap {{ $currentTab === 'banned' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/90' }}">
                 Diblokir
             </a>
         </div>
@@ -127,15 +127,20 @@
                         </div>
                     @endif
 
-                    <!-- 3. Peran Filter (Posisi Ketiga) -->
-                    <div class="flex items-center space-x-1.5 shrink-0">
-                        <label for="role_filter" class="text-xs font-semibold text-slate-600 shrink-0">Peran:</label>
-                        <select id="role_filter" name="role" onchange="this.form.submit()"
-                                class="text-xs font-semibold border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs py-2 pl-3.5 pr-8 cursor-pointer">
-                            <option value="">Semua Peran</option>
-                            <option value="mitra" {{ request('role') === 'mitra' ? 'selected' : '' }}>Mitra</option>
-                            <option value="pelanggan" {{ request('role') === 'pelanggan' ? 'selected' : '' }}>Pelanggan</option>
-                        </select>
+                    <!-- 3. Peran Filter (Segmented Tab Sesuai Desain) -->
+                    <div class="bg-slate-100/90 p-1 rounded-2xl inline-flex items-center gap-1 shrink-0">
+                        <a href="{{ route('admin.penalties.index', array_merge(request()->except('role', 'page'), ['role' => ''])) }}"
+                           class="px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition {{ !request('role') ? 'bg-white text-slate-800 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-800' }}">
+                            Semua
+                        </a>
+                        <a href="{{ route('admin.penalties.index', array_merge(request()->except('role', 'page'), ['role' => 'pelanggan'])) }}"
+                           class="px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition {{ request('role') === 'pelanggan' ? 'bg-white text-slate-800 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-800' }}">
+                            Pelanggan
+                        </a>
+                        <a href="{{ route('admin.penalties.index', array_merge(request()->except('role', 'page'), ['role' => 'mitra'])) }}"
+                           class="px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition {{ request('role') === 'mitra' ? 'bg-white text-slate-800 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-800' }}">
+                            Mitra
+                        </a>
                     </div>
 
                     <!-- 4. Reset Button -->

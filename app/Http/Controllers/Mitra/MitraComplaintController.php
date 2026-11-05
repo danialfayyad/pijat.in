@@ -7,12 +7,17 @@ use App\Http\Controllers\Controller;
 use App\Models\Complaint;
 use App\Models\ComplaintCategory;
 use App\Models\Order;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class MitraComplaintController extends Controller
 {
+    public function __construct(
+        protected NotificationService $notificationService
+    ) {}
+
     /**
      * Show incident / complaint submission form for an order (MIT-19).
      */
@@ -92,6 +97,8 @@ class MitraComplaintController extends Controller
             'status' => ComplaintStatus::Menunggu,
             'priority' => $priority,
         ]);
+
+        $this->notificationService->notifyNewComplaint($complaint);
 
         $msg = $isEmergency
             ? 'Peringatan darurat dan laporan insiden tiket '.$complaint->complaint_code.' telah diteruskan ke Admin Wilayah dengan status prioritas darurat.'

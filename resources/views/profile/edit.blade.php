@@ -129,6 +129,20 @@
                             <span class="text-[10px] text-slate-400 font-mono">{{ auth()->user()->penalty_points }} Poin</span>
                         </div>
                     </a>
+
+                    <a href="{{ route('pelanggan.help.index') }}"
+                       class="col-span-2 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-4 border border-emerald-200/80 shadow-xs hover:border-emerald-300 transition flex items-center justify-between cursor-pointer">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="block text-xs font-bold text-slate-900 leading-tight">Pusat Bantuan & Live Chat</span>
+                                <span class="text-[10px] text-slate-500">FAQ & bantuan operasional admin wilayah</span>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
                 </div>
             @endif
 

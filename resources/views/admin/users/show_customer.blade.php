@@ -282,6 +282,24 @@
                     @csrf
                     <input type="hidden" name="action" value="activate">
 
+                    @if ($user->penalty_points >= 30)
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-xs font-bold text-slate-700">Penyesuaian Poin Sanksi</label>
+                                <span class="text-[11px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">
+                                    {{ $user->penalty_points }} Poin
+                                </span>
+                            </div>
+                            <select name="penalty_policy" class="w-full text-xs rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 bg-white py-2">
+                                <option value="probation" selected>Masa Percobaan (Setel ke 29 Poin)</option>
+                                <option value="reset">Pemutihan Penuh (Reset ke 0 Poin)</option>
+                                @if ($user->penalty_points < 60)
+                                    <option value="keep">Pertahankan Poin ({{ $user->penalty_points }} Poin)</option>
+                                @endif
+                            </select>
+                        </div>
+                    @endif
+
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Alasan Pengaktifan <span class="text-rose-500">*</span></label>
                         <textarea name="reason" 

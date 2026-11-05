@@ -254,15 +254,23 @@ class WalletController extends Controller
                 $regionId
             );
 
-            // Notify Regional Admins
-            $this->notificationService->sendToRegionAdmins(
-                $regionId,
-                'customer_withdrawal_pending',
-                'Antrean Penarikan Saldo Pelanggan',
-                "Pelanggan {$user->name} mengajukan penarikan dana sebesar Rp ".number_format($amount, 0, ',', '.')." ({$withdrawal->withdrawal_code}).",
-                ['withdrawal_id' => $withdrawal->id, 'withdrawal_code' => $withdrawal->withdrawal_code, 'amount' => $amount],
-                'high'
+            // 1. Notify Customer itself
+            $this->notificationService->sendToUser(
+                $user,
+                'withdrawal_requested',
+                'Pengajuan Penarikan Saldo Berhasil',
+                'Permohonan penarikan saldo sebesar Rp '.number_format($amount, 0, ',', '.')." ({$withdrawal->withdrawal_code}) telah berhasil diajukan dan sedang menunggu verifikasi admin wilayah.",
+                [
+                    'withdrawal_id' => $withdrawal->id,
+                    'withdrawal_code' => $withdrawal->withdrawal_code,
+                    'amount' => $amount,
+                    'action_url' => route('pelanggan.wallet.index'),
+                ],
+                'normal'
             );
+
+            // 2. Notify Regional Admins
+            $this->notificationService->notifyWithdrawalRequested($withdrawal);
         });
 
         return redirect()->route('pelanggan.wallet.index')

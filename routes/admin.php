@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\PartnerVerificationController;
 use App\Http\Controllers\Admin\PenaltyAppealController;
 use App\Http\Controllers\Admin\PenaltyMonitoringController;
 use App\Http\Controllers\Admin\ServiceCatalogController;
+use App\Http\Controllers\Admin\SupportChatController;
 use App\Http\Controllers\Admin\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
@@ -65,8 +66,18 @@ Route::middleware(['auth', 'role:admin,superadmin', 'admin.region'])->prefix('ad
 
     // Notifications & Task Queue (ADM-14, SYS-06)
     Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/check-unread', [AdminNotificationController::class, 'checkUnread'])->name('notifications.check-unread');
+    Route::get('/notifications/{notification}/go', [AdminNotificationController::class, 'navigate'])->name('notifications.go');
     Route::post('/notifications/{notification}/read', [AdminNotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [AdminNotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+
+    // Live Chat Support Desk (Admin Wilayah)
+    Route::get('/support-chats', [SupportChatController::class, 'index'])->name('support-chats.index');
+    Route::get('/support-chats/{ticket}', [SupportChatController::class, 'show'])->name('support-chats.show');
+    Route::post('/support-chats/{ticket}/reply', [SupportChatController::class, 'reply'])->name('support-chats.reply');
+    Route::post('/support-chats/{ticket}/close', [SupportChatController::class, 'close'])->name('support-chats.close');
+    Route::post('/support-chats/{ticket}/reopen', [SupportChatController::class, 'reopen'])->name('support-chats.reopen');
+    Route::get('/support-chats/{ticket}/messages', [SupportChatController::class, 'fetchMessages'])->name('support-chats.messages');
 });
 
 // Global Service Catalog routes (permission: KATALOG)

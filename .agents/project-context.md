@@ -48,6 +48,11 @@ Pijat.in is presented as a massage and wellness marketplace. The public landing 
 - Partner Inter-Region Relocation & Audit Preservation (Slice 10 / S10 / MIT-22, ADM-16):
   - Partner relocation request flow (`/mitra/pindah-wilayah`) with interactive Leaflet map pin and address text in any active operating region.
   - Strict prerequisite: Blocked if partner has active or scheduled orders (`dijadwalkan`, `menuju_lokasi`, `tiba`, `sedang_berlangsung`).
+- FAQ Management & Regional Live Chat Support Desk:
+  - Centralized FAQ Management (`/superadmin/faqs`): Superadmin creates, edits, sorts, and toggles active status for FAQ entries segmented by target audience (`pelanggan`, `mitra`, `semua`) and categories.
+  - Regional Live Chat Support Desk (`/admin/support-chats`): Regional Admin support desk strictly scoped to assigned operational regions (`admin.region`), providing real-time bidirectional messaging, auto-polling every 4 seconds, ticket resolution/reopening, user context summary, and integrated system notifications.
+  - Customer Help Center & Live Chat (`/pelanggan/bantuan` & `/pelanggan/bantuan/chat`): Customers access categorized FAQ self-service, real-time client search, and escalate unanswered questions to regional admin live chat bound to customer's active region.
+  - Partner Help Center & Live Chat (`/mitra/bantuan` & `/mitra/bantuan/chat`): Partners access partner-specific and general FAQs, and escalate field issues or inquiries directly to assigned regional operational admins via dedicated live chat.
   - Account frozen: While pending destination regional admin review, partner cannot toggle online (`is_active = false`) and wallet withdrawals are locked.
   - Destination Regional Admin review tab (`/admin/mitra/verifikasi?tab=relokasi`) with approve/reject actions and mandatory rejection reason.
   - Audit history preserved (ADM-16): When approved, `region_id` and address update seamlessly while historical orders, ratings, and penalty ledger remain intact for full cross-region audit inspection.

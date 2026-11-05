@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Complaint;
 use App\Models\ComplaintCategory;
 use App\Models\Order;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,10 @@ use Illuminate\View\View;
 
 class CustomerComplaintController extends Controller
 {
+    public function __construct(
+        protected NotificationService $notificationService
+    ) {}
+
     /**
      * Display a listing of complaints filed by the customer.
      */
@@ -134,6 +139,8 @@ class CustomerComplaintController extends Controller
             'status' => ComplaintStatus::Menunggu,
             'priority' => 'normal',
         ]);
+
+        $this->notificationService->notifyNewComplaint($complaint);
 
         return redirect()->route('pelanggan.complaints.show', $complaint)
             ->with('success', 'Laporan aduan Anda berhasil dikirim ke Admin Wilayah dengan nomor tiket '.$complaint->complaint_code.'. Admin akan menindaklanjuti dalam 1x24 jam.');

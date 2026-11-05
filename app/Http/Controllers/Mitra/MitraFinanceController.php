@@ -218,17 +218,23 @@ class MitraFinanceController extends Controller
                 $regionId
             );
 
-            // Notify Regional Admins
-            if ($regionId) {
-                $this->notificationService->sendToRegionAdmins(
-                    $regionId,
-                    'partner_withdrawal_pending',
-                    'Antrean Penarikan Dana Mitra',
-                    "Mitra {$user->name} mengajukan penarikan dana sebesar Rp ".number_format($amount, 0, ',', '.')." ({$withdrawal->withdrawal_code}).",
-                    ['withdrawal_id' => $withdrawal->id, 'withdrawal_code' => $withdrawal->withdrawal_code, 'amount' => $amount],
-                    'high'
-                );
-            }
+            // 1. Notify Mitra itself
+            $this->notificationService->sendToUser(
+                $user,
+                'withdrawal_requested',
+                'Pengajuan Penarikan Saldo Berhasil',
+                'Permohonan penarikan saldo sebesar Rp '.number_format($amount, 0, ',', '.')." ({$withdrawal->withdrawal_code}) telah berhasil diajukan dan sedang menunggu verifikasi admin wilayah.",
+                [
+                    'withdrawal_id' => $withdrawal->id,
+                    'withdrawal_code' => $withdrawal->withdrawal_code,
+                    'amount' => $amount,
+                    'action_url' => route('mitra.finance.index'),
+                ],
+                'normal'
+            );
+
+            // 2. Notify Regional Admins
+            $this->notificationService->notifyWithdrawalRequested($withdrawal);
         });
 
         return redirect()->route('mitra.finance.index')

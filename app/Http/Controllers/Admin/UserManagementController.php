@@ -9,12 +9,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Blacklist;
 use App\Models\Region;
 use App\Models\User;
+use App\Services\PenaltyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class UserManagementController extends Controller
 {
+    public function __construct(
+        protected PenaltyService $penaltyService
+    ) {}
+
     /**
      * Display a listing of partners and customers in admin's assigned regions (ADM-05).
      */
@@ -265,11 +271,44 @@ class UserManagementController extends Controller
         $reason = $validated['reason'];
 
         if ($action === 'activate') {
-            $user->update([
-                'status' => UserStatus::Terverifikasi,
-                'status_reason' => $reason,
-                'suspended_until' => null,
-            ]);
+            DB::transaction(function () use ($user, $reason, $admin, $request) {
+                // 1. Unblock from Blacklist table if existed
+                Blacklist::where('user_id', $user->id)
+                    ->orWhere(function ($q) use ($user) {
+                        if ($user->phone) {
+                            $q->where('phone', $user->phone);
+                        }
+                    })
+                    ->delete();
+
+                // 2. Adjust penalty points if user currently has active sanction points (>= 60 or >= 150)
+                $penaltyPolicy = $request->input('penalty_policy', 'auto');
+                $currentPoints = $user->penalty_points;
+
+                if ($currentPoints >= 60 || in_array($penaltyPolicy, ['probation', 'reset'], true)) {
+                    $targetPoints = match ($penaltyPolicy) {
+                        'reset' => 0,
+                        default => min(29, $currentPoints), // Probation (tepat di bawah ambang peringatan 30 poin)
+                    };
+
+                    $pointsDelta = $targetPoints - $currentPoints;
+                    if ($pointsDelta < 0) {
+                        $this->penaltyService->manualAdjustment(
+                            $user,
+                            $pointsDelta,
+                            "Pemulihan akun ({$penaltyPolicy}): {$reason}",
+                            $admin
+                        );
+                    }
+                }
+
+                // 3. Update status to Terverifikasi and clear suspension
+                $user->update([
+                    'status' => UserStatus::Terverifikasi,
+                    'status_reason' => $reason,
+                    'suspended_until' => null,
+                ]);
+            });
 
             return back()->with('success', "Akun {$user->name} berhasil diaktifkan kembali.");
         }

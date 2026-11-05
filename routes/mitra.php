@@ -7,6 +7,7 @@ use App\Http\Controllers\Mitra\MitraOrderController;
 use App\Http\Controllers\Mitra\MitraPenaltyController;
 use App\Http\Controllers\Mitra\MitraProfileController;
 use App\Http\Controllers\Mitra\OnboardingController;
+use App\Http\Controllers\Mitra\PartnerHelpController;
 use App\Http\Controllers\Mitra\PartnerRelocationController;
 use App\Http\Controllers\OrderChatController;
 use App\Http\Controllers\OrderRatingController;
@@ -24,6 +25,15 @@ Route::middleware(['auth', 'role:mitra'])->prefix('mitra')->name('mitra.')->grou
     Route::post('/orders/offers/{dispatch}/reject', [MitraDashboardController::class, 'rejectOffer'])->name('orders.offers.reject');
     Route::get('/profile', [MitraProfileController::class, 'edit'])->name('profile');
     Route::post('/profile', [MitraProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/data-diri', [MitraProfileController::class, 'editPersonal'])->name('profile.personal');
+    Route::post('/profile/data-diri', [MitraProfileController::class, 'updatePersonal'])->name('profile.personal.update');
+    Route::get('/profile/rekening', [MitraProfileController::class, 'editBank'])->name('profile.bank');
+    Route::post('/profile/rekening', [MitraProfileController::class, 'updateBank'])->name('profile.bank.update');
+    Route::get('/profile/layanan', [MitraProfileController::class, 'editServices'])->name('profile.services');
+    Route::post('/profile/layanan', [MitraProfileController::class, 'updateServices'])->name('profile.services.update');
+    Route::get('/profile/keamanan', [MitraProfileController::class, 'editSecurity'])->name('profile.security');
+    Route::post('/profile/keamanan', [MitraProfileController::class, 'updateSecurity'])->name('profile.security.update');
+    Route::get('/profile/dokumen', [MitraProfileController::class, 'documents'])->name('profile.documents');
 
     // Pesanan Terjadwal (FCFS) & Jadwal Saya (MIT-06, MIT-07)
     Route::get('/pesanan-terjadwal', [MitraOrderController::class, 'scheduled'])->name('orders.scheduled');
@@ -57,4 +67,11 @@ Route::middleware(['auth', 'role:mitra'])->prefix('mitra')->name('mitra.')->grou
     Route::post('/pindah-wilayah', [PartnerRelocationController::class, 'store'])->name('relocation.store');
     Route::post('/pindah-wilayah/{relocationRequest}/cancel', [PartnerRelocationController::class, 'cancel'])->name('relocation.cancel');
 
+    // Partner Help Center & Live Chat Desk
+    Route::get('/bantuan', [PartnerHelpController::class, 'index'])->name('help.index');
+    Route::get('/bantuan/chat', [PartnerHelpController::class, 'chat'])->name('help.chat');
+    Route::post('/bantuan/chat', [PartnerHelpController::class, 'storeTicket'])->name('help.store');
+    Route::get('/bantuan/chat/{ticket}', [PartnerHelpController::class, 'showTicket'])->name('help.ticket');
+    Route::post('/bantuan/chat/{ticket}/reply', [PartnerHelpController::class, 'replyTicket'])->name('help.reply');
+    Route::get('/bantuan/chat/{ticket}/messages', [PartnerHelpController::class, 'fetchMessages'])->name('help.messages');
 });
