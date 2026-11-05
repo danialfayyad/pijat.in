@@ -1,5 +1,43 @@
-<x-pwa-layout title="Chat Bantuan Mitra #{{ $ticket->ticket_code }}" headerTitle="Live Chat Bantuan" :backUrl="route('mitra.help.index')" :fullBleed="true" :hideDock="true">
-    <div class="flex-1 flex flex-col h-full min-h-0 bg-slate-100"
+<x-pwa-layout title="Chat Bantuan Mitra #{{ $ticket->ticket_code }}"
+              :headerTitle="$ticket->region?->name ? 'Admin ' . $ticket->region->name : 'Bantuan Operasional'"
+              :headerSubtitle="'#' . $ticket->ticket_code . ' • ' . $ticket->subject"
+              :backUrl="route('mitra.help.index')"
+              :fullBleed="true"
+              :hideDock="true"
+              :hideNotification="true">
+    <x-slot:headerAction>
+        <div class="flex items-center gap-2.5">
+            <template x-if="ticketStatus === 'menunggu'">
+                <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span>Menunggu</span>
+                </span>
+            </template>
+            <template x-if="ticketStatus === 'berlangsung'">
+                <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>Aktif</span>
+                </span>
+            </template>
+            <template x-if="ticketStatus === 'selesai'">
+                <span class="text-xs font-medium text-slate-400">
+                    Selesai
+                </span>
+            </template>
+
+            <template x-if="ticketStatus !== 'selesai'">
+                <form method="POST" action="{{ route('mitra.help.close', $ticket) }}" onsubmit="return confirm('Apakah Anda yakin ingin mengakhiri sesi chat ini? Riwayat percakapan akan dihapus.');" class="inline">
+                    @csrf
+                    <button type="submit"
+                            class="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline px-1 py-0.5 transition cursor-pointer">
+                        Akhiri
+                    </button>
+                </form>
+            </template>
+        </div>
+    </x-slot:headerAction>
+
+    <div class="flex-1 flex flex-col h-full min-h-0 bg-slate-50"
          x-data="{
              ticketId: {{ $ticket->id }},
              ticketStatus: '{{ $ticket->status }}',
@@ -84,45 +122,12 @@
              }
          }">
 
-        <!-- Chat Header Meta Bar -->
-        <div class="bg-white border-b border-slate-200/80 px-4 py-2.5 flex items-center justify-between shrink-0 shadow-2xs">
-            <div class="min-w-0">
-                <div class="flex items-center gap-1.5">
-                    <span class="font-mono text-[11px] font-bold text-slate-500">{{ $ticket->ticket_code }}</span>
-                    <span class="text-slate-300">•</span>
-                    <span class="text-[11px] text-slate-500 font-medium truncate">{{ $ticket->region?->name ?? 'Wilayah Layanan' }}</span>
-                </div>
-                <div class="text-xs font-bold text-slate-800 truncate mt-0.5">{{ $ticket->subject }}</div>
-            </div>
-
-            <div class="shrink-0">
-                <template x-if="ticketStatus === 'menunggu'">
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                        <span>Menunggu Respon</span>
-                    </span>
-                </template>
-                <template x-if="ticketStatus === 'berlangsung'">
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        <span>Berlangsung</span>
-                    </span>
-                </template>
-                <template x-if="ticketStatus === 'selesai'">
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                        <span>Selesai</span>
-                    </span>
-                </template>
-            </div>
-        </div>
-
         <!-- Chat Messages Container -->
-        <div class="flex-1 overflow-y-auto p-4 space-y-3 min-h-0 overscroll-contain" x-ref="chatContainer">
-            <!-- Starting notification bubble -->
-            <div class="text-center py-2">
-                <span class="inline-block px-3 py-1 bg-white/80 border border-slate-200 rounded-full text-[10px] font-medium text-slate-500 shadow-2xs">
-                    Sesi chat bantuan mitra dimulai • Terhubung dengan Admin Wilayah
+        <div class="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0 overscroll-contain" x-ref="chatContainer">
+            <!-- Starting system notice -->
+            <div class="text-center py-1">
+                <span class="inline-block px-3 py-1 bg-white border border-slate-200/80 rounded-full text-[11px] font-medium text-slate-500 shadow-2xs">
+                    Sesi chat bantuan dimulai • Terhubung dengan Admin Wilayah
                 </span>
             </div>
 
@@ -131,15 +136,15 @@
                 <div class="flex flex-col" :class="item.is_me ? 'items-end' : 'items-start'">
                     <!-- Sender Label for Admin -->
                     <template x-if="!item.is_me">
-                        <div class="flex items-center gap-1 mb-1 px-1">
-                            <span class="text-[10px] font-bold text-slate-700" x-text="item.sender_name"></span>
-                            <span class="text-[9px] font-semibold bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded">Admin Wilayah</span>
+                        <div class="flex items-center gap-1.5 mb-1 px-1">
+                            <span class="text-[11px] font-semibold text-slate-700" x-text="item.sender_name"></span>
+                            <span class="text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.2 rounded">Admin</span>
                         </div>
                     </template>
 
                     <!-- Bubble Message -->
-                    <div class="max-w-[82%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed break-words shadow-2xs"
-                         :class="item.is_me ? 'bg-emerald-600 text-white rounded-tr-xs' : 'bg-white border border-slate-200/90 text-slate-800 rounded-tl-xs'">
+                    <div class="max-w-[85%] px-3.5 py-2.5 text-sm leading-relaxed break-words shadow-2xs"
+                         :class="item.is_me ? 'bg-emerald-600 text-white rounded-2xl rounded-br-xs' : 'bg-white border border-slate-200/80 text-slate-800 rounded-2xl rounded-bl-xs'">
                         <div class="whitespace-pre-wrap" x-text="item.message"></div>
                         <div class="text-[10px] mt-1 text-right"
                              :class="item.is_me ? 'text-emerald-100' : 'text-slate-400'"
@@ -149,31 +154,40 @@
             </template>
         </div>
 
-        <!-- Reopened notice if ticket is finished -->
+        <!-- Sesi Selesai Banner & Tombol Mulai Chat Baru -->
         <template x-if="ticketStatus === 'selesai'">
-            <div class="bg-slate-200/90 border-t border-slate-300 px-3 py-1.5 text-center text-[11px] text-slate-600 shrink-0">
-                Sesi ini telah diselesaikan. Ketik pesan di bawah jika ingin membuka kembali percakapan.
+            <div class="bg-white border-t border-slate-200 p-3 shrink-0 shadow-lg space-y-2">
+                <div class="text-center text-xs text-slate-500">
+                    Sesi obrolan ini telah berakhir. Riwayat sesi telah ditutup.
+                </div>
+                <a href="{{ route('mitra.help.chat') }}"
+                   class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                    <span>Mulai Percakapan Baru</span>
+                </a>
             </div>
         </template>
 
-        <!-- Message Input Bar (Menggantikan Navbar Navigasi) -->
-        <div class="bg-white border-t border-slate-200 p-3 shrink-0 shadow-lg">
-            <form @submit.prevent="sendMessage()" class="flex items-center gap-2">
-                <input type="text"
-                       x-model="newMessage"
-                       placeholder="Ketik pesan balasan..."
-                       autocomplete="off"
-                       class="flex-1 text-xs border border-slate-200 rounded-xl px-3.5 py-2.5 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50 outline-none"
-                       :disabled="isSending">
-                <button type="submit"
-                        class="h-[38px] px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center space-x-1 shrink-0"
-                        :disabled="!newMessage.trim() || isSending">
-                    <span x-show="!isSending">Kirim</span>
-                    <span x-show="isSending">...</span>
-                    <svg x-show="!isSending" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                </button>
-            </form>
-        </div>
+        <!-- Message Input Bar (Hanya tampil jika tiket masih aktif) -->
+        <template x-if="ticketStatus !== 'selesai'">
+            <div class="bg-white border-t border-slate-200/80 px-3 py-2.5 shrink-0 shadow-lg">
+                <form @submit.prevent="sendMessage()" class="flex items-center gap-2">
+                    <input type="text"
+                           x-model="newMessage"
+                           placeholder="Ketik pesan..."
+                           autocomplete="off"
+                           class="flex-1 text-sm bg-slate-100 hover:bg-slate-100/90 focus:bg-white border border-slate-200/70 focus:border-emerald-500 rounded-full px-4 py-2.5 outline-none transition"
+                           :disabled="isSending">
+                    <button type="submit"
+                            aria-label="Kirim Pesan"
+                            class="w-10 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition shadow-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center shrink-0 active:scale-95"
+                            :disabled="!newMessage.trim() || isSending">
+                        <svg class="w-4 h-4 translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </template>
     </div>
 </x-pwa-layout>
-

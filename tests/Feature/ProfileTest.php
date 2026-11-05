@@ -83,3 +83,11 @@ test('correct password must be provided to delete account', function () {
 
     $this->assertNotNull($user->fresh());
 });
+
+test('profile sub-pages are displayed for authenticated users', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get(route('profile.personal'))->assertOk();
+    $this->actingAs($user)->get(route('profile.security'))->assertOk();
+    $this->actingAs($user)->get(route('profile.delete'))->assertOk();
+});

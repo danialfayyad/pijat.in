@@ -1,10 +1,13 @@
 @props([
     'title' => null,
     'headerTitle' => null,
+    'headerSubtitle' => null,
     'backUrl' => null,
     'headerAction' => null,
     'fullBleed' => false,
     'hideDock' => null,
+    'hideLogo' => null,
+    'hideNotification' => false,
     'requireLocation' => true,
 ])
 @php
@@ -30,6 +33,7 @@
     }
 
     $shouldHideDock = $hideDock ?? (!$isRootTab);
+    $shouldHideLogo = $hideLogo ?? isset($backUrl);
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-slate-900">
@@ -60,39 +64,41 @@
     <div class="{{ ($fullBleed ?? false) ? 'h-[100dvh] max-h-[100dvh] flex flex-col justify-between max-w-md mx-auto bg-slate-50 relative shadow-2xl border-x border-slate-200/80 overflow-hidden' : 'min-h-screen flex flex-col justify-between max-w-md mx-auto bg-slate-50 relative shadow-2xl border-x border-slate-200/80' }}">
 
         <!-- Top PWA App Bar -->
-        <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/70 px-4 py-3 flex items-center justify-between shrink-0">
-            <div class="flex items-center space-x-2.5">
+        <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/70 px-4 py-2.5 flex items-center justify-between shrink-0 min-h-[56px]">
+            <div class="flex items-center space-x-2 min-w-0">
                 @if (isset($backUrl))
-                    <a href="{{ $backUrl }}" class="w-8 h-8 -ml-1 rounded-full flex items-center justify-center text-slate-600 hover:bg-slate-100 transition">
+                    <a href="{{ $backUrl }}" class="w-8 h-8 -ml-1 rounded-full flex items-center justify-center text-slate-700 hover:bg-slate-100 transition shrink-0" aria-label="Kembali">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                         </svg>
                     </a>
                 @endif
-                <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-xs">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-base font-extrabold tracking-tight text-slate-900 leading-none">
+                <div class="flex items-center space-x-2 min-w-0">
+                    @if (!$shouldHideLogo)
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-xs shrink-0">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                            </svg>
+                        </div>
+                    @endif
+                    <div class="min-w-0">
+                        <h1 class="text-sm font-bold text-slate-900 leading-tight truncate">
                             {{ $headerTitle ?? 'Pijat.In' }}
                         </h1>
-                        <span class="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider block mt-0.5">
-                            {{ Auth::user()?->role?->label() ?? 'PWA App' }}
+                        <span class="text-[11px] text-slate-500 truncate block mt-0.5">
+                            {{ $headerSubtitle ?? (Auth::user()?->role?->label() ?? 'PWA App') }}
                         </span>
                     </div>
                 </div>
             </div>
 
             <!-- Header Right Action -->
-            <div class="flex items-center space-x-1.5">
+            <div class="flex items-center space-x-1.5 shrink-0">
                 @if (isset($headerAction))
                     {{ $headerAction }}
                 @endif
 
-                @auth
+                @if (!$hideNotification && Auth::check())
                     <!-- Notification Bell Button -->
                     @php
                         $unreadNotificationCount = Auth::user()->systemNotifications()->unread()->count();
@@ -114,7 +120,7 @@
                               x-text="unread > 99 ? '99+' : unread">
                         </span>
                     </button>
-                @endauth
+                @endif
             </div>
         </header>
 
@@ -242,9 +248,9 @@
                     </div>
 
                     <div>
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 inline-block mb-1.5">
+                        <p class="text-[11px] font-bold text-rose-600 uppercase tracking-wide mb-1.5">
                             Mitra Terapis: Akses Lokasi Wajib
-                        </span>
+                        </p>
                         <h3 class="text-base font-extrabold text-slate-900 leading-snug">
                             Izin Lokasi GPS Mitra Diperlukan
                         </h3>

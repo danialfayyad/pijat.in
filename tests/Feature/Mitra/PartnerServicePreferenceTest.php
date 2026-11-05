@@ -43,10 +43,14 @@ test('MIT-08: secara default seluruh jenis layanan aktif untuk mitra', function 
 });
 
 test('MIT-08: mitra dapat membuka halaman profil dan melihat opsi preferensi layanan', function () {
-    $response = $this->actingAs($this->mitra)->get(route('mitra.profile'));
+    $this->actingAs($this->mitra)->get(route('mitra.profile'))
+        ->assertOk()
+        ->assertSee('Preferensi Jenis Layanan');
+
+    $response = $this->actingAs($this->mitra)->get(route('mitra.profile.services'));
 
     $response->assertOk();
-    $response->assertSee('Preferensi Jenis Layanan');
+    $response->assertSee('Jenis Layanan yang Dilayani');
     $response->assertSee('Pijat Tradisional');
     $response->assertSee('Refleksi Kaki');
     $response->assertSee('Aromaterapi Spa');

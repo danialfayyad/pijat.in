@@ -51,29 +51,6 @@
                 </button>
             </form>
         </div>
-
-        <!-- Past Resolved Tickets (If any) -->
-        @if ($pastTickets->isNotEmpty())
-            <div class="space-y-2 pt-2">
-                <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider px-1">Riwayat Tiket Sebelumnya</h4>
-                <div class="space-y-2">
-                    @foreach ($pastTickets as $past)
-                        <a href="{{ route('mitra.help.ticket', $past) }}"
-                           class="block bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-2xs hover:bg-slate-50 transition">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="font-mono text-[11px] font-bold text-slate-500">{{ $past->ticket_code }}</span>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">Selesai</span>
-                            </div>
-                            <div class="text-xs font-bold text-slate-800 mt-1">{{ $past->subject }}</div>
-                            <div class="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
-                                <span>Wilayah: {{ $past->region?->name ?? '-' }}</span>
-                                <span>{{ $past->closed_at?->diffForHumans() ?? $past->updated_at->diffForHumans() }}</span>
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-        @endif
     </div>
 </x-pwa-layout>
 

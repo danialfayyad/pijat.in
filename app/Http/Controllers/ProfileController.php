@@ -22,6 +22,36 @@ class ProfileController extends Controller
     }
 
     /**
+     * Show personal information edit form.
+     */
+    public function editPersonal(Request $request): View
+    {
+        return view('profile.personal', [
+            'user' => $request->user(),
+        ]);
+    }
+
+    /**
+     * Show security & password change form.
+     */
+    public function editSecurity(Request $request): View
+    {
+        return view('profile.security', [
+            'user' => $request->user(),
+        ]);
+    }
+
+    /**
+     * Show account deletion confirmation page.
+     */
+    public function editDeleteAccount(Request $request): View
+    {
+        return view('profile.delete', [
+            'user' => $request->user(),
+        ]);
+    }
+
+    /**
      * Update the user's profile information.
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
@@ -34,7 +64,7 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return redirect()->back(fallback: route('profile.edit'))->with('status', 'profile-updated');
     }
 
     /**

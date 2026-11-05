@@ -18,6 +18,9 @@ Schedule::command('orders:process-cancellations')->everyMinute();
 // Release partner held balances 24 hours post-completion if no active complaints (SYS-03)
 Schedule::command('app:release-held-balances')->hourly();
 
+// Automatic timeout for inactive live chat sessions (4 min warning, 5 min closure)
+Schedule::command('support:check-inactivity')->everyMinute();
+
 // Daily cleanup of expired chat messages, medical notes, & old notifications (SYS-07)
 Schedule::command('app:cleanup-expired-data')->daily();
 

@@ -36,6 +36,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile/informasi-pribadi', [ProfileController::class, 'editPersonal'])->name('profile.personal');
+    Route::get('/profile/keamanan', [ProfileController::class, 'editSecurity'])->name('profile.security');
+    Route::get('/profile/hapus-akun', [ProfileController::class, 'editDeleteAccount'])->name('profile.delete');
 
     // Web Push Notification Subscriptions (CUS-21, MIT-21, SYS-06)
     Route::get('/push/public-key', [PushSubscriptionController::class, 'publicKey'])->name('push.public-key');

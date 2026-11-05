@@ -72,6 +72,7 @@ Route::middleware(['auth', 'role:mitra'])->prefix('mitra')->name('mitra.')->grou
     Route::get('/bantuan/chat', [PartnerHelpController::class, 'chat'])->name('help.chat');
     Route::post('/bantuan/chat', [PartnerHelpController::class, 'storeTicket'])->name('help.store');
     Route::get('/bantuan/chat/{ticket}', [PartnerHelpController::class, 'showTicket'])->name('help.ticket');
+    Route::post('/bantuan/chat/{ticket}/close', [PartnerHelpController::class, 'closeTicket'])->name('help.close');
     Route::post('/bantuan/chat/{ticket}/reply', [PartnerHelpController::class, 'replyTicket'])->name('help.reply');
     Route::get('/bantuan/chat/{ticket}/messages', [PartnerHelpController::class, 'fetchMessages'])->name('help.messages');
 });

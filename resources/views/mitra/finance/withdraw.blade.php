@@ -44,32 +44,34 @@
         @endif
 
         <!-- Card Saldo Tersedia -->
-        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
-            <span class="text-xs text-slate-500 block mb-1">Saldo Tersedia untuk Ditarik</span>
-            <div class="text-xl font-extrabold text-slate-900">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs">
+            <span class="text-xs font-semibold text-slate-500 block mb-1">Saldo Tersedia untuk Ditarik</span>
+            <div class="text-2xl font-extrabold text-slate-900">
                 Rp {{ number_format($wallet->balance, 0, ',', '.') }}
             </div>
-            <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+            <div class="mt-2 text-[11px] text-slate-400 flex items-center justify-between">
                 <span>Min: Rp {{ number_format($minAmount, 0, ',', '.') }}</span>
                 <span>Maks: Rp {{ number_format($maxAmount, 0, ',', '.') }}</span>
             </div>
         </div>
 
         <!-- Rekening Tujuan -->
-        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs space-y-2">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-3">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-slate-900">Rekening Tujuan</span>
-                <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span class="text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
                     Terverifikasi
                 </span>
             </div>
-            <div class="p-3 bg-slate-50 rounded-lg text-xs space-y-0.5 border border-slate-100">
+            <div class="p-3 bg-slate-50 rounded-xl text-xs space-y-0.5 border border-slate-100">
                 <p class="font-bold text-slate-900">{{ $bankAccount->bank_name }}</p>
                 <p class="font-mono text-slate-700">{{ $bankAccount->account_number }}</p>
                 <p class="text-slate-500 text-[11px]">a.n. {{ $bankAccount->account_holder_name }}</p>
             </div>
-            <p class="text-[10px] text-slate-400">
+            <p class="text-[11px] text-slate-400">
                 Dana hanya dapat ditarik ke rekening bank atas nama mitra yang telah diverifikasi oleh admin wilayah.
             </p>
         </div>
@@ -78,7 +80,7 @@
         <form action="{{ route('mitra.finance.withdraw.store') }}" method="POST" class="space-y-4">
             @csrf
 
-            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs space-y-3">
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-3">
                 <label for="amount" class="text-xs font-bold text-slate-900 block">Nominal Penarikan (Rp)</label>
                 <div class="relative">
                     <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">Rp</span>
@@ -149,7 +151,7 @@
             </div>
 
             <button type="submit"
-                    class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl shadow-md transition active:scale-95"
+                    class="w-full py-3 px-4 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
                     :disabled="!isValid || {{ $hasPending ? 'true' : 'false' }}">
                 Ajukan Penarikan Dana
             </button>

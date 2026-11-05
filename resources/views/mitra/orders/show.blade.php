@@ -283,7 +283,7 @@
                 mitraMarker: null,
                 customerMarker: null,
                 routeLayer: null,
-                googleMapsUrl: {{ $mitraLat && $customerLat ? "'https://www.google.com/maps/dir/?api=1&origin={$mitraLat},{$mitraLng}&destination={$customerLat},{$customerLng}'" : "''" }},
+                googleMapsUrl: @js($mitraLat && $customerLat ? "https://www.google.com/maps/dir/?api=1&origin={$mitraLat},{$mitraLng}&destination={$customerLat},{$customerLng}" : ''),
 
                 toggleSheet() {
                     this.isExpanded = !this.isExpanded;
@@ -542,7 +542,7 @@
                     });
 
                     this.customerMarker = L.marker([this.customerLat, this.customerLng], { icon: customerIcon }).addTo(this.map);
-                    this.customerMarker.bindPopup(`<strong>Lokasi Pelanggan</strong><br>{{ addslashes($order->recipient_name) }}<br><span style='font-size:11px;'>{{ addslashes($isArchived ? $order->masked_address : $order->service_address_text) }}</span>`).openPopup();
+                    this.customerMarker.bindPopup(@js("<strong>Lokasi Pelanggan</strong><br>" . e($order->recipient_name) . "<br><span style='font-size:11px;'>" . e($isArchived ? $order->masked_address : $order->service_address_text) . "</span>")).openPopup();
 
                     // Marker Terapis (Pijat)
                     const mitraIcon = L.divIcon({
@@ -743,8 +743,8 @@
 
                     <a :href="googleMapsUrl" target="_blank" 
                        title="Buka Rute Navigasi di Google Maps"
-                       class="h-9 px-3 rounded-full bg-slate-900/95 backdrop-blur-md shadow-md text-white font-bold text-[11px] flex items-center space-x-1.5 hover:bg-slate-800 active:scale-95 transition cursor-pointer">
-                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       class="h-9 px-3 rounded-full bg-white/95 backdrop-blur-md shadow-md border border-slate-200/80 text-slate-800 font-bold text-[11px] flex items-center space-x-1.5 hover:text-emerald-700 active:scale-95 transition cursor-pointer">
+                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
                         </svg>
                         <span>Buka Rute Navigasi di Google Maps</span>
@@ -793,16 +793,16 @@
                 <div class="w-full flex items-center justify-between">
                     <div class="flex items-center space-x-2 truncate">
                         <span class="text-[10px] font-bold text-slate-400 font-mono tracking-wider">KODE:</span>
-                        <h2 class="text-xs font-extrabold text-slate-900 font-mono">{{ $order->order_code }}</h2>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $order->status->badgeClasses() }}">
+                        <h2 class="text-xs font-bold text-slate-900 font-mono">{{ $order->order_code }}</h2>
+                        <span class="text-xs font-semibold text-emerald-700">
                             {{ $order->status->label() }}
                         </span>
                     </div>
 
-                    <div class="flex items-center space-x-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 hover:bg-emerald-100 transition">
-                        <span x-text="isExpanded ? 'Tutup Detail ↓' : 'Tarik Detail ↑'"></span>
+                    <div class="flex items-center space-x-1 text-xs font-semibold text-slate-500 hover:text-slate-800 transition">
+                        <span x-text="isExpanded ? 'Tutup Detail' : 'Buka Detail'"></span>
                         <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="isExpanded ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </div>
                 </div>
@@ -922,20 +922,20 @@
                                 </form>
                             </div>
                         @elseif ($order->status === \App\Enums\OrderStatus::Selesai)
-                            <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200/90 text-center space-y-2.5">
+                            <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-2xs text-center space-y-2.5">
                                 <div>
                                     <template x-if="hasRated">
                                         <div class="space-y-1">
-                                            <span class="inline-block px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">Penilaian Selesai</span>
-                                            <p class="text-xs font-bold text-emerald-950">
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">Penilaian Selesai</span>
+                                            <p class="text-xs font-bold text-slate-900">
                                                 Anda telah memberi nilai <strong x-text="selectedRating"></strong>/5 bintang untuk pelanggan.
                                             </p>
                                         </div>
                                     </template>
                                     <template x-if="!hasRated">
                                         <div class="space-y-0.5">
-                                            <p class="text-xs font-extrabold text-emerald-950">Beri Penilaian untuk Pelanggan</p>
-                                            <p class="text-[11px] text-emerald-800">Pilih bintang sesuai pelayanan Anda:</p>
+                                            <p class="text-xs font-bold text-slate-900">Beri Penilaian untuk Pelanggan</p>
+                                            <p class="text-[11px] text-slate-500">Pilih bintang sesuai pelayanan Anda:</p>
                                         </div>
                                     </template>
                                 </div>
@@ -952,14 +952,14 @@
                                 </div>
 
                                 <template x-if="!hasRated">
-                                    <div class="space-y-2 pt-1 border-t border-emerald-200/60">
-                                        <p class="text-[11px] font-bold text-emerald-900" x-show="tempRating > 0">
+                                    <div class="space-y-2 pt-1 border-t border-slate-100">
+                                        <p class="text-[11px] font-bold text-slate-800" x-show="tempRating > 0">
                                             <span x-text="ratingLabels[tempRating] || ''"></span> (<span x-text="tempRating"></span> dari 5 Bintang)
                                         </p>
                                         <button type="button" 
                                                 @click="confirmSubmitRating()"
                                                 :disabled="tempRating === 0 || isSubmittingRating"
-                                                class="w-full min-h-[42px] py-2 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                                                class="w-full min-h-[42px] py-2 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs shadow-2xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
                                             <span x-show="!isSubmittingRating">Kirim Penilaian</span>
                                             <span x-show="isSubmittingRating" class="flex items-center space-x-1">
                                                 <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
@@ -1062,61 +1062,43 @@
                     $currentStep = $steps[$order->status->value] ?? 1;
                 @endphp
 
-                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
-                    <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 mb-2">
-                        <span class="{{ $currentStep >= 1 ? 'text-emerald-700 font-extrabold' : '' }}">Dijadwalkan</span>
-                        <span class="{{ $currentStep >= 2 ? 'text-emerald-700 font-extrabold' : '' }}">Menuju Lokasi</span>
-                        <span class="{{ $currentStep >= 3 ? 'text-emerald-700 font-extrabold' : '' }}">Tiba</span>
-                        <span class="{{ $currentStep >= 4 ? 'text-emerald-700 font-extrabold' : '' }}">Layanan</span>
-                        <span class="{{ $currentStep >= 5 ? 'text-emerald-700 font-extrabold' : '' }}">Selesai</span>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2">
+                    <div class="flex items-center justify-between text-[11px] font-semibold text-slate-400">
+                        <span class="{{ $currentStep >= 1 ? 'text-emerald-700 font-bold' : '' }}">Dijadwalkan</span>
+                        <span class="{{ $currentStep >= 2 ? 'text-emerald-700 font-bold' : '' }}">Menuju Lokasi</span>
+                        <span class="{{ $currentStep >= 3 ? 'text-emerald-700 font-bold' : '' }}">Tiba</span>
+                        <span class="{{ $currentStep >= 4 ? 'text-emerald-700 font-bold' : '' }}">Layanan</span>
+                        <span class="{{ $currentStep >= 5 ? 'text-emerald-700 font-bold' : '' }}">Selesai</span>
                     </div>
-                    <div class="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden">
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                         <div class="bg-emerald-600 h-full rounded-full transition-all duration-500" 
                              style="width: {{ min(100, max(20, ($currentStep / 5) * 100)) }}%"></div>
                     </div>
                 </div>
 
                 <!-- Informasi Jarak & Rute Navigasi -->
-                <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
-                    <h3 class="text-xs font-bold text-slate-900 pb-2 border-b border-slate-100 flex items-center space-x-1.5">
-                        <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                        <span>Jarak ke Pelanggan & Estimasi Waktu</span>
-                    </h3>
+                <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-3">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-100 text-xs">
+                        <span class="font-bold text-slate-900">Jarak & Rute Navigasi</span>
+                        <span class="text-[11px] text-slate-400 font-medium">Peta GPS</span>
+                    </div>
 
-                    <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center space-x-2.5">
-                            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <span class="text-[10px] text-slate-500 font-semibold block">Jarak ke Pelanggan</span>
-                                <span class="text-sm font-black text-emerald-950 font-mono" x-text="distanceText"></span>
-                            </div>
+                    <div class="grid grid-cols-2 divide-x divide-slate-100 py-1 text-center">
+                        <div class="pr-2">
+                            <span class="text-[10px] text-slate-400 font-medium block mb-0.5">Jarak ke Pelanggan</span>
+                            <span class="text-sm font-extrabold text-slate-900 font-mono" x-text="distanceText"></span>
                         </div>
-
-                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70 flex items-center space-x-2.5">
-                            <div class="w-8 h-8 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <span class="text-[10px] text-slate-500 font-semibold block">Estimasi Waktu Tempuh</span>
-                                <span class="text-xs font-bold text-slate-800" x-text="etaText"></span>
-                            </div>
+                        <div class="pl-2">
+                            <span class="text-[10px] text-slate-400 font-medium block mb-0.5">Estimasi Waktu</span>
+                            <span class="text-sm font-extrabold text-slate-900 font-mono" x-text="etaText"></span>
                         </div>
                     </div>
 
                     @if (! $isArchived)
                         <!-- Tombol Navigasi Google Maps -->
                         <a :href="googleMapsUrl" target="_blank"
-                           class="w-full min-h-[42px] py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition flex items-center justify-center space-x-2 cursor-pointer">
-                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           class="w-full min-h-[40px] py-2 px-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-2xs transition flex items-center justify-center space-x-2 cursor-pointer">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
                             </svg>
                             <span>Buka Rute Navigasi di Google Maps</span>
@@ -1125,48 +1107,47 @@
                 </div>
 
                 <!-- Informasi Penerima Layanan & Alamat Lengkap -->
-                <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3 text-xs">
-                    <h3 class="text-xs font-bold text-slate-900 pb-2 border-b border-slate-100 flex items-center space-x-1.5">
-                        <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                        <span>Penerima Layanan & Kontak</span>
+                <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-3 text-xs">
+                    <h3 class="text-xs font-bold text-slate-900 pb-2 border-b border-slate-100">
+                        Penerima Layanan & Kontak
                     </h3>
 
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500">Nama Penerima:</span>
-                        <span class="font-extrabold text-slate-900">{{ $order->recipient_name }}</span>
-                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400">Nama Penerima</span>
+                            <span class="font-bold text-slate-900">{{ $order->recipient_name }}</span>
+                        </div>
 
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500">Jenis Kelamin:</span>
-                        <span class="font-semibold text-slate-800 capitalize">{{ $order->recipient_gender ?? 'Tidak ditentukan' }}</span>
-                    </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400">Jenis Kelamin</span>
+                            <span class="font-medium text-slate-700 capitalize">{{ $order->recipient_gender ?? 'Tidak ditentukan' }}</span>
+                        </div>
 
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500">Nomor Telepon/WA:</span>
-                        <span class="font-bold text-slate-900 font-mono">{{ $isArchived ? $order->masked_phone : ($order->recipient_phone ?? '-') }}</span>
-                    </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400">Nomor Telepon</span>
+                            <span class="font-semibold text-slate-900 font-mono">{{ $isArchived ? $order->masked_phone : ($order->recipient_phone ?? '-') }}</span>
+                        </div>
 
-                    <div class="pt-2 border-t border-slate-100">
-                        <span class="text-slate-500 block mb-1">Alamat Tujuan:</span>
-                        <p class="text-slate-800 leading-relaxed font-medium bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
-                            {{ $isArchived ? $order->masked_address : $order->service_address_text }}
-                        </p>
-                        @if (! $isArchived && $order->customerAddress?->benchmark)
-                            <p class="text-[11px] text-slate-500 mt-1 pl-1">
-                                Patokan: <strong class="text-slate-700">{{ $order->customerAddress->benchmark }}</strong>
+                        <div class="pt-2 border-t border-slate-100">
+                            <span class="text-slate-400 block mb-1">Alamat Layanan</span>
+                            <p class="text-slate-800 leading-relaxed font-medium">
+                                {{ $isArchived ? $order->masked_address : $order->service_address_text }}
                             </p>
-                        @endif
+                            @if (! $isArchived && $order->customerAddress?->benchmark)
+                                <p class="text-[11px] text-slate-500 mt-1">
+                                    Patokan: <span class="text-slate-700 font-medium">{{ $order->customerAddress->benchmark }}</span>
+                                </p>
+                            @endif
+                        </div>
                     </div>
 
                     <!-- Tombol Komunikasi Cepat -->
                     @if (! $isArchived)
-                        <div class="grid grid-cols-2 gap-2 pt-1">
-                            @if ($order->recipient_phone)
+                        @if ($order->recipient_phone)
+                            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
                                 <a href="tel:{{ $order->recipient_phone }}" 
-                                   class="min-h-[42px] px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
-                                    <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                   class="min-h-[38px] px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                                     </svg>
                                     <span>Telepon</span>
@@ -1180,32 +1161,30 @@
                                 @endphp
                                 <a href="https://wa.me/{{ $cleanPhone }}?text={{ urlencode('Halo ' . $order->recipient_name . ', saya terapis dari Pijat.In untuk pesanan ' . $order->order_code . '.') }}" 
                                    target="_blank"
-                                   class="min-h-[42px] px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
-                                    <svg class="w-4 h-4 text-emerald-700" fill="currentColor" viewBox="0 0 24 24">
+                                   class="min-h-[38px] px-3 py-2 rounded-xl border border-emerald-600/20 bg-emerald-50/50 hover:bg-emerald-50 text-emerald-800 font-semibold text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.587 1.771.889 2.796.889 3.182 0 5.768-2.586 5.768-5.766.001-3.18-2.585-5.766-5.768-5.766zm9.969 5.766c0 5.508-4.462 9.97-9.969 9.97-1.719 0-3.364-.44-4.811-1.222l-5.22 1.369 1.393-5.089c-.879-1.503-1.362-3.238-1.362-5.028 0-5.508 4.462-9.97 9.969-9.97 5.507 0 9.969 4.462 9.969 9.97z"/>
                                     </svg>
                                     <span>WhatsApp</span>
                                 </a>
-                            @endif
-                        </div>
+                            </div>
+                        @endif
                     @else
-                        <div class="p-2.5 rounded-xl bg-slate-100 border border-slate-200 text-center text-[11px] text-slate-500 font-medium">
+                        <div class="pt-2 text-center text-[11px] text-slate-400 font-medium">
                             Akses komunikasi ditutup demi privasi karena layanan telah selesai lebih dari 24 jam.
                         </div>
                     @endif
                 </div>
 
                 <!-- Catatan Medis Penerima (Transparan Bagi Mitra Setelah Diambil - MIT-07) -->
-                <div class="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs space-y-1.5 shadow-xs">
-                    <div class="flex items-center space-x-2 text-amber-900 font-bold">
-                        <svg class="w-4 h-4 text-amber-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                        <span>Catatan Kondisi Medis Penerima</span>
+                <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs text-xs space-y-2">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                        <span class="font-bold text-slate-900">Catatan Kondisi Medis Penerima</span>
+                        <span class="text-[10px] text-amber-700 font-semibold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">Perhatian</span>
                     </div>
-                    <p class="text-amber-950 font-medium leading-relaxed pl-6">
+                    <p class="text-slate-700 leading-relaxed font-medium">
                         @if ($isArchived)
-                            <span class="text-slate-500 italic text-[11px]">[Catatan medis telah diarsipkan demi kerahasiaan kesehatan]</span>
+                            <span class="text-slate-400 italic text-[11px]">[Catatan medis telah diarsipkan demi kerahasiaan kesehatan]</span>
                         @else
                             {{ $order->medical_notes ?: 'Pelanggan tidak mencantumkan keluhan medis khusus.' }}
                         @endif
@@ -1213,38 +1192,40 @@
                 </div>
 
                 <!-- Detail Layanan & Finansial -->
-                <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-2.5 text-xs">
+                <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-2.5 text-xs">
                     <h3 class="text-xs font-bold text-slate-900 pb-2 border-b border-slate-100">
                         Informasi Layanan & Pendapatan
                     </h3>
 
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500">Paket Layanan:</span>
-                        <span class="font-extrabold text-slate-900">{{ $order->service_name }}</span>
-                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400">Paket Layanan</span>
+                            <span class="font-bold text-slate-900">{{ $order->service_name }}</span>
+                        </div>
 
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500">Durasi Sesi:</span>
-                        <span class="font-semibold text-slate-800">{{ $order->duration_minutes }} Menit</span>
-                    </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400">Durasi Sesi</span>
+                            <span class="font-semibold text-slate-800">{{ $order->duration_minutes }} Menit</span>
+                        </div>
 
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500">Waktu Jadwal:</span>
-                        <span class="font-bold text-slate-900">
-                            {{ $order->local_scheduled_start_time ? $order->local_scheduled_start_time->locale('id')->translatedFormat('d M Y, H:i') . ' ' . $order->timezone_abbr : 'Segera (Instan)' }}
-                        </span>
-                    </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400">Waktu Jadwal</span>
+                            <span class="font-semibold text-slate-900">
+                                {{ $order->local_scheduled_start_time ? $order->local_scheduled_start_time->locale('id')->translatedFormat('d M Y, H:i') . ' ' . $order->timezone_abbr : 'Segera (Instan)' }}
+                            </span>
+                        </div>
 
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500">Tarif Pesanan:</span>
-                        <span class="font-mono text-slate-700">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
-                    </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400">Tarif Pesanan</span>
+                            <span class="font-mono text-slate-700">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
+                        </div>
 
-                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
-                        <span class="text-slate-600 font-semibold">Pendapatan Bersih Mitra (90%):</span>
-                        <span class="text-base font-black font-mono text-emerald-800">
-                            Rp {{ number_format($order->total_price * 0.9, 0, ',', '.') }}
-                        </span>
+                        <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-slate-600 font-semibold">Pendapatan Bersih Mitra (90%)</span>
+                            <span class="text-sm font-bold font-mono text-emerald-700">
+                                Rp {{ number_format($order->total_price * 0.9, 0, ',', '.') }}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -1346,28 +1327,28 @@
                                 </form>
                             </div>
                         @elseif ($order->status === \App\Enums\OrderStatus::Selesai)
-                            <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-center space-y-3">
+                            <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-2xs text-center space-y-3">
                                 <div>
-                                    <span class="inline-flex items-center space-x-1 text-emerald-800 font-extrabold text-sm">
+                                    <span class="inline-flex items-center space-x-1.5 text-slate-800 font-bold text-xs">
                                         <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                                        <span>Layanan Selesai</span>
+                                        <span>Layanan Telah Selesai</span>
                                     </span>
-                                    <p class="text-[11px] text-emerald-800 mt-0.5">Pendapatan telah dikreditkan ke dompet kemitraan Anda.</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">Pendapatan telah dikreditkan ke dompet kemitraan Anda.</p>
                                 </div>
 
-                                <div class="pt-3 border-t border-emerald-200/80 space-y-2.5">
+                                <div class="pt-3 border-t border-slate-100 space-y-2.5">
                                     <template x-if="hasRated">
                                         <div class="space-y-1">
-                                            <span class="inline-block px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">Penilaian Selesai</span>
-                                            <p class="text-xs font-bold text-emerald-950">
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">Penilaian Selesai</span>
+                                            <p class="text-xs font-bold text-slate-900">
                                                 Anda telah memberikan nilai <strong x-text="selectedRating"></strong>/5 bintang untuk pelanggan.
                                             </p>
                                         </div>
                                     </template>
                                     <template x-if="!hasRated">
                                         <div class="space-y-0.5">
-                                            <p class="text-xs font-extrabold text-emerald-950">Beri Penilaian untuk Pelanggan</p>
-                                            <p class="text-[11px] text-emerald-800">Pilih bintang sesuai pelayanan Anda:</p>
+                                            <p class="text-xs font-bold text-slate-900">Beri Penilaian untuk Pelanggan</p>
+                                            <p class="text-[11px] text-slate-500">Pilih bintang sesuai pelayanan Anda:</p>
                                         </div>
                                     </template>
 
@@ -1383,14 +1364,14 @@
                                     </div>
 
                                     <template x-if="!hasRated">
-                                        <div class="space-y-2 pt-2 border-t border-emerald-200/60">
-                                            <p class="text-[11px] font-bold text-emerald-900" x-show="tempRating > 0">
+                                        <div class="space-y-2 pt-2 border-t border-slate-100">
+                                            <p class="text-[11px] font-bold text-slate-800" x-show="tempRating > 0">
                                                 <span x-text="ratingLabels[tempRating] || ''"></span> (<span x-text="tempRating"></span> dari 5 Bintang)
                                             </p>
                                             <button type="button" 
                                                     @click="confirmSubmitRating()"
                                                     :disabled="tempRating === 0 || isSubmittingRating"
-                                                    class="w-full min-h-[42px] py-2 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                                                    class="w-full min-h-[42px] py-2 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs shadow-2xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
                                                 <span x-show="!isSubmittingRating">Kirim Penilaian</span>
                                                 <span x-show="isSubmittingRating" class="flex items-center space-x-1">
                                                     <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
@@ -1427,7 +1408,7 @@
                             @else
                                 <div class="pt-2 text-center">
                                     <a href="{{ route('mitra.orders.incident.create', $order) }}"
-                                       class="inline-flex items-center justify-center space-x-1.5 w-full py-2.5 px-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-bold text-xs transition cursor-pointer">
+                                       class="inline-flex items-center justify-center space-x-1.5 w-full py-2.5 px-3 rounded-xl border border-rose-200 hover:bg-rose-50 text-rose-700 font-semibold text-xs transition cursor-pointer">
                                         <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                         <span>Laporkan Kendala / Insiden Lapangan (MIT-19)</span>
                                     </a>
@@ -1473,7 +1454,7 @@
 
                 <!-- Button to Minimize Sheet -->
                 <button type="button" @click="collapseSheet()"
-                    class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                    class="w-full min-h-[40px] py-2 px-4 border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold text-xs rounded-xl shadow-2xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>

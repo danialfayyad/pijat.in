@@ -1,8 +1,8 @@
 <x-pwa-layout title="Saldo & Keuangan - Mitra Pijat.In" headerTitle="Saldo & Keuangan">
     <div class="space-y-4 pb-6">
         @if (session('status'))
-            <div class="rounded-xl bg-emerald-50 border border-emerald-200 p-3.5 text-xs text-emerald-800 flex items-start gap-2.5">
-                <svg class="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <div class="rounded-2xl bg-emerald-50 border border-emerald-200/80 p-3.5 text-xs text-emerald-900 font-semibold shadow-2xs flex items-center space-x-2.5">
+                <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                 </svg>
                 <span>{{ session('status') }}</span>
@@ -10,224 +10,213 @@
         @endif
 
         @if (session('error'))
-            <div class="rounded-xl bg-rose-50 border border-rose-200 p-3.5 text-xs text-rose-800 flex items-start gap-2.5">
-                <svg class="w-4 h-4 text-rose-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <div class="rounded-2xl bg-rose-50 border border-rose-200/80 p-3.5 text-xs text-rose-900 font-semibold shadow-2xs flex items-center space-x-2.5">
+                <svg class="w-4 h-4 text-rose-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                 </svg>
                 <span>{{ session('error') }}</span>
             </div>
         @endif
 
-        <!-- Card Saldo Tersedia (Siap Ditarik) -->
-        <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden">
-            <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center space-x-2">
-                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
-                    <span class="text-xs font-semibold text-slate-300">Saldo Tersedia</span>
+        <!-- Card Saldo Tersedia -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-4">
+            <div>
+                <span class="text-xs font-semibold text-slate-500 block">Saldo Tersedia</span>
+                <div class="text-3xl font-extrabold tracking-tight text-slate-900 mt-1">
+                    Rp {{ number_format($wallet->balance, 0, ',', '.') }}
                 </div>
-                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
-                    Siap Ditarik
-                </span>
             </div>
 
-            <div class="text-2xl font-extrabold tracking-tight mb-3 text-white">
-                Rp {{ number_format($wallet->balance, 0, ',', '.') }}
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 pt-3 border-t border-white/10 text-xs">
+            <!-- Performa Keuangan -->
+            <div class="grid grid-cols-2 divide-x divide-slate-100 pt-3 border-t border-slate-100 text-center">
                 <div>
-                    <span class="text-slate-400 text-[10px] block">Pendapatan Bulan Ini</span>
-                    <span class="font-bold text-emerald-400">Rp {{ number_format($currentMonthIncome, 0, ',', '.') }}</span>
+                    <div class="text-base font-bold text-slate-900">
+                        Rp {{ number_format($currentMonthIncome, 0, ',', '.') }}
+                    </div>
+                    <div class="text-[11px] text-slate-400 mt-0.5 font-medium">Pendapatan Bulan Ini</div>
                 </div>
                 <div>
-                    <span class="text-slate-400 text-[10px] block">Total Dicairkan</span>
-                    <span class="font-bold text-slate-200">Rp {{ number_format($totalWithdrawn, 0, ',', '.') }}</span>
+                    <div class="text-base font-bold text-slate-900">
+                        Rp {{ number_format($totalWithdrawn, 0, ',', '.') }}
+                    </div>
+                    <div class="text-[11px] text-slate-400 mt-0.5 font-medium">Total Dicairkan</div>
                 </div>
             </div>
 
-            <div class="mt-4 pt-3 border-t border-white/10 flex gap-2">
+            <!-- Tombol Tarik Saldo -->
+            <div class="pt-1">
                 <a href="{{ route('mitra.finance.withdraw') }}"
-                   class="flex-1 py-2.5 px-3 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl text-center shadow-md transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
+                   class="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl text-center shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
-                    Tarik Saldo
+                    <span>Tarik Saldo</span>
                 </a>
             </div>
         </div>
 
         @if (($wallet->held_balance ?? 0) > 0)
-        <!-- Card Saldo Tertahan (24 Jam Escrow) (MIT-15, SYS-03) -->
-        <div class="bg-amber-50/80 rounded-2xl p-4 border border-amber-200 shadow-xs relative overflow-hidden">
-            <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center space-x-2">
-                    <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span class="text-xs font-bold text-amber-900">Saldo Tertahan (24 Jam)</span>
+            <!-- Card Saldo Tertahan (24 Jam Escrow) -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-500">Saldo Tertahan (24 Jam)</span>
+                    <span class="text-xs font-semibold text-amber-600">Masa Tunggu</span>
                 </div>
-                <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold border border-amber-300">
-                    Masa Tunggu
-                </span>
-            </div>
 
-            <div class="text-xl font-extrabold text-amber-950 mb-2">
-                Rp {{ number_format($wallet->held_balance, 0, ',', '.') }}
-            </div>
+                <div class="text-2xl font-extrabold text-slate-900">
+                    Rp {{ number_format($wallet->held_balance, 0, ',', '.') }}
+                </div>
 
-            <p class="text-[11px] text-amber-800 leading-relaxed">
-                Pendapatan pesanan selesai ditahan selama 24 jam sebagai masa jaminan komplain pelanggan. Saldo akan otomatis dipindahkan ke <strong>Saldo Tersedia</strong> tepat 24 jam setelah pesanan selesai jika tidak ada aduan aktif.
-            </p>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    Pendapatan pesanan selesai ditahan selama 24 jam sebagai masa jaminan komplain pelanggan. Saldo akan otomatis dipindahkan ke saldo tersedia setelah 24 jam jika tidak ada aduan aktif.
+                </p>
 
-            @if ($heldTransactions->isNotEmpty())
-                <div class="mt-3 pt-3 border-t border-amber-200/80 space-y-2">
-                    <span class="text-[10px] font-bold text-amber-900 uppercase tracking-wider block">Daftar Menunggu Pencairan:</span>
-                    @foreach ($heldTransactions as $ht)
-                        <div class="bg-white rounded-xl p-2.5 border border-amber-200/60 flex items-center justify-between text-xs">
-                            <div>
-                                <span class="font-bold text-slate-800 block text-[11px]">{{ $ht->description }}</span>
-                                <span class="text-[10px] text-slate-500">
-                                    Selesai: {{ $ht->created_at->format('d M, H:i') }}
+                @if ($heldTransactions->isNotEmpty())
+                    <div class="pt-3 border-t border-slate-100 divide-y divide-slate-100">
+                        @foreach ($heldTransactions as $ht)
+                            <div class="py-2.5 flex items-center justify-between text-xs">
+                                <div class="min-w-0 flex-1 mr-2">
+                                    <span class="font-semibold text-slate-800 block truncate">{{ $ht->description }}</span>
+                                    <span class="text-[11px] text-slate-400">
+                                        Selesai: {{ $ht->created_at->format('d M, H:i') }}
+                                    </span>
+                                </div>
+                                <span class="font-bold text-amber-600 shrink-0">
+                                    +Rp {{ number_format($ht->amount, 0, ',', '.') }}
                                 </span>
                             </div>
-                            <div class="text-right">
-                                <span class="font-bold text-amber-900 text-xs block">+Rp {{ number_format($ht->amount, 0, ',', '.') }}</span>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </div>
-        @endif
-
-        <!-- Rekening Terverifikasi -->
-        <div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-xs">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-slate-900">Rekening Pencairan</span>
-                @if ($bankAccount)
-                    <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        Terverifikasi
-                    </span>
-                @else
-                    <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600">
-                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                        Belum Ada
-                    </span>
+                        @endforeach
+                    </div>
                 @endif
             </div>
+        @endif
 
-            @if ($bankAccount)
-                <div class="text-xs text-slate-700 space-y-0.5">
-                    <p class="font-semibold text-slate-900">{{ $bankAccount->bank_name }}</p>
-                    <p class="font-mono text-slate-600">{{ $bankAccount->account_number }}</p>
-                    <p class="text-slate-500 text-[11px]">a.n. {{ $bankAccount->account_holder_name }}</p>
+        <!-- Rekening Pencairan -->
+        <div class="space-y-1.5">
+            <h3 class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-1">Rekening Pencairan</h3>
+            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex items-center justify-between">
+                <div class="min-w-0 flex-1">
+                    @if ($bankAccount)
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-slate-900">{{ $bankAccount->bank_name }}</span>
+                            <span class="font-mono text-xs text-slate-500">{{ $bankAccount->account_number }}</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5 truncate">a.n. {{ $bankAccount->account_holder_name }}</p>
+                    @else
+                        <p class="text-xs text-slate-500">Belum ada rekening pencairan terdaftar.</p>
+                    @endif
                 </div>
-            @else
-                <p class="text-xs text-slate-500">
-                    Rekening bank diperlukan untuk melakukan penarikan saldo. Silakan lengkapi pada formulir verifikasi mitra.
-                </p>
-            @endif
+                <div class="shrink-0 pl-3">
+                    @if ($bankAccount)
+                        <span class="text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Terverifikasi
+                        </span>
+                    @else
+                        <a href="{{ route('mitra.profile.bank') }}" class="text-xs font-bold text-emerald-700 hover:underline">
+                            Tambah Rekening
+                        </a>
+                    @endif
+                </div>
+            </div>
         </div>
 
-        <!-- Riwayat Permohonan Penarikan -->
+        <!-- Riwayat Pengajuan Penarikan -->
         @if ($withdrawalRequests->isNotEmpty())
-            <div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-xs">
-                <h3 class="text-xs font-bold text-slate-900 mb-2.5">Riwayat Pengajuan Penarikan</h3>
-                <div class="space-y-2">
+            <div class="space-y-1.5">
+                <h3 class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-1">Riwayat Pengajuan Penarikan</h3>
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs divide-y divide-slate-100 overflow-hidden">
                     @foreach ($withdrawalRequests as $wd)
-                        <div class="p-2.5 rounded-lg border border-slate-100 bg-slate-50/70 text-xs">
-                            <div class="flex items-center justify-between">
-                                <span class="font-mono text-[11px] font-semibold text-slate-700">{{ $wd->withdrawal_code }}</span>
-                                @if ($wd->isPending())
-                                    <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 ring-2 ring-amber-100"></span>
-                                        Menunggu Verifikasi
-                                    </span>
-                                @elseif ($wd->isApproved())
-                                    <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100"></span>
-                                        Dicairkan
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-700">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 ring-2 ring-rose-100"></span>
-                                        Ditolak
-                                    </span>
+                        <div class="p-4 flex items-center justify-between">
+                            <div class="min-w-0 flex-1 mr-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono text-xs font-semibold text-slate-700">{{ $wd->withdrawal_code }}</span>
+                                    @if ($wd->isPending())
+                                        <span class="text-[11px] font-semibold text-amber-600">Menunggu Verifikasi</span>
+                                    @elseif ($wd->isApproved())
+                                        <span class="text-[11px] font-semibold text-emerald-700">Dicairkan</span>
+                                    @else
+                                        <span class="text-[11px] font-semibold text-rose-600">Ditolak</span>
+                                    @endif
+                                </div>
+                                <p class="text-[11px] text-slate-400 mt-0.5">{{ $wd->created_at->format('d M Y, H:i') }}</p>
+                                @if ($wd->isRejected() && $wd->rejection_reason)
+                                    <p class="text-[11px] text-rose-600 mt-1">Alasan: {{ $wd->rejection_reason }}</p>
                                 @endif
                             </div>
-                            <div class="flex items-center justify-between mt-1 text-slate-500 text-[11px]">
-                                <span>{{ $wd->created_at->format('d M Y, H:i') }}</span>
-                                <span class="font-bold text-slate-900">Rp {{ number_format($wd->amount, 0, ',', '.') }}</span>
+                            <div class="text-right shrink-0">
+                                <span class="text-sm font-bold text-slate-900">Rp {{ number_format($wd->amount, 0, ',', '.') }}</span>
                             </div>
-                            @if ($wd->isRejected() && $wd->rejection_reason)
-                                <div class="mt-1.5 pt-1.5 border-t border-slate-200/60 text-[10px] text-rose-600">
-                                    Alasan: {{ $wd->rejection_reason }}
-                                </div>
-                            @endif
                         </div>
                     @endforeach
                 </div>
             </div>
         @endif
 
-        <!-- Riwayat Mutasi Dompet (Filter 7 Hari & 30 Hari - MIT-15) -->
-        <div class="bg-white rounded-xl border border-slate-200 p-3.5 shadow-xs">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-xs font-bold text-slate-900">Mutasi Dompet</h3>
-                <!-- Range Tabs -->
-                <div class="flex items-center gap-1 p-0.5 bg-slate-100 rounded-lg text-[10px]">
-                    <a href="{{ route('mitra.finance.index', ['range' => '7_days']) }}"
-                       class="px-2 py-1 rounded-md transition {{ $range === '7_days' ? 'bg-white font-bold text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
-                        7 Hari
-                    </a>
-                    <a href="{{ route('mitra.finance.index', ['range' => '30_days']) }}"
-                       class="px-2 py-1 rounded-md transition {{ $range === '30_days' ? 'bg-white font-bold text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
-                        30 Hari
-                    </a>
-                    <a href="{{ route('mitra.finance.index', ['range' => 'all']) }}"
-                       class="px-2 py-1 rounded-md transition {{ $range === 'all' ? 'bg-white font-bold text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
-                        Semua
-                    </a>
+        <!-- Riwayat Mutasi Dompet -->
+        <div class="space-y-1.5">
+            <h3 class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-1">Mutasi Dompet</h3>
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+                <!-- Filter Bar -->
+                <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-900">Riwayat Transaksi</span>
+                    <div class="flex items-center gap-1 p-0.5 bg-slate-100 rounded-lg text-[10px]">
+                        <a href="{{ route('mitra.finance.index', ['range' => '7_days']) }}"
+                           class="px-2 py-1 rounded-md transition {{ $range === '7_days' ? 'bg-white font-bold text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900' }}">
+                            7 Hari
+                        </a>
+                        <a href="{{ route('mitra.finance.index', ['range' => '30_days']) }}"
+                           class="px-2 py-1 rounded-md transition {{ $range === '30_days' ? 'bg-white font-bold text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900' }}">
+                            30 Hari
+                        </a>
+                        <a href="{{ route('mitra.finance.index', ['range' => 'all']) }}"
+                           class="px-2 py-1 rounded-md transition {{ $range === 'all' ? 'bg-white font-bold text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900' }}">
+                            Semua
+                        </a>
+                    </div>
                 </div>
-            </div>
 
-            @if ($transactions->isEmpty())
-                <div class="py-8 text-center text-slate-400 text-xs">
-                    Belum ada riwayat transaksi pada periode ini.
-                </div>
-            @else
-                <div class="divide-y divide-slate-100">
-                    @foreach ($transactions as $tx)
-                        <div class="py-2.5 flex items-start justify-between gap-3 text-xs">
-                            <div class="min-w-0 flex-1">
-                                <p class="font-semibold text-slate-800 truncate">{{ $tx->description }}</p>
-                                <span class="text-[10px] text-slate-400 block mt-0.5">
-                                    {{ $tx->created_at->format('d M Y, H:i') }}
-                                </span>
-                            </div>
-                            <div class="text-right shrink-0">
-                                @if ($tx->type === 'credit')
-                                    <span class="font-bold text-emerald-600 text-xs block">
-                                        +Rp {{ number_format($tx->amount, 0, ',', '.') }}
+                @if ($transactions->isEmpty())
+                    <div class="py-8 text-center text-slate-400 text-xs">
+                        Belum ada riwayat transaksi pada periode ini.
+                    </div>
+                @else
+                    <div class="divide-y divide-slate-100">
+                        @foreach ($transactions as $tx)
+                            <div class="p-4 flex items-start justify-between gap-3 text-xs">
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-semibold text-slate-800 truncate">{{ $tx->description }}</p>
+                                    <span class="text-[11px] text-slate-400 block mt-0.5">
+                                        {{ $tx->created_at->format('d M Y, H:i') }}
                                     </span>
-                                @else
-                                    <span class="font-bold text-slate-900 text-xs block">
-                                        -Rp {{ number_format($tx->amount, 0, ',', '.') }}
+                                </div>
+                                <div class="text-right shrink-0">
+                                    @if ($tx->type === 'credit')
+                                        <span class="font-bold text-emerald-600 text-xs block">
+                                            +Rp {{ number_format($tx->amount, 0, ',', '.') }}
+                                        </span>
+                                    @else
+                                        <span class="font-bold text-slate-900 text-xs block">
+                                            -Rp {{ number_format($tx->amount, 0, ',', '.') }}
+                                        </span>
+                                    @endif
+                                    <span class="text-[10px] text-slate-400">
+                                        Saldo: Rp {{ number_format($tx->balance_after, 0, ',', '.') }}
                                     </span>
-                                @endif
-                                <span class="text-[10px] text-slate-400">
-                                    Saldo: Rp {{ number_format($tx->balance_after, 0, ',', '.') }}
-                                </span>
+                                </div>
                             </div>
+                        @endforeach
+                    </div>
+
+                    @if ($transactions->hasPages())
+                        <div class="p-3 border-t border-slate-100">
+                            {{ $transactions->links() }}
                         </div>
-                    @endforeach
-                </div>
-
-                <div class="mt-3 pt-3 border-t border-slate-100">
-                    {{ $transactions->links() }}
-                </div>
-            @endif
+                    @endif
+                @endif
+            </div>
         </div>
     </div>
 </x-pwa-layout>
