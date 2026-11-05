@@ -24,6 +24,13 @@ class MitraComplaintController extends Controller
             abort(403, 'Akses tidak sah.');
         }
 
+        $existingComplaint = Complaint::where('order_id', $order->id)->first();
+
+        if ($existingComplaint) {
+            return redirect()->route('mitra.orders.show', $order)
+                ->with('info', 'Pesanan ini telah memiliki laporan kendala/aduan dengan nomor tiket '.$existingComplaint->complaint_code.'.');
+        }
+
         $categories = ComplaintCategory::where('is_active', true)->orderBy('name')->get();
 
         return view('mitra.complaints.create', compact('order', 'categories'));
@@ -38,6 +45,13 @@ class MitraComplaintController extends Controller
 
         if ($order->mitra_id !== $user->id) {
             abort(403, 'Akses tidak sah.');
+        }
+
+        $existingComplaint = Complaint::where('order_id', $order->id)->first();
+
+        if ($existingComplaint) {
+            return redirect()->route('mitra.orders.show', $order)
+                ->with('error', 'Pesanan ini telah memiliki laporan kendala/aduan.');
         }
 
         $validated = $request->validate([

@@ -220,3 +220,39 @@ test('pelanggan dapat memantau endpoint live-tracking untuk update koordinat GPS
         'customer_lng' => 113.7,
     ]);
 });
+
+test('order details mask sensitive data when order is completed more than 24 hours ago', function () {
+    $order = Order::create([
+        'order_code' => 'ORD-ARCHIVE-TEST-CUS',
+        'order_type' => OrderType::Instan,
+        'customer_id' => $this->customer->id,
+        'mitra_id' => $this->mitra->id,
+        'customer_address_id' => $this->address->id,
+        'region_id' => $this->region->id,
+        'service_id' => $this->service->id,
+        'service_package_id' => $this->package->id,
+        'service_name' => $this->service->name,
+        'duration_minutes' => 60,
+        'total_price' => 100000,
+        'recipient_name' => 'Bambang',
+        'recipient_phone' => '081234567890',
+        'recipient_gender' => 'pria',
+        'service_address_text' => 'Jl. Kaliurang Gang Rahasia No. 10',
+        'service_coordinate' => ['lat' => -8.1720, 'lng' => 113.7000],
+        'medical_notes' => 'Catatan sensitif',
+        'status' => OrderStatus::Selesai,
+        'service_completed_at' => Carbon::now()->subHours(25),
+    ]);
+
+    expect($order->isHistoryArchived())->toBeTrue();
+
+    $response = $this->actingAs($this->customer)->get(route('pelanggan.orders.show', $order));
+
+    $response->assertOk();
+    $response->assertSee('Data Perjalanan dan Peta Diarsipkan');
+    $response->assertSee('Arsip Riwayat (Lebih dari 24 Jam)');
+    $response->assertSee($order->masked_address);
+    $response->assertDontSee('Jl. Kaliurang Gang Rahasia No. 10');
+    $response->assertSee($order->masked_phone);
+    $response->assertDontSee('081234567890');
+});

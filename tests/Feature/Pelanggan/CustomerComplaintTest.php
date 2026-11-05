@@ -193,3 +193,24 @@ test('customer cannot submit duplicate complaint on same order', function () {
     $response->assertSessionHas('error');
     expect(Complaint::where('order_id', $order->id)->count())->toBe(1);
 });
+
+test('customer cannot access complaint form if order already has complaint from partner', function () {
+    $order = ($this->createOrder)();
+
+    Complaint::create([
+        'order_id' => $order->id,
+        'region_id' => $this->region->id,
+        'complainant_id' => $this->mitra->id,
+        'complainant_role' => 'mitra',
+        'target_id' => $this->customer->id,
+        'title' => 'Laporan insiden mitra',
+        'description' => 'Mitra sudah melaporkan kendala pada order ini.',
+        'status' => ComplaintStatus::Menunggu,
+        'priority' => 'tinggi',
+    ]);
+
+    $response = $this->actingAs($this->customer)->get(route('pelanggan.complaints.create', $order));
+
+    $response->assertRedirect(route('pelanggan.orders.show', $order));
+    $response->assertSessionHas('info');
+});

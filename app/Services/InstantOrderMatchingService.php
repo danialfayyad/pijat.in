@@ -114,22 +114,31 @@ class InstantOrderMatchingService
             ->where('pp.is_active', true)
             ->whereNotNull('pp.coordinate');
 
-        if (in_array($normalizedPref, ['pria', 'wanita'], true)) {
-            $query->whereRaw('LOWER(u.gender) = ?', [$normalizedPref]);
+        if (in_array($normalizedPref, ['pria', 'wanita', 'laki-laki', 'perempuan'], true)) {
+            $maleGenders = ['pria', 'laki-laki'];
+            $femaleGenders = ['wanita', 'perempuan'];
+            $allowedGenders = in_array($normalizedPref, $maleGenders, true) ? $maleGenders : $femaleGenders;
+            $query->whereIn(DB::raw('LOWER(u.gender)'), $allowedGenders);
         }
 
         if (! empty($excludePartnerIds)) {
             $query->whereNotIn('u.id', $excludePartnerIds);
         }
 
-        // If service is specified, check partner service preference
+        // If service is specified, check partner service preference (default to eligible if no custom preferences saved)
         if ($serviceId) {
-            $query->whereExists(function ($sub) use ($serviceId) {
-                $sub->select(DB::raw(1))
-                    ->from('partner_service_preferences as psp')
-                    ->whereColumn('psp.partner_profile_id', 'pp.id')
-                    ->where('psp.service_id', $serviceId)
-                    ->where('psp.is_enabled', true);
+            $query->where(function ($sub) use ($serviceId) {
+                $sub->whereNotExists(function ($inner) {
+                    $inner->select(DB::raw(1))
+                        ->from('partner_service_preferences as psp')
+                        ->whereColumn('psp.partner_profile_id', 'pp.id');
+                })->orWhereExists(function ($inner) use ($serviceId) {
+                    $inner->select(DB::raw(1))
+                        ->from('partner_service_preferences as psp')
+                        ->whereColumn('psp.partner_profile_id', 'pp.id')
+                        ->where('psp.service_id', $serviceId)
+                        ->where('psp.is_enabled', true);
+                });
             });
         }
 

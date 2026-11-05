@@ -252,10 +252,11 @@
                 isDragging: false,
                 showSpecialCancelModal: false,
 
-                mitraLat: {{ $mitraLat }},
-                mitraLng: {{ $mitraLng }},
-                customerLat: {{ $customerLat }},
-                customerLng: {{ $customerLng }},
+                mitraLat: {{ $mitraLat ?? 'null' }},
+                mitraLng: {{ $mitraLng ?? 'null' }},
+                customerLat: {{ $customerLat ?? 'null' }},
+                customerLng: {{ $customerLng ?? 'null' }},
+                isArchived: {{ $isArchived ? 'true' : 'false' }},
                 orderStatus: '{{ $order->status->value }}',
                 distanceText: '{{ $distanceKm ? $distanceKm . ' km' : 'Menghitung...' }}',
                 distanceMeters: {{ $distanceKm ? round($distanceKm * 1000) : 0 }},
@@ -282,7 +283,7 @@
                 mitraMarker: null,
                 customerMarker: null,
                 routeLayer: null,
-                googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&origin={{ $mitraLat }},{{ $mitraLng }}&destination={{ $customerLat }},{{ $customerLng }}',
+                googleMapsUrl: {{ $mitraLat && $customerLat ? "'https://www.google.com/maps/dir/?api=1&origin={$mitraLat},{$mitraLng}&destination={$customerLat},{$customerLng}'" : "''" }},
 
                 toggleSheet() {
                     this.isExpanded = !this.isExpanded;
@@ -519,6 +520,10 @@
                 },
 
                 initMap() {
+                    if (this.isArchived || !this.customerLat || !document.getElementById('mitra-order-map')) {
+                        return;
+                    }
+
                     this.map = L.map('mitra-order-map', {
                         zoomControl: false
                     }).setView([this.customerLat, this.customerLng], 14);
@@ -537,7 +542,7 @@
                     });
 
                     this.customerMarker = L.marker([this.customerLat, this.customerLng], { icon: customerIcon }).addTo(this.map);
-                    this.customerMarker.bindPopup(`<strong>Lokasi Pelanggan</strong><br>{{ addslashes($order->recipient_name) }}<br><span style='font-size:11px;'>{{ addslashes($order->service_address_text) }}</span>`).openPopup();
+                    this.customerMarker.bindPopup(`<strong>Lokasi Pelanggan</strong><br>{{ addslashes($order->recipient_name) }}<br><span style='font-size:11px;'>{{ addslashes($isArchived ? $order->masked_address : $order->service_address_text) }}</span>`).openPopup();
 
                     // Marker Terapis (Pijat)
                     const mitraIcon = L.divIcon({
@@ -694,39 +699,59 @@
          x-data="mitraOrderTracker()"
          x-init="initMap()">
 
-        <!-- BACKGROUND FULL MAP (Leaflet Canvas) -->
-        <div id="mitra-order-map" class="w-full h-full absolute inset-0 z-0"></div>
-
-        <!-- FLOATING TOP CONTROLS OVER MAP -->
-        <div class="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
-            <!-- Status & Jarak Chip -->
-            <div class="pointer-events-auto bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full shadow-md border border-slate-200/80 flex items-center space-x-2 text-xs">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="font-extrabold text-slate-800 font-mono text-[11px]" x-text="distanceText"></span>
-                <span class="text-slate-300">•</span>
-                <span class="font-bold text-emerald-800 text-[11px]" x-text="etaText"></span>
-            </div>
-
-            <!-- Floating Actions: Recenter & Navigasi External -->
-            <div class="pointer-events-auto flex items-center space-x-2">
-                <button type="button" @click="fitRouteBounds()" 
-                    title="Pusatkan Peta"
-                    class="w-9 h-9 rounded-full bg-white/95 backdrop-blur-md shadow-md border border-slate-200/80 text-slate-700 hover:text-emerald-700 active:scale-95 flex items-center justify-center transition cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+        <!-- BACKGROUND FULL MAP (Leaflet Canvas) OR ARCHIVED PRIVACY CARD -->
+        @if ($isArchived)
+            <div class="w-full h-full absolute inset-0 z-0 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center justify-center p-6 text-center text-white">
+                <div class="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700/80 text-emerald-400 flex items-center justify-center shadow-lg mb-2.5">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                     </svg>
-                </button>
-
-                <a :href="googleMapsUrl" target="_blank" 
-                   title="Buka Rute Navigasi di Google Maps"
-                   class="h-9 px-3 rounded-full bg-slate-900/95 backdrop-blur-md shadow-md text-white font-bold text-[11px] flex items-center space-x-1.5 hover:bg-slate-800 active:scale-95 transition cursor-pointer">
-                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-                    </svg>
-                    <span>Buka Rute Navigasi di Google Maps</span>
-                </a>
+                </div>
+                <h4 class="text-sm font-extrabold tracking-tight text-white">Data Lokasi dan Rute Diarsipkan</h4>
+                <p class="text-[11px] text-slate-300 max-w-xs mt-1.5 leading-relaxed">
+                    Pesanan telah selesai lebih dari 24 jam. Peta rute GPS dan lokasi detail pelanggan telah diarsipkan demi perlindungan privasi.
+                </p>
+                <div class="mt-3 inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-[10px] font-bold text-slate-300">
+                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <span>Ringkasan Transaksi & Pendapatan Tetap Tersedia</span>
+                </div>
             </div>
-        </div>
+        @else
+            <div id="mitra-order-map" class="w-full h-full absolute inset-0 z-0"></div>
+        @endif
+
+        @if (! $isArchived)
+            <!-- FLOATING TOP CONTROLS OVER MAP -->
+            <div class="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
+                <!-- Status & Jarak Chip -->
+                <div class="pointer-events-auto bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full shadow-md border border-slate-200/80 flex items-center space-x-2 text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="font-extrabold text-slate-800 font-mono text-[11px]" x-text="distanceText"></span>
+                    <span class="text-slate-300">•</span>
+                    <span class="font-bold text-emerald-800 text-[11px]" x-text="etaText"></span>
+                </div>
+
+                <!-- Floating Actions: Recenter & Navigasi External -->
+                <div class="pointer-events-auto flex items-center space-x-2">
+                    <button type="button" @click="fitRouteBounds()" 
+                        title="Pusatkan Peta"
+                        class="w-9 h-9 rounded-full bg-white/95 backdrop-blur-md shadow-md border border-slate-200/80 text-slate-700 hover:text-emerald-700 active:scale-95 flex items-center justify-center transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+                        </svg>
+                    </button>
+
+                    <a :href="googleMapsUrl" target="_blank" 
+                       title="Buka Rute Navigasi di Google Maps"
+                       class="h-9 px-3 rounded-full bg-slate-900/95 backdrop-blur-md shadow-md text-white font-bold text-[11px] flex items-center space-x-1.5 hover:bg-slate-800 active:scale-95 transition cursor-pointer">
+                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                        </svg>
+                        <span>Buka Rute Navigasi di Google Maps</span>
+                    </a>
+                </div>
+            </div>
+        @endif
 
         @if ($isAssigned)
             <x-order-chat-drawer
@@ -791,7 +816,7 @@
                         <span class="font-mono font-bold text-emerald-800 text-xs">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
                     </div>
                     <p class="text-[11px] text-slate-600 line-clamp-1">
-                        📍 {{ $order->service_address_text }}
+                        📍 {{ $isArchived ? $order->masked_address : $order->service_address_text }}
                     </p>
                     <div class="text-[11px] text-slate-500 font-medium pt-0.5 flex items-center justify-between">
                         <span>Jarak ke Pelanggan: <strong class="text-slate-800 font-mono" x-text="distanceText"></strong></span>
@@ -964,19 +989,51 @@
                     @endif
 
                     @if ($isAssigned)
-                        <div class="pt-1 text-center">
-                            <a href="{{ route('mitra.orders.incident.create', $order) }}"
-                               class="inline-flex items-center space-x-1 text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:underline">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                <span>Laporkan Kendala / Insiden Lapangan</span>
-                            </a>
-                        </div>
+                        @php
+                            $existingComplaint = $order->complaints()->first();
+                            $isMyIncident = $existingComplaint && $existingComplaint->complainant_id === auth()->id();
+                        @endphp
+                        @if ($existingComplaint)
+                            <div class="pt-1 text-center">
+                                <span class="inline-flex items-center space-x-1 text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                                    <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    @if ($isMyIncident)
+                                        <span>Kendala Terlaporkan (Tiket: {{ $existingComplaint->complaint_code }})</span>
+                                    @else
+                                        <span>Dalam Peninjauan Laporan Kendala (Tiket: {{ $existingComplaint->complaint_code }})</span>
+                                    @endif
+                                </span>
+                            </div>
+                        @else
+                            <div class="pt-1 text-center">
+                                <a href="{{ route('mitra.orders.incident.create', $order) }}"
+                                   class="inline-flex items-center space-x-1 text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:underline">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    <span>Laporkan Kendala / Insiden Lapangan</span>
+                                </a>
+                            </div>
+                        @endif
                     @endif
                 </div>
             </div>
 
             <!-- MODE 2: EXPANDED VIEW (Scrollable Rincian Lengkap & Data Pemesan) -->
             <div x-show="isExpanded" class="flex-1 overflow-y-auto px-4 pb-6 pt-3 space-y-4 overscroll-contain">
+
+                @if ($isArchived)
+                    <!-- Notice Privasi Riwayat > 24 Jam -->
+                    <div class="p-3.5 bg-slate-100 rounded-2xl border border-slate-200 text-xs text-slate-700 flex items-start space-x-2.5 shadow-2xs">
+                        <svg class="w-5 h-5 text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        <div class="space-y-0.5">
+                            <p class="font-bold text-slate-900">Arsip Riwayat (Lebih dari 24 Jam)</p>
+                            <p class="text-[11px] text-slate-500 leading-relaxed">
+                                Rute peta, alamat lengkap pelanggan, nomor kontak, dan catatan medis telah diarsipkan demi perlindungan privasi. Rincian pendapatan tetap tersimpan.
+                            </p>
+                        </div>
+                    </div>
+                @endif
 
                 @if ($order->mitra_id === null)
                     <!-- Banner Tinjau Pesanan Sebelum Konfirmasi -->
@@ -1055,14 +1112,16 @@
                         </div>
                     </div>
 
-                    <!-- Tombol Navigasi Google Maps -->
-                    <a :href="googleMapsUrl" target="_blank"
-                       class="w-full min-h-[42px] py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition flex items-center justify-center space-x-2 cursor-pointer">
-                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-                        </svg>
-                        <span>Buka Rute Navigasi di Google Maps</span>
-                    </a>
+                    @if (! $isArchived)
+                        <!-- Tombol Navigasi Google Maps -->
+                        <a :href="googleMapsUrl" target="_blank"
+                           class="w-full min-h-[42px] py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition flex items-center justify-center space-x-2 cursor-pointer">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                            </svg>
+                            <span>Buka Rute Navigasi di Google Maps</span>
+                        </a>
+                    @endif
                 </div>
 
                 <!-- Informasi Penerima Layanan & Alamat Lengkap -->
@@ -1086,15 +1145,15 @@
 
                     <div class="flex items-center justify-between">
                         <span class="text-slate-500">Nomor Telepon/WA:</span>
-                        <span class="font-bold text-slate-900 font-mono">{{ $order->recipient_phone ?? '-' }}</span>
+                        <span class="font-bold text-slate-900 font-mono">{{ $isArchived ? $order->masked_phone : ($order->recipient_phone ?? '-') }}</span>
                     </div>
 
                     <div class="pt-2 border-t border-slate-100">
                         <span class="text-slate-500 block mb-1">Alamat Tujuan:</span>
                         <p class="text-slate-800 leading-relaxed font-medium bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
-                            {{ $order->service_address_text }}
+                            {{ $isArchived ? $order->masked_address : $order->service_address_text }}
                         </p>
-                        @if ($order->customerAddress?->benchmark)
+                        @if (! $isArchived && $order->customerAddress?->benchmark)
                             <p class="text-[11px] text-slate-500 mt-1 pl-1">
                                 Patokan: <strong class="text-slate-700">{{ $order->customerAddress->benchmark }}</strong>
                             </p>
@@ -1102,32 +1161,38 @@
                     </div>
 
                     <!-- Tombol Komunikasi Cepat -->
-                    <div class="grid grid-cols-2 gap-2 pt-1">
-                        @if ($order->recipient_phone)
-                            <a href="tel:{{ $order->recipient_phone }}" 
-                               class="min-h-[42px] px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
-                                <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                                </svg>
-                                <span>Telepon</span>
-                            </a>
+                    @if (! $isArchived)
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            @if ($order->recipient_phone)
+                                <a href="tel:{{ $order->recipient_phone }}" 
+                                   class="min-h-[42px] px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                                    <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                    </svg>
+                                    <span>Telepon</span>
+                                </a>
 
-                            @php
-                                $cleanPhone = preg_replace('/[^0-9]/', '', $order->recipient_phone);
-                                if (str_starts_with($cleanPhone, '0')) {
-                                    $cleanPhone = '62' . substr($cleanPhone, 1);
-                                }
-                            @endphp
-                            <a href="https://wa.me/{{ $cleanPhone }}?text={{ urlencode('Halo ' . $order->recipient_name . ', saya terapis dari Pijat.In untuk pesanan ' . $order->order_code . '.') }}" 
-                               target="_blank"
-                               class="min-h-[42px] px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
-                                <svg class="w-4 h-4 text-emerald-700" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.587 1.771.889 2.796.889 3.182 0 5.768-2.586 5.768-5.766.001-3.18-2.585-5.766-5.768-5.766zm9.969 5.766c0 5.508-4.462 9.97-9.969 9.97-1.719 0-3.364-.44-4.811-1.222l-5.22 1.369 1.393-5.089c-.879-1.503-1.362-3.238-1.362-5.028 0-5.508 4.462-9.97 9.969-9.97 5.507 0 9.969 4.462 9.969 9.97z"/>
-                                </svg>
-                                <span>WhatsApp</span>
-                            </a>
-                        @endif
-                    </div>
+                                @php
+                                    $cleanPhone = preg_replace('/[^0-9]/', '', $order->recipient_phone);
+                                    if (str_starts_with($cleanPhone, '0')) {
+                                        $cleanPhone = '62' . substr($cleanPhone, 1);
+                                    }
+                                @endphp
+                                <a href="https://wa.me/{{ $cleanPhone }}?text={{ urlencode('Halo ' . $order->recipient_name . ', saya terapis dari Pijat.In untuk pesanan ' . $order->order_code . '.') }}" 
+                                   target="_blank"
+                                   class="min-h-[42px] px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                                    <svg class="w-4 h-4 text-emerald-700" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.587 1.771.889 2.796.889 3.182 0 5.768-2.586 5.768-5.766.001-3.18-2.585-5.766-5.768-5.766zm9.969 5.766c0 5.508-4.462 9.97-9.969 9.97-1.719 0-3.364-.44-4.811-1.222l-5.22 1.369 1.393-5.089c-.879-1.503-1.362-3.238-1.362-5.028 0-5.508 4.462-9.97 9.969-9.97 5.507 0 9.969 4.462 9.969 9.97z"/>
+                                    </svg>
+                                    <span>WhatsApp</span>
+                                </a>
+                            @endif
+                        </div>
+                    @else
+                        <div class="p-2.5 rounded-xl bg-slate-100 border border-slate-200 text-center text-[11px] text-slate-500 font-medium">
+                            Akses komunikasi ditutup demi privasi karena layanan telah selesai lebih dari 24 jam.
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Catatan Medis Penerima (Transparan Bagi Mitra Setelah Diambil - MIT-07) -->
@@ -1139,7 +1204,11 @@
                         <span>Catatan Kondisi Medis Penerima</span>
                     </div>
                     <p class="text-amber-950 font-medium leading-relaxed pl-6">
-                        {{ $order->medical_notes ?: 'Pelanggan tidak mencantumkan keluhan medis khusus.' }}
+                        @if ($isArchived)
+                            <span class="text-slate-500 italic text-[11px]">[Catatan medis telah diarsipkan demi kerahasiaan kesehatan]</span>
+                        @else
+                            {{ $order->medical_notes ?: 'Pelanggan tidak mencantumkan keluhan medis khusus.' }}
+                        @endif
                     </p>
                 </div>
 
@@ -1335,13 +1404,35 @@
                         @endif
 
                         @if ($isAssigned)
-                            <div class="pt-2 text-center">
-                                <a href="{{ route('mitra.orders.incident.create', $order) }}"
-                                   class="inline-flex items-center justify-center space-x-1.5 w-full py-2.5 px-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-bold text-xs transition cursor-pointer">
-                                    <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                    <span>Laporkan Kendala / Insiden Lapangan (MIT-19)</span>
-                                </a>
-                            </div>
+                            @if ($existingComplaint)
+                                <div class="pt-2">
+                                    <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between text-xs">
+                                        <div class="truncate mr-2">
+                                            <span class="text-[10px] text-amber-800 font-bold block">
+                                                @if ($isMyIncident)
+                                                    LAPORAN KENDALA TERKIRIM
+                                                @else
+                                                    PESANAN DALAM PENINJAUAN LAPORAN
+                                                @endif
+                                            </span>
+                                            <span class="text-slate-800 font-medium truncate block">
+                                                Tiket: {{ $existingComplaint->complaint_code }} ({{ $existingComplaint->status->label() }})
+                                            </span>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-200 text-amber-900 shrink-0">
+                                            {{ $existingComplaint->status->label() }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="pt-2 text-center">
+                                    <a href="{{ route('mitra.orders.incident.create', $order) }}"
+                                       class="inline-flex items-center justify-center space-x-1.5 w-full py-2.5 px-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-bold text-xs transition cursor-pointer">
+                                        <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                        <span>Laporkan Kendala / Insiden Lapangan (MIT-19)</span>
+                                    </a>
+                                </div>
+                            @endif
                         @endif
                     </div>
                 @else

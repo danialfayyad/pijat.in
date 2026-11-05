@@ -339,6 +339,10 @@ class OrderBookingController extends Controller
             if ($order->status === OrderStatus::MenungguPembayaran) {
                 $pendingInvoice = $order->latestPendingTopupInvoice();
                 if ($pendingInvoice) {
+                    if (! empty($pendingInvoice->payment_url)) {
+                        return redirect()->away($pendingInvoice->payment_url);
+                    }
+
                     return redirect()->route('pelanggan.wallet.invoice', $pendingInvoice->invoice_number)
                         ->with('status', 'Pesanan berhasil dibuat! Silakan selesaikan pembayaran tagihan via QRIS / Xendit dalam 15 menit.');
                 }
@@ -363,24 +367,31 @@ class OrderBookingController extends Controller
 
         $order->load(['customerAddress', 'region', 'service', 'servicePackage', 'mitra.partnerProfile']);
 
-        $orderCoords = DB::table('orders')
-            ->selectRaw('ST_Latitude(service_coordinate) as lat, ST_Longitude(service_coordinate) as lng')
-            ->where('id', $order->id)
-            ->first();
+        $isArchived = $order->isHistoryArchived();
 
-        $customerLat = (float) ($orderCoords?->lat ?? $order->customerAddress?->latitude ?? -8.1720);
-        $customerLng = (float) ($orderCoords?->lng ?? $order->customerAddress?->longitude ?? 113.7000);
-
+        $customerLat = null;
+        $customerLng = null;
         $mitraLat = null;
         $mitraLng = null;
-        if ($order->mitra_id) {
-            $profileCoords = DB::table('partner_profiles')
-                ->selectRaw('ST_Latitude(COALESCE(current_coordinate, coordinate)) as lat, ST_Longitude(COALESCE(current_coordinate, coordinate)) as lng')
-                ->where('user_id', $order->mitra_id)
+
+        if (! $isArchived) {
+            $orderCoords = DB::table('orders')
+                ->selectRaw('ST_Latitude(service_coordinate) as lat, ST_Longitude(service_coordinate) as lng')
+                ->where('id', $order->id)
                 ->first();
 
-            $mitraLat = $profileCoords?->lat ? (float) $profileCoords->lat : null;
-            $mitraLng = $profileCoords?->lng ? (float) $profileCoords->lng : null;
+            $customerLat = (float) ($orderCoords?->lat ?? $order->customerAddress?->latitude ?? -8.1720);
+            $customerLng = (float) ($orderCoords?->lng ?? $order->customerAddress?->longitude ?? 113.7000);
+
+            if ($order->mitra_id) {
+                $profileCoords = DB::table('partner_profiles')
+                    ->selectRaw('ST_Latitude(COALESCE(current_coordinate, coordinate)) as lat, ST_Longitude(COALESCE(current_coordinate, coordinate)) as lng')
+                    ->where('user_id', $order->mitra_id)
+                    ->first();
+
+                $mitraLat = $profileCoords?->lat ? (float) $profileCoords->lat : null;
+                $mitraLng = $profileCoords?->lng ? (float) $profileCoords->lng : null;
+            }
         }
 
         $myRating = OrderRating::where('order_id', $order->id)
@@ -389,7 +400,7 @@ class OrderBookingController extends Controller
 
         $pendingInvoice = $order->latestPendingTopupInvoice();
 
-        return view('pelanggan.orders.show', compact('order', 'customerLat', 'customerLng', 'mitraLat', 'mitraLng', 'myRating', 'pendingInvoice'));
+        return view('pelanggan.orders.show', compact('order', 'customerLat', 'customerLng', 'mitraLat', 'mitraLng', 'myRating', 'pendingInvoice', 'isArchived'));
     }
 
     /**
@@ -399,6 +410,21 @@ class OrderBookingController extends Controller
     {
         if ($order->customer_id !== $request->user()->id) {
             abort(403, 'Akses ditolak.');
+        }
+
+        if ($order->isHistoryArchived()) {
+            return response()->json([
+                'status' => $order->status->value,
+                'status_label' => $order->status->label(),
+                'mitra_id' => $order->mitra_id,
+                'mitra_name' => $order->mitra?->name,
+                'mitra_lat' => null,
+                'mitra_lng' => null,
+                'customer_lat' => null,
+                'customer_lng' => null,
+                'is_archived' => true,
+                'updated_at' => now()->toIso8601String(),
+            ]);
         }
 
         $order->load(['mitra.partnerProfile']);

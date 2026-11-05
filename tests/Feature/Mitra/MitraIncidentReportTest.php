@@ -148,3 +148,45 @@ test('partner can submit emergency incident report (priority darurat) (MIT-19)',
         ->and($complaint->priority)->toBe('darurat')
         ->and($complaint->status)->toBe(ComplaintStatus::Menunggu);
 });
+
+test('partner cannot access incident report form if order already has a complaint', function () {
+    Complaint::create([
+        'order_id' => $this->order->id,
+        'region_id' => $this->region->id,
+        'complainant_id' => $this->mitra->id,
+        'complainant_role' => 'mitra',
+        'target_id' => $this->customer->id,
+        'title' => 'Kendala awal',
+        'description' => 'Sudah pernah dilaporkan sebelumnya.',
+        'status' => ComplaintStatus::Menunggu,
+        'priority' => 'tinggi',
+    ]);
+
+    $response = $this->actingAs($this->mitra)->get(route('mitra.orders.incident.create', $this->order));
+
+    $response->assertRedirect(route('mitra.orders.show', $this->order));
+    $response->assertSessionHas('info');
+});
+
+test('partner cannot submit duplicate incident report on same order', function () {
+    Complaint::create([
+        'order_id' => $this->order->id,
+        'region_id' => $this->region->id,
+        'complainant_id' => $this->mitra->id,
+        'complainant_role' => 'mitra',
+        'target_id' => $this->customer->id,
+        'title' => 'Kendala pertama',
+        'description' => 'Laporan kendala pertama.',
+        'status' => ComplaintStatus::Menunggu,
+        'priority' => 'tinggi',
+    ]);
+
+    $response = $this->actingAs($this->mitra)->post(route('mitra.orders.incident.store', $this->order), [
+        'title' => 'Kendala kedua',
+        'description' => 'Mencoba membuat laporan kedua pada order yang sama.',
+    ]);
+
+    $response->assertRedirect(route('mitra.orders.show', $this->order));
+    $response->assertSessionHas('error');
+    expect(Complaint::where('order_id', $this->order->id)->count())->toBe(1);
+});

@@ -196,10 +196,11 @@
             touchCurrentY: 0,
             isDragging: false,
 
-            customerLat: {{ $customerLat }},
-            customerLng: {{ $customerLng }},
+            customerLat: {{ $customerLat ?? 'null' }},
+            customerLng: {{ $customerLng ?? 'null' }},
             mitraLat: {{ $mitraLat ? $mitraLat : 'null' }},
             mitraLng: {{ $mitraLng ? $mitraLng : 'null' }},
+            isArchived: {{ $isArchived ? 'true' : 'false' }},
             hasMitra: {{ $order->mitra_id ? 'true' : 'false' }},
             orderStatus: '{{ $order->status->value }}',
             serviceStartedAt: '{{ $order->service_started_at?->toIso8601String() }}',
@@ -356,6 +357,10 @@
             },
 
             initMap() {
+                if (this.isArchived || !this.customerLat || !document.getElementById('pelanggan-order-map')) {
+                    return;
+                }
+
                 this.map = L.map('pelanggan-order-map', {
                     zoomControl: false
                 }).setView([this.customerLat, this.customerLng], 14);
@@ -374,7 +379,7 @@
                 });
 
                 this.customerMarker = L.marker([this.customerLat, this.customerLng], { icon: customerIcon }).addTo(this.map);
-                this.customerMarker.bindPopup(`<strong>Lokasi Layanan Anda</strong><br>{{ addslashes($order->recipient_name) }}<br><span style='font-size:11px;'>{{ addslashes($order->service_address_text) }}</span>`).openPopup();
+                this.customerMarker.bindPopup(`<strong>Lokasi Layanan Anda</strong><br>{{ addslashes($order->recipient_name) }}<br><span style='font-size:11px;'>{{ addslashes($isArchived ? $order->masked_address : $order->service_address_text) }}</span>`).openPopup();
 
                 // Jika sudah ada mitra
                 if (this.hasMitra && this.mitraLat && this.mitraLng) {
@@ -527,36 +532,56 @@
          }"
          x-init="initMap()">
 
-        <!-- BACKGROUND FULL MAP (Leaflet Canvas) -->
-        <div id="pelanggan-order-map" class="w-full h-full absolute inset-0 z-0"></div>
-
-        <!-- FLOATING TOP CONTROLS OVER MAP -->
-        <div class="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
-            <!-- Status & Jarak Chip -->
-            <div class="pointer-events-auto bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full shadow-md border border-slate-200/80 flex items-center space-x-2 text-xs">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                @if ($order->order_type->value === 'terjadwal' && $order->status === \App\Enums\OrderStatus::MencariMitra)
-                    <span class="font-bold text-slate-800 text-[11px]">Bursa Jadwal Mitra</span>
-                @else
-                    <span class="font-bold text-slate-800 text-[11px]">{{ $order->status->label() }}</span>
-                @endif
-                @if ($order->mitra_id)
-                    <span class="text-slate-300">•</span>
-                    <span class="font-extrabold text-emerald-800 font-mono text-[11px]" x-text="distanceText"></span>
-                @endif
-            </div>
-
-            <!-- Recenter Button -->
-            <div class="pointer-events-auto flex items-center space-x-2">
-                <button type="button" @click="hasMitra ? fitRouteBounds() : fitBoundsSingle()" 
-                    title="Pusatkan Peta"
-                    class="w-9 h-9 rounded-full bg-white/95 backdrop-blur-md shadow-md border border-slate-200/80 text-slate-700 hover:text-emerald-700 active:scale-95 flex items-center justify-center transition cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+        <!-- BACKGROUND FULL MAP (Leaflet Canvas) OR ARCHIVED CARD -->
+        @if ($isArchived)
+            <div class="w-full h-full absolute inset-0 z-0 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center justify-center p-6 text-center text-white">
+                <div class="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700/80 text-emerald-400 flex items-center justify-center shadow-lg mb-2.5">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                     </svg>
-                </button>
+                </div>
+                <h4 class="text-sm font-extrabold tracking-tight text-white">Data Perjalanan dan Peta Diarsipkan</h4>
+                <p class="text-[11px] text-slate-300 max-w-xs mt-1.5 leading-relaxed">
+                    Pesanan telah selesai lebih dari 24 jam. Titik rute GPS dan lokasi detail telah diarsipkan demi perlindungan privasi.
+                </p>
+                <div class="mt-3 inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-[10px] font-bold text-slate-300">
+                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <span>Ringkasan Transaksi & Tarif Tetap Tersedia</span>
+                </div>
             </div>
-        </div>
+        @else
+            <div id="pelanggan-order-map" class="w-full h-full absolute inset-0 z-0"></div>
+        @endif
+
+        @if (! $isArchived)
+            <!-- FLOATING TOP CONTROLS OVER MAP -->
+            <div class="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
+                <!-- Status & Jarak Chip -->
+                <div class="pointer-events-auto bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full shadow-md border border-slate-200/80 flex items-center space-x-2 text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    @if ($order->order_type->value === 'terjadwal' && $order->status === \App\Enums\OrderStatus::MencariMitra)
+                        <span class="font-bold text-slate-800 text-[11px]">Bursa Jadwal Mitra</span>
+                    @else
+                        <span class="font-bold text-slate-800 text-[11px]">{{ $order->status->label() }}</span>
+                    @endif
+                    @if ($order->mitra_id)
+                        <span class="text-slate-300">•</span>
+                        <span class="font-extrabold text-emerald-800 font-mono text-[11px]" x-text="distanceText"></span>
+                    @endif
+                </div>
+
+                <!-- Recenter Button -->
+                <div class="pointer-events-auto flex items-center space-x-2">
+                    <button type="button" @click="hasMitra ? fitRouteBounds() : fitBoundsSingle()" 
+                        title="Pusatkan Peta"
+                        class="w-9 h-9 rounded-full bg-white/95 backdrop-blur-md shadow-md border border-slate-200/80 text-slate-700 hover:text-emerald-700 active:scale-95 flex items-center justify-center transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        @endif
 
         @if ($order->mitra_id)
             <x-order-chat-drawer
@@ -616,11 +641,13 @@
                                 <p class="text-[11px] text-slate-500 capitalize">Terapis {{ $order->mitra->gender }} • ★ {{ number_format($order->mitra->partnerRating(), 1) }}</p>
                             </div>
                         </div>
-                        <a href="tel:{{ $order->mitra->phone }}" 
-                           class="py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-200 flex items-center space-x-1 transition shrink-0">
-                            <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                            <span>Hubungi</span>
-                        </a>
+                        @if (! $isArchived)
+                            <a href="tel:{{ $order->mitra->phone }}" 
+                               class="py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-200 flex items-center space-x-1 transition shrink-0">
+                                <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                <span>Hubungi</span>
+                            </a>
+                        @endif
                     </div>
 
                     <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/70 flex items-center justify-between text-xs">
@@ -629,7 +656,11 @@
                             <strong class="text-slate-900">{{ $order->status->label() }}</strong>
                         </div>
                         <div class="font-mono text-emerald-800 font-bold">
-                            <span x-text="distanceText"></span> (<span x-text="etaText"></span>)
+                            @if (! $isArchived)
+                                <span x-text="distanceText"></span> (<span x-text="etaText"></span>)
+                            @else
+                                <span class="text-slate-500 font-normal">Selesai</span>
+                            @endif
                         </div>
                     </div>
                 @else
@@ -640,7 +671,7 @@
                             <span class="font-mono font-bold text-emerald-800">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
                         </div>
                         <p class="text-[11px] text-slate-500 line-clamp-1">
-                            📍 {{ $order->service_address_text }}
+                            📍 {{ $isArchived ? $order->masked_address : $order->service_address_text }}
                         </p>
                         <div class="text-[11px] text-emerald-700 font-medium">
                             @if ($order->order_type->value === 'terjadwal')
@@ -660,6 +691,21 @@
 
             <!-- MODE 2: EXPANDED VIEW (Scrollable Rincian Lengkap & Pelacakan) -->
             <div x-show="isExpanded" class="flex-1 overflow-y-auto px-4 pb-6 pt-3 space-y-4 overscroll-contain">
+
+                @if ($isArchived)
+                    <!-- Notice Privasi Riwayat > 24 Jam -->
+                    <div class="p-3.5 bg-slate-100 rounded-2xl border border-slate-200 text-xs text-slate-700 flex items-start space-x-2.5 shadow-2xs">
+                        <svg class="w-5 h-5 text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        <div class="space-y-0.5">
+                            <p class="font-bold text-slate-900">Arsip Riwayat (Lebih dari 24 Jam)</p>
+                            <p class="text-[11px] text-slate-500 leading-relaxed">
+                                Rute peta, alamat lengkap, dan nomor kontak telah diarsipkan demi perlindungan privasi. Rincian tagihan dan bukti transaksi tetap tersimpan utuh.
+                            </p>
+                        </div>
+                    </div>
+                @endif
 
                 <!-- Visual Progress Tracker -->
                 @php
@@ -1088,6 +1134,13 @@
 
                 <!-- 2D. Kondisi: Layanan Selesai (Rating Bintang 1-5 Pelanggan - CUS-14) -->
                 @if ($order->status === \App\Enums\OrderStatus::Selesai)
+                    @php
+                        $completedTime = $order->service_completed_at ?? $order->updated_at;
+                        $hoursSinceCompletion = $completedTime ? \Carbon\Carbon::now()->diffInHours($completedTime, false) : 0;
+                        $canComplain = $hoursSinceCompletion <= 24;
+                        $existingComplaint = $order->complaints()->first();
+                        $isComplainant = $existingComplaint && $existingComplaint->complainant_id === auth()->id();
+                    @endphp
                     <div class="bg-white rounded-2xl p-4 border border-emerald-200 shadow-xs space-y-3">
                         <div class="flex items-center space-x-3 text-emerald-900">
                             <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
@@ -1147,38 +1200,45 @@
                                 </div>
                             </template>
 
-                            <!-- Prompt jika rating <= 3 bintang -->
-                            <template x-if="hasRated && selectedRating <= 3">
-                                <div class="pt-2 border-t border-slate-200/80 text-[11px] text-slate-600 space-y-1.5">
-                                    <p class="text-rose-700 font-semibold">Ada kendala atau ketidaknyamanan selama layanan?</p>
-                                    <a href="{{ route('pelanggan.complaints.create', $order) }}"
-                                       class="inline-flex items-center space-x-1 text-xs font-bold text-rose-700 hover:text-rose-800 underline">
-                                        <span>Ajukan Laporan Aduan Layanan (Maks. 24 Jam)</span>
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                    </a>
-                                </div>
-                            </template>
+                            <!-- Prompt jika rating <= 3 bintang (hanya ditampilkan jika belum pernah ada laporan sama sekali dan jendela aduan masih buka) -->
+                            @if (! $existingComplaint && $canComplain)
+                                <template x-if="hasRated && selectedRating <= 3">
+                                    <div class="pt-2 border-t border-slate-200/80 text-[11px] text-slate-600 space-y-1.5">
+                                        <p class="text-rose-700 font-semibold">Ada kendala atau ketidaknyamanan selama layanan?</p>
+                                        <a href="{{ route('pelanggan.complaints.create', $order) }}"
+                                           class="inline-flex items-center space-x-1 text-xs font-bold text-rose-700 hover:text-rose-800 underline">
+                                            <span>Ajukan Laporan Aduan Layanan (Maks. 24 Jam)</span>
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </a>
+                                    </div>
+                                </template>
+                            @endif
                         </div>
 
-                        <!-- Opsi Aduan Layanan 24 Jam (CUS-19) -->
-                        @php
-                            $completedTime = $order->service_completed_at ?? $order->updated_at;
-                            $hoursSinceCompletion = $completedTime ? \Carbon\Carbon::now()->diffInHours($completedTime, false) : 0;
-                            $canComplain = $hoursSinceCompletion <= 24;
-                            $existingComplaint = $order->complaints()->where('complainant_id', auth()->id())->first();
-                        @endphp
-
+                        <!-- Opsi / Status Aduan Layanan (CUS-19) -->
                         @if ($existingComplaint)
-                            <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between text-xs">
-                                <div class="truncate mr-2">
-                                    <span class="text-[10px] text-amber-800 font-bold block">TIKET: {{ $existingComplaint->complaint_code }} ({{ $existingComplaint->status->label() }})</span>
-                                    <span class="text-slate-800 font-medium truncate block">{{ $existingComplaint->title }}</span>
+                            @if ($isComplainant)
+                                <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between text-xs">
+                                    <div class="truncate mr-2">
+                                        <span class="text-[10px] text-amber-800 font-bold block">TIKET ADUAN: {{ $existingComplaint->complaint_code }} ({{ $existingComplaint->status->label() }})</span>
+                                        <span class="text-slate-800 font-medium truncate block">{{ $existingComplaint->title }}</span>
+                                    </div>
+                                    <a href="{{ route('pelanggan.complaints.show', $existingComplaint) }}"
+                                       class="px-2.5 py-1 rounded-lg bg-amber-200 text-amber-900 font-bold text-[11px] hover:bg-amber-300 transition shrink-0">
+                                        Lihat Status
+                                    </a>
                                 </div>
-                                <a href="{{ route('pelanggan.complaints.show', $existingComplaint) }}"
-                                   class="px-2.5 py-1 rounded-lg bg-amber-200 text-amber-900 font-bold text-[11px] hover:bg-amber-300 transition shrink-0">
-                                    Lihat Status
-                                </a>
-                            </div>
+                            @else
+                                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-1">
+                                    <div class="flex items-center space-x-1.5 font-bold text-slate-800">
+                                        <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                        <span>Pesanan Dalam Peninjauan Laporan Kendala</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 leading-relaxed">
+                                        Tiket: <strong>{{ $existingComplaint->complaint_code }}</strong> (Status: {{ $existingComplaint->status->label() }}). Laporan kendala terkait pesanan ini sedang ditangani oleh Admin Wilayah.
+                                    </p>
+                                </div>
+                            @endif
                         @elseif ($canComplain)
                             <div class="pt-1">
                                 <a href="{{ route('pelanggan.complaints.create', $order) }}"
@@ -1317,14 +1377,14 @@
 
                     <div class="flex items-center justify-between">
                         <span class="text-slate-500">Telepon / WhatsApp:</span>
-                        <span class="font-bold text-slate-900 font-mono">{{ $order->recipient_phone ?? '-' }}</span>
+                        <span class="font-bold text-slate-900 font-mono">{{ $isArchived ? $order->masked_phone : ($order->recipient_phone ?? '-') }}</span>
                     </div>
                 </div>
 
                 <!-- Alamat Kunjungan -->
                 <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs space-y-2 text-xs">
                     <h3 class="text-xs font-bold text-slate-900 pb-1 border-b border-slate-100">Alamat Kunjungan</h3>
-                    <p class="text-slate-700 leading-relaxed pt-1">{{ $order->service_address_text }}</p>
+                    <p class="text-slate-700 leading-relaxed pt-1">{{ $isArchived ? $order->masked_address : $order->service_address_text }}</p>
                 </div>
 
                 <!-- Catatan Medis & Persetujuan Risiko (CUS-07 & SYS-08) -->
@@ -1334,7 +1394,11 @@
                     <div class="flex items-center justify-between">
                         <span class="text-slate-500">Catatan Medis:</span>
                         <span class="font-medium text-slate-800">
-                            {{ $order->medical_notes ? 'Tercatat (Terenkripsi)' : 'Tidak ada catatan khusus' }}
+                            @if ($isArchived)
+                                <span class="text-slate-400 italic">[Diarsipkan demi kerahasiaan medis]</span>
+                            @else
+                                {{ $order->medical_notes ? 'Tercatat (Terenkripsi)' : 'Tidak ada catatan khusus' }}
+                            @endif
                         </span>
                     </div>
 

@@ -5,11 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SystemNotification extends Model
 {
-    use HasFactory;
+    use HasFactory, Prunable;
 
     protected $fillable = [
         'user_id',
@@ -20,6 +21,17 @@ class SystemNotification extends Model
         'data',
         'read_at',
     ];
+
+    /**
+     * Get the prunable model query.
+     * Automatically prunes notifications older than 30 days (1 month).
+     *
+     * @return Builder<$this>
+     */
+    public function prunable(): Builder
+    {
+        return static::where('created_at', '<=', now()->subDays(30));
+    }
 
     /**
      * @var array<string, string>

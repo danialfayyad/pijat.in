@@ -55,7 +55,6 @@
             <form action="{{ route('pelanggan.wallet.store') }}" method="POST" class="space-y-4"
                   x-data="{
                     amount: {{ old('amount', 50000) }},
-                    paymentMethod: '{{ old('payment_method', 'QRIS') }}',
                     presets: [50000, 100000, 200000, 500000]
                   }">
                 @csrf
@@ -94,64 +93,33 @@
                     </div>
                 </div>
 
-                <!-- Payment Method Card -->
+                <!-- Payment Gateway Info Card -->
                 <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-0.5">
-                            Metode Pembayaran <span class="text-rose-500">*</span>
-                        </label>
-                        <p class="text-xs text-slate-500">Dukungan QRIS Real-time dan Virtual Account Bank</p>
-                    </div>
-
-                    <div class="space-y-2.5 pt-1">
-                        <!-- QRIS Option -->
-                        <div @click="paymentMethod = 'QRIS'"
-                             class="p-3.5 rounded-xl border cursor-pointer select-none transition flex items-center justify-between min-h-[48px]"
-                             :class="paymentMethod === 'QRIS' ? 'bg-emerald-50/80 border-emerald-600 ring-1 ring-emerald-600 shadow-xs' : 'bg-slate-50/60 border-slate-200 hover:border-slate-300'">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-4 h-4 rounded-full border flex items-center justify-center"
-                                     :class="paymentMethod === 'QRIS' ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300 bg-white'">
-                                    <div x-show="paymentMethod === 'QRIS'" class="w-1.5 h-1.5 rounded-full bg-white"></div>
-                                </div>
-                                <div>
-                                    <span class="text-xs font-bold text-slate-900 block">QRIS (GoPay, OVO, Dana, BCA, dan bank lain)</span>
-                                    <span class="text-[11px] text-emerald-700 font-medium">Verifikasi Otomatis Instan</span>
-                                </div>
-                            </div>
-                            <span class="text-xs font-bold text-slate-600">Instan</span>
+                    <div class="flex items-start space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
                         </div>
-
-                        <!-- BCA VA -->
-                        <div @click="paymentMethod = 'BCA_VA'"
-                             class="p-3.5 rounded-xl border cursor-pointer select-none transition flex items-center justify-between min-h-[48px]"
-                             :class="paymentMethod === 'BCA_VA' ? 'bg-emerald-50/80 border-emerald-600 ring-1 ring-emerald-600 shadow-xs' : 'bg-slate-50/60 border-slate-200 hover:border-slate-300'">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-4 h-4 rounded-full border flex items-center justify-center"
-                                     :class="paymentMethod === 'BCA_VA' ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300 bg-white'">
-                                    <div x-show="paymentMethod === 'BCA_VA'" class="w-1.5 h-1.5 rounded-full bg-white"></div>
-                                </div>
-                                <span class="text-xs font-bold text-slate-900">BCA Virtual Account</span>
-                            </div>
-                            <span class="text-xs text-slate-500 font-mono">VA</span>
-                        </div>
-
-                        <!-- Mandiri VA -->
-                        <div @click="paymentMethod = 'MANDIRI_VA'"
-                             class="p-3.5 rounded-xl border cursor-pointer select-none transition flex items-center justify-between min-h-[48px]"
-                             :class="paymentMethod === 'MANDIRI_VA' ? 'bg-emerald-50/80 border-emerald-600 ring-1 ring-emerald-600 shadow-xs' : 'bg-slate-50/60 border-slate-200 hover:border-slate-300'">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-4 h-4 rounded-full border flex items-center justify-center"
-                                     :class="paymentMethod === 'MANDIRI_VA' ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300 bg-white'">
-                                    <div x-show="paymentMethod === 'MANDIRI_VA'" class="w-1.5 h-1.5 rounded-full bg-white"></div>
-                                </div>
-                                <span class="text-xs font-bold text-slate-900">Mandiri Virtual Account</span>
-                            </div>
-                            <span class="text-xs text-slate-500 font-mono">VA</span>
+                        <div>
+                            <span class="text-xs font-bold text-slate-900 block">Metode Pembayaran via Xendit</span>
+                            <span class="text-[11px] text-slate-500 leading-tight block mt-0.5">
+                                Bebas pilih metode langsung di Xendit: <strong>QRIS</strong> (BCA, Livin', GoPay, OVO, Dana, ShopeePay), <strong>Virtual Account Bank</strong>, & <strong>E-Wallet</strong>.
+                            </span>
                         </div>
                     </div>
 
-                    <input type="hidden" name="payment_method" :value="paymentMethod">
-                    @error('payment_method') <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p> @enderror
+                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                        <span>Verifikasi Pembayaran:</span>
+                        <span class="font-bold text-emerald-700 flex items-center">
+                            <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Otomatis Real-time
+                        </span>
+                    </div>
+
+                    <input type="hidden" name="payment_method" value="XENDIT">
                 </div>
 
                 <!-- Expiration Notice -->
@@ -163,7 +131,7 @@
                 <div class="pt-1">
                     <button type="submit" 
                         class="w-full min-h-[48px] py-3.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-sm transition flex items-center justify-center space-x-2 cursor-pointer">
-                        <span>Lanjutkan ke Pembayaran</span>
+                        <span>Lanjut Bayar via Xendit</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                         </svg>

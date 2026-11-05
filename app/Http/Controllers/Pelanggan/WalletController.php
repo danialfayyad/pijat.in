@@ -54,20 +54,24 @@ class WalletController extends Controller
     {
         $validated = $request->validate([
             'amount' => ['required', 'numeric', 'min:10000', 'max:10000000'],
-            'payment_method' => ['required', 'string', 'in:QRIS,BCA_VA,MANDIRI_VA,BNI_VA,BRI_VA'],
+            'payment_method' => ['nullable', 'string', 'max:50'],
         ], [
             'amount.required' => 'Nominal pengisian saldo wajib diisi.',
             'amount.min' => 'Nominal minimal pengisian saldo adalah Rp 10.000.',
             'amount.max' => 'Nominal maksimal pengisian saldo adalah Rp 10.000.000.',
-            'payment_method.required' => 'Pilih metode pembayaran.',
         ]);
 
         try {
             $invoice = $this->topupService->createInvoice(
                 user: $request->user(),
                 amount: (float) $validated['amount'],
-                paymentMethod: $validated['payment_method']
+                paymentMethod: $validated['payment_method'] ?? 'XENDIT'
             );
+
+            // Redirect directly to Xendit Hosted Checkout if available
+            if (! empty($invoice->payment_url)) {
+                return redirect()->away($invoice->payment_url);
+            }
 
             return redirect()->route('pelanggan.wallet.invoice', $invoice->invoice_number)
                 ->with('status', 'Tagihan isi saldo berhasil dibuat. Silakan selesaikan pembayaran sebelum batas waktu.');
@@ -84,6 +88,12 @@ class WalletController extends Controller
         $invoice = TopupInvoice::where('invoice_number', $invoiceNumber)
             ->where('user_id', $request->user()->id)
             ->firstOrFail();
+
+        // Auto-sync status from Xendit if pending and has Xendit invoice reference
+        if ($invoice->isPending() && ! empty($invoice->xendit_invoice_id)) {
+            $this->topupService->checkAndSyncXenditStatus($invoice);
+            $invoice->refresh();
+        }
 
         return view('pelanggan.wallet.invoice', compact('invoice'));
     }
