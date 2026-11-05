@@ -68,6 +68,7 @@ Route::middleware(['auth', 'role:pelanggan'])->prefix('pelanggan')->name('pelang
     Route::get('/bantuan/chat', [CustomerHelpController::class, 'chat'])->name('help.chat');
     Route::post('/bantuan/chat', [CustomerHelpController::class, 'storeTicket'])->name('help.store');
     Route::get('/bantuan/chat/{ticket}', [CustomerHelpController::class, 'showTicket'])->name('help.ticket');
+    Route::post('/bantuan/chat/{ticket}/close', [CustomerHelpController::class, 'closeTicket'])->name('help.close');
     Route::post('/bantuan/chat/{ticket}/reply', [CustomerHelpController::class, 'replyTicket'])->name('help.reply');
     Route::get('/bantuan/chat/{ticket}/messages', [CustomerHelpController::class, 'fetchMessages'])->name('help.messages');
 });

@@ -8,6 +8,7 @@ use App\Models\Region;
 use App\Models\SupportMessage;
 use App\Models\SupportTicket;
 use App\Services\NotificationService;
+use App\Services\SupportChatService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -52,6 +53,11 @@ class PartnerHelpController extends Controller
             ->latest('last_message_at')
             ->first();
 
+        // Hapus tiket yang sudah selesai agar tidak meninggalkan riwayat
+        SupportTicket::where('user_id', $user->id)
+            ->where('status', SupportTicket::STATUS_SELESAI)
+            ->delete();
+
         return view('mitra.help.index', [
             'faqs' => $faqs,
             'categories' => $categories,
@@ -62,11 +68,16 @@ class PartnerHelpController extends Controller
     }
 
     /**
-     * Entry point to Live Chat: redirect to active ticket or show portal.
+     * Entry point to Live Chat: redirect to active ticket or show create form.
      */
     public function chat(Request $request): View|RedirectResponse
     {
         $user = $request->user();
+
+        // Bersihkan sesi yang sudah berakhir
+        SupportTicket::where('user_id', $user->id)
+            ->where('status', SupportTicket::STATUS_SELESAI)
+            ->delete();
 
         $activeTicket = SupportTicket::where('user_id', $user->id)
             ->whereIn('status', [SupportTicket::STATUS_MENUNGGU, SupportTicket::STATUS_BERLANGSUNG])
@@ -77,16 +88,20 @@ class PartnerHelpController extends Controller
             return redirect()->route('mitra.help.ticket', $activeTicket);
         }
 
-        $pastTickets = SupportTicket::where('user_id', $user->id)
-            ->where('status', SupportTicket::STATUS_SELESAI)
-            ->with(['region', 'admin'])
-            ->latest('closed_at')
-            ->take(5)
-            ->get();
+        return view('mitra.help.create');
+    }
 
-        return view('mitra.help.create', [
-            'pastTickets' => $pastTickets,
-        ]);
+    /**
+     * End and delete the support live chat session.
+     */
+    public function closeTicket(Request $request, SupportTicket $ticket): RedirectResponse
+    {
+        abort_if($ticket->user_id !== $request->user()->id, 403);
+
+        $ticket->delete();
+
+        return redirect()->route('mitra.help.index')
+            ->with('success', 'Sesi live chat telah diakhiri dan riwayat percakapan telah dihapus.');
     }
 
     /**
@@ -148,6 +163,12 @@ class PartnerHelpController extends Controller
     {
         abort_if($ticket->user_id !== $request->user()->id, 403);
 
+        app(SupportChatService::class)->processInactivityTimeouts($ticket);
+        $ticket->refresh();
+
+        app(SupportChatService::class)->processInactivityTimeouts($ticket);
+        $ticket->refresh();
+
         $ticket->load(['messages.sender', 'region', 'admin']);
 
         // Mark unread admin messages as read
@@ -188,6 +209,7 @@ class PartnerHelpController extends Controller
                 ? SupportTicket::STATUS_MENUNGGU
                 : $ticket->status,
             'last_message_at' => now(),
+            'inactivity_warning_at' => null,
         ]);
 
         if ($request->wantsJson()) {
@@ -213,6 +235,12 @@ class PartnerHelpController extends Controller
     public function fetchMessages(Request $request, SupportTicket $ticket): JsonResponse
     {
         abort_if($ticket->user_id !== $request->user()->id, 403);
+
+        app(SupportChatService::class)->processInactivityTimeouts($ticket);
+        $ticket->refresh();
+
+        app(SupportChatService::class)->processInactivityTimeouts($ticket);
+        $ticket->refresh();
 
         $afterId = (int) $request->query('after_id', 0);
 

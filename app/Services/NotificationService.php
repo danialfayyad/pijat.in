@@ -211,7 +211,6 @@ class NotificationService
     }
 
     /**
-
      * Notify regional admins when a new support ticket is created.
      *
      * @return Collection<int, SystemNotification>
@@ -361,7 +360,9 @@ class NotificationService
             ],
             'high'
         );
+    }
 
+    /**
      * Delete notifications older than specified retention days (default 30 days / 1 month).
      */
     public function pruneOldNotifications(int $days = 30): int
@@ -369,6 +370,5 @@ class NotificationService
         $cutoff = Carbon::now()->subDays($days);
 
         return SystemNotification::where('created_at', '<', $cutoff)->delete();
-
     }
 }

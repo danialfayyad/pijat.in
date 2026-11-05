@@ -8,6 +8,7 @@ use App\Models\SupportMessage;
 use App\Models\SupportTicket;
 use App\Models\User;
 use App\Services\NotificationService;
+use App\Services\SupportChatService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -152,6 +153,7 @@ class SupportChatController extends Controller
             'admin_id' => $admin->id,
             'status' => SupportTicket::STATUS_BERLANGSUNG,
             'last_message_at' => now(),
+            'inactivity_warning_at' => null,
         ]);
 
         try {
@@ -219,6 +221,9 @@ class SupportChatController extends Controller
     {
         $admin = $request->user();
         $this->authorizeAdminAccess($admin, $ticket);
+
+        app(SupportChatService::class)->processInactivityTimeouts($ticket);
+        $ticket->refresh();
 
         $afterId = (int) $request->query('after_id', 0);
 

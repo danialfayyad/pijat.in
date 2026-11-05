@@ -29,6 +29,7 @@ class SupportTicket extends Model
         'status',
         'priority',
         'last_message_at',
+        'inactivity_warning_at',
         'closed_at',
         'closed_by',
     ];
@@ -38,6 +39,7 @@ class SupportTicket extends Model
      */
     protected $casts = [
         'last_message_at' => 'datetime',
+        'inactivity_warning_at' => 'datetime',
         'closed_at' => 'datetime',
     ];
 
