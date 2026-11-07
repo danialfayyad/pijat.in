@@ -118,29 +118,45 @@
                         <!-- Top Header: Icon + Title + Status Dot/Badge -->
                         <div class="flex items-start justify-between gap-3">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center shrink-0">
-                                    @if (str_contains($nameLower, 'stone'))
-                                        <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 012.344 5.657 7.975 7.975 0 01-2.343 5.657z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"/>
-                                        </svg>
-                                    @elseif (str_contains($nameLower, 'refleksi') || str_contains($nameLower, 'kaki'))
-                                        <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                    @elseif (str_contains($nameLower, 'herbal') || str_contains($nameLower, 'aromaterapi') || str_contains($nameLower, 'aromatherapy'))
-                                        <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                                        </svg>
-                                    @else
-                                        <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/>
-                                        </svg>
-                                    @endif
-                                </div>
+                                @if ($service->first_image_url)
+                                    <div class="relative w-12 h-12 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shrink-0 shadow-2xs">
+                                        <img src="{{ $service->first_image_url }}" alt="{{ $service->name }}" class="w-full h-full object-cover">
+                                        @if (count($service->images ?? []) > 1)
+                                            <span class="absolute bottom-0.5 right-0.5 px-1 py-0.2 rounded bg-slate-900/80 backdrop-blur-xs text-[8px] font-bold text-white">
+                                                +{{ count($service->images) - 1 }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center shrink-0">
+                                        @if (str_contains($nameLower, 'stone'))
+                                            <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 012.344 5.657 7.975 7.975 0 01-2.343 5.657z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"/>
+                                            </svg>
+                                        @elseif (str_contains($nameLower, 'refleksi') || str_contains($nameLower, 'kaki'))
+                                            <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        @elseif (str_contains($nameLower, 'herbal') || str_contains($nameLower, 'aromaterapi') || str_contains($nameLower, 'aromatherapy'))
+                                            <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                            </svg>
+                                        @else
+                                            <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/>
+                                            </svg>
+                                        @endif
+                                    </div>
+                                @endif
                                 <div>
                                     <h4 class="font-bold text-slate-900 text-base leading-tight">{{ $service->name }}</h4>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">{{ $service->packages->count() }} Pilihan Paket</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">
+                                        {{ $service->packages->count() }} Pilihan Paket
+                                        @if (! empty($service->images))
+                                            &bull; {{ count($service->images) }} Foto
+                                        @endif
+                                    </p>
                                 </div>
                             </div>
 
@@ -286,77 +302,100 @@
 
         <!-- ==================== MODAL TAMBAH LAYANAN BARU ==================== -->
         <div x-show="isCreateModalOpen" x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
             @keydown.escape.window="isCreateModalOpen = false">
             
-            <div class="bg-white rounded-2xl shadow-xl border border-slate-200/80 w-full max-w-xl overflow-hidden my-8"
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-200/80 w-full max-w-xl max-h-[90vh] flex flex-col my-auto overflow-hidden"
                 @click.outside="isCreateModalOpen = false">
                 
-                <!-- Modal Header -->
-                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <!-- Modal Header (Sticky) -->
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
                     <h3 class="font-bold text-slate-800 text-sm">Tambah Layanan Baru</h3>
                     <button type="button" @click="isCreateModalOpen = false" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
                 </div>
 
-                <!-- Modal Form -->
-                <form method="POST" action="{{ route('admin.catalog.store') }}" class="p-6 space-y-4">
+                <!-- Modal Form (Scrollable Body) -->
+                <form method="POST" action="{{ route('admin.catalog.store') }}" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0">
                     @csrf
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                            Nama Layanan <span class="text-rose-500">*</span>
-                        </label>
-                        <input type="text" name="name" required placeholder="Contoh: Aromatherapy Herbal Massage"
-                            class="w-full text-xs rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500">
-                    </div>
+                    <div class="p-6 space-y-4 overflow-y-auto flex-1 overscroll-contain">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Nama Layanan <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" name="name" required placeholder="Contoh: Aromatherapy Herbal Massage"
+                                class="w-full text-xs rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500">
+                        </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                            Deskripsi Layanan
-                        </label>
-                        <textarea name="description" rows="3" placeholder="Jelaskan manfaat, teknik pemijatan, dan perlengkapan..."
-                            class="w-full text-xs rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500"></textarea>
-                    </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Deskripsi Layanan
+                            </label>
+                            <textarea name="description" rows="3" placeholder="Jelaskan manfaat, teknik pemijatan, dan perlengkapan..."
+                                class="w-full text-xs rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500"></textarea>
+                        </div>
 
-                    <!-- Pilihan Paket Durasi & Harga -->
-                    <div class="border-t border-slate-100 pt-4 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                    Pilihan Durasi & Harga Paket <span class="text-rose-500">*</span>
-                                </label>
-                                <p class="text-[11px] text-slate-400">Harga tetap berlaku nasional tanpa add-on.</p>
+                        <!-- Upload Foto Layanan (Multiple) -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Foto Layanan (Bisa Pilih Banyak Foto)
+                            </label>
+                            <input type="file" name="photos[]" multiple accept="image/jpeg,image/png,image/webp"
+                                @change="handleCreatePhotosChange"
+                                class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-slate-300 rounded-xl bg-white">
+                            <p class="text-[11px] text-slate-400 mt-1">Format: JPG, PNG, WebP (maks. 5 foto total). Foto otomatis dikompres oleh sistem.</p>
+
+                            <!-- Preview Foto Terpilih -->
+                            <div class="mt-2.5 flex flex-wrap gap-2" x-show="createPhotosPreview.length > 0">
+                                <template x-for="(photo, idx) in createPhotosPreview" :key="idx">
+                                    <div class="relative w-16 h-16 rounded-xl overflow-hidden border border-emerald-300 bg-slate-50 shadow-2xs group">
+                                        <img :src="photo.url" class="w-full h-full object-cover">
+                                        <span class="absolute bottom-0.5 right-0.5 bg-slate-900/70 text-[8px] text-white font-bold px-1 rounded" x-text="idx + 1"></span>
+                                    </div>
+                                </template>
                             </div>
-                            <button type="button" @click="addCreatePackage()" 
-                                class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition">
-                                + Tambah Durasi
-                            </button>
                         </div>
 
-                        <div class="space-y-2.5">
-                            <template x-for="(pkg, idx) in createPackages" :key="idx">
-                                <div class="flex items-center space-x-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                                    <div class="w-1/3">
-                                        <label class="block text-[10px] text-slate-500 font-medium mb-0.5">Durasi (Menit)</label>
-                                        <input type="number" :name="'packages['+idx+'][duration_minutes]'" x-model="pkg.duration_minutes" required min="15" max="360" step="15"
-                                            class="w-full text-xs font-semibold rounded-lg border-slate-300 py-1.5 focus:border-emerald-500 focus:ring-emerald-500 bg-white">
-                                    </div>
-                                    <div class="flex-1">
-                                        <label class="block text-[10px] text-slate-500 font-medium mb-0.5">Tarif Harga (Rp)</label>
-                                        <input type="number" :name="'packages['+idx+'][price]'" x-model="pkg.price" required min="0" step="5000" placeholder="100000"
-                                            class="w-full text-xs font-semibold rounded-lg border-slate-300 py-1.5 focus:border-emerald-500 focus:ring-emerald-500 bg-white">
-                                    </div>
-                                    <button type="button" @click="removeCreatePackage(idx)" :disabled="createPackages.length <= 1"
-                                        class="mt-4 p-1.5 text-slate-400 hover:text-rose-600 rounded-md disabled:opacity-30">
-                                        &times;
-                                    </button>
+                        <!-- Pilihan Paket Durasi & Harga -->
+                        <div class="border-t border-slate-100 pt-4 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                        Pilihan Durasi & Harga Paket <span class="text-rose-500">*</span>
+                                    </label>
+                                    <p class="text-[11px] text-slate-400">Harga tetap berlaku nasional tanpa add-on.</p>
                                 </div>
-                            </template>
+                                <button type="button" @click="addCreatePackage()" 
+                                    class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition">
+                                    + Tambah Durasi
+                                </button>
+                            </div>
+
+                            <div class="space-y-2.5">
+                                <template x-for="(pkg, idx) in createPackages" :key="idx">
+                                    <div class="flex items-center space-x-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                                        <div class="w-1/3">
+                                            <label class="block text-[10px] text-slate-500 font-medium mb-0.5">Durasi (Menit)</label>
+                                            <input type="number" :name="'packages['+idx+'][duration_minutes]'" x-model="pkg.duration_minutes" required min="15" max="360" step="15"
+                                                class="w-full text-xs font-semibold rounded-lg border-slate-300 py-1.5 focus:border-emerald-500 focus:ring-emerald-500 bg-white">
+                                        </div>
+                                        <div class="flex-1">
+                                            <label class="block text-[10px] text-slate-500 font-medium mb-0.5">Tarif Harga (Rp)</label>
+                                            <input type="number" :name="'packages['+idx+'][price]'" x-model="pkg.price" required min="0" step="5000" placeholder="100000"
+                                                class="w-full text-xs font-semibold rounded-lg border-slate-300 py-1.5 focus:border-emerald-500 focus:ring-emerald-500 bg-white">
+                                        </div>
+                                        <button type="button" @click="removeCreatePackage(idx)" :disabled="createPackages.length <= 1"
+                                            class="mt-4 p-1.5 text-slate-400 hover:text-rose-600 rounded-md disabled:opacity-30">
+                                            &times;
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Modal Actions -->
-                    <div class="border-t border-slate-100 pt-4 flex items-center justify-end space-x-2">
+                    <!-- Modal Actions (Sticky Footer) -->
+                    <div class="border-t border-slate-100 px-6 py-4 bg-slate-50/50 flex items-center justify-end space-x-2 shrink-0">
                         <button type="button" @click="isCreateModalOpen = false"
                             class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
                             Batal
@@ -372,95 +411,144 @@
 
         <!-- ==================== MODAL EDIT LAYANAN ==================== -->
         <div x-show="isEditModalOpen" x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
             @keydown.escape.window="isEditModalOpen = false">
             
-            <div class="bg-white rounded-2xl shadow-xl border border-slate-200/80 w-full max-w-xl overflow-hidden my-8"
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-200/80 w-full max-w-xl max-h-[90vh] flex flex-col my-auto overflow-hidden"
                 @click.outside="isEditModalOpen = false">
                 
-                <!-- Modal Header -->
-                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <!-- Modal Header (Sticky) -->
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
                     <h3 class="font-bold text-slate-800 text-sm">Edit Layanan & Durasi Paket</h3>
                     <button type="button" @click="isEditModalOpen = false" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
                 </div>
 
-                <!-- Modal Form -->
-                <form method="POST" :action="editFormAction" class="p-6 space-y-4">
+                <!-- Modal Form (Scrollable Body) -->
+                <form method="POST" :action="editFormAction" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0">
                     @csrf
                     @method('PUT')
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                            Nama Layanan <span class="text-rose-500">*</span>
-                        </label>
-                        <input type="text" name="name" x-model="editingService.name" required
-                            class="w-full text-xs rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500">
-                    </div>
+                    <div class="p-6 space-y-4 overflow-y-auto flex-1 overscroll-contain">
+                        <!-- Hidden inputs untuk foto yang dihapus -->
+                        <template x-for="removed in removedImages" :key="removed">
+                            <input type="hidden" name="removed_images[]" :value="removed">
+                        </template>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                            Deskripsi Layanan
-                        </label>
-                        <textarea name="description" x-model="editingService.description" rows="3"
-                            class="w-full text-xs rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500"></textarea>
-                    </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Nama Layanan <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" name="name" x-model="editingService.name" required
+                                class="w-full text-xs rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500">
+                        </div>
 
-                    <div>
-                        <label class="inline-flex items-center space-x-2 cursor-pointer">
-                            <input type="hidden" name="is_active" value="0">
-                            <input type="checkbox" name="is_active" value="1" :checked="editingService.is_active"
-                                class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
-                            <span class="text-xs font-semibold text-slate-700">Status Layanan Aktif (Tampil di Aplikasi Customer)</span>
-                        </label>
-                    </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Deskripsi Layanan
+                            </label>
+                            <textarea name="description" x-model="editingService.description" rows="3"
+                                class="w-full text-xs rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500"></textarea>
+                        </div>
 
-                    <!-- Pilihan Paket Durasi & Harga -->
-                    <div class="border-t border-slate-100 pt-4 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div>
+                        <!-- Kelola Foto Layanan -->
+                        <div class="space-y-3 pt-1">
+                            <!-- Foto Saat Ini -->
+                            <div class="space-y-1.5" x-show="editingExistingImages.length > 0">
                                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                    Paket Durasi & Tarif Harga <span class="text-rose-500">*</span>
+                                    Foto Layanan Saat Ini
                                 </label>
-                                <p class="text-[11px] text-slate-400">Atur durasi dan harga resmi per paket.</p>
+                                <div class="flex flex-wrap gap-2.5">
+                                    <template x-for="(img, idx) in editingExistingImages" :key="idx">
+                                        <div class="relative w-16 h-16 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-2xs group">
+                                            <img :src="img.startsWith('http') ? img : '/storage/' + img" class="w-full h-full object-cover">
+                                            <button type="button" @click="markImageForRemoval(img)"
+                                                title="Hapus foto ini"
+                                                class="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center text-xs shadow-xs transition cursor-pointer">
+                                                &times;
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
-                            <button type="button" @click="addEditPackage()" 
-                                class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition">
-                                + Tambah Durasi
-                            </button>
+
+                            <!-- Tambah Foto Baru -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                    Tambah Foto Baru
+                                </label>
+                                <input type="file" name="photos[]" multiple accept="image/jpeg,image/png,image/webp"
+                                    @change="handleEditPhotosChange"
+                                    class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-slate-300 rounded-xl bg-white">
+                                <p class="text-[11px] text-slate-400 mt-1">Pilih foto tambahan untuk katalog (maks. 5 foto total). Foto otomatis dikompres oleh sistem.</p>
+
+                                <!-- Preview Foto Baru -->
+                                <div class="mt-2.5 flex flex-wrap gap-2" x-show="editingPhotosPreview.length > 0">
+                                    <template x-for="(photo, idx) in editingPhotosPreview" :key="idx">
+                                        <div class="relative w-16 h-16 rounded-xl overflow-hidden border border-emerald-300 bg-slate-50 shadow-2xs">
+                                            <img :src="photo.url" class="w-full h-full object-cover">
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="space-y-2.5">
-                            <template x-for="(pkg, idx) in editingPackages" :key="idx">
-                                <div class="flex items-center space-x-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                                    <input type="hidden" :name="'packages['+idx+'][id]'" :value="pkg.id || ''">
-                                    
-                                    <div class="w-1/3">
-                                        <label class="block text-[10px] text-slate-500 font-medium mb-0.5">Durasi (Menit)</label>
-                                        <input type="number" :name="'packages['+idx+'][duration_minutes]'" x-model="pkg.duration_minutes" required min="15" max="360" step="15"
-                                            class="w-full text-xs font-semibold rounded-lg border-slate-300 py-1.5 focus:border-emerald-500 focus:ring-emerald-500 bg-white">
-                                    </div>
-                                    <div class="flex-1">
-                                        <label class="block text-[10px] text-slate-500 font-medium mb-0.5">Tarif Harga (Rp)</label>
-                                        <input type="number" :name="'packages['+idx+'][price]'" x-model="pkg.price" required min="0" step="5000"
-                                            class="w-full text-xs font-semibold rounded-lg border-slate-300 py-1.5 focus:border-emerald-500 focus:ring-emerald-500 bg-white">
-                                    </div>
-                                    <div class="pt-4">
-                                        <label class="inline-flex items-center cursor-pointer" title="Aktifkan/nonaktifkan paket">
-                                            <input type="checkbox" :name="'packages['+idx+'][is_active]'" value="1" :checked="pkg.is_active"
-                                                class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
-                                        </label>
-                                    </div>
-                                    <button type="button" @click="removeEditPackage(idx)" :disabled="editingPackages.length <= 1"
-                                        class="mt-4 p-1.5 text-slate-400 hover:text-rose-600 rounded-md disabled:opacity-30">
-                                        &times;
-                                    </button>
+                        <div>
+                            <label class="inline-flex items-center space-x-2 cursor-pointer">
+                                <input type="hidden" name="is_active" value="0">
+                                <input type="checkbox" name="is_active" value="1" :checked="editingService.is_active"
+                                    class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                                <span class="text-xs font-semibold text-slate-700">Status Layanan Aktif (Tampil di Aplikasi Customer)</span>
+                            </label>
+                        </div>
+
+                        <!-- Pilihan Paket Durasi & Harga -->
+                        <div class="border-t border-slate-100 pt-4 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                        Paket Durasi & Tarif Harga <span class="text-rose-500">*</span>
+                                    </label>
+                                    <p class="text-[11px] text-slate-400">Atur durasi dan harga resmi per paket.</p>
                                 </div>
-                            </template>
+                                <button type="button" @click="addEditPackage()" 
+                                    class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg transition">
+                                    + Tambah Durasi
+                                </button>
+                            </div>
+
+                            <div class="space-y-2.5">
+                                <template x-for="(pkg, idx) in editingPackages" :key="idx">
+                                    <div class="flex items-center space-x-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                                        <input type="hidden" :name="'packages['+idx+'][id]'" :value="pkg.id || ''">
+                                        
+                                        <div class="w-1/3">
+                                            <label class="block text-[10px] text-slate-500 font-medium mb-0.5">Durasi (Menit)</label>
+                                            <input type="number" :name="'packages['+idx+'][duration_minutes]'" x-model="pkg.duration_minutes" required min="15" max="360" step="15"
+                                                class="w-full text-xs font-semibold rounded-lg border-slate-300 py-1.5 focus:border-emerald-500 focus:ring-emerald-500 bg-white">
+                                        </div>
+                                        <div class="flex-1">
+                                            <label class="block text-[10px] text-slate-500 font-medium mb-0.5">Tarif Harga (Rp)</label>
+                                            <input type="number" :name="'packages['+idx+'][price]'" x-model="pkg.price" required min="0" step="5000"
+                                                class="w-full text-xs font-semibold rounded-lg border-slate-300 py-1.5 focus:border-emerald-500 focus:ring-emerald-500 bg-white">
+                                        </div>
+                                        <div class="pt-4">
+                                            <label class="inline-flex items-center cursor-pointer" title="Aktifkan/nonaktifkan paket">
+                                                <input type="checkbox" :name="'packages['+idx+'][is_active]'" value="1" :checked="pkg.is_active"
+                                                    class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                                            </label>
+                                        </div>
+                                        <button type="button" @click="removeEditPackage(idx)" :disabled="editingPackages.length <= 1"
+                                            class="mt-4 p-1.5 text-slate-400 hover:text-rose-600 rounded-md disabled:opacity-30">
+                                            &times;
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Modal Actions -->
-                    <div class="border-t border-slate-100 pt-4 flex items-center justify-end space-x-2">
+                    <!-- Modal Actions (Sticky Footer) -->
+                    <div class="border-t border-slate-100 px-6 py-4 bg-slate-50/50 flex items-center justify-end space-x-2 shrink-0">
                         <button type="button" @click="isEditModalOpen = false"
                             class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
                             Batal
@@ -491,11 +579,40 @@
                     { duration_minutes: 90, price: 140000 },
                     { duration_minutes: 120, price: 180000 },
                 ],
+                createPhotosPreview: [],
+                editingPhotosPreview: [],
+                editingExistingImages: [],
+                removedImages: [],
 
                 init() {
                     window.addEventListener('open-create-modal', () => {
+                        this.createPhotosPreview = [];
                         this.isCreateModalOpen = true;
                     });
+                },
+
+                handleCreatePhotosChange(event) {
+                    const files = Array.from(event.target.files);
+                    this.createPhotosPreview = [];
+                    files.slice(0, 5).forEach(file => {
+                        const url = URL.createObjectURL(file);
+                        this.createPhotosPreview.push({ name: file.name, url: url });
+                    });
+                },
+
+                handleEditPhotosChange(event) {
+                    const files = Array.from(event.target.files);
+                    this.editingPhotosPreview = [];
+                    const availableSlots = 5 - this.editingExistingImages.length;
+                    files.slice(0, Math.max(0, availableSlots)).forEach(file => {
+                        const url = URL.createObjectURL(file);
+                        this.editingPhotosPreview.push({ name: file.name, url: url });
+                    });
+                },
+
+                markImageForRemoval(path) {
+                    this.editingExistingImages = this.editingExistingImages.filter(p => p !== path);
+                    this.removedImages.push(path);
                 },
 
                 matchesSearch(name, desc) {
@@ -525,6 +642,9 @@
                         price: parseFloat(p.price),
                         is_active: Boolean(p.is_active)
                     }));
+                    this.editingExistingImages = Array.isArray(service.images) ? [...service.images] : [];
+                    this.removedImages = [];
+                    this.editingPhotosPreview = [];
                     this.editFormAction = `/admin/catalog/${service.id}`;
                     this.isEditModalOpen = true;
                 },

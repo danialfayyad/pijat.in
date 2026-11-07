@@ -57,11 +57,20 @@ class CleanupExpiredDataCommand extends Command
         $deletedSupportTicketsCount = SupportTicket::where('status', SupportTicket::STATUS_SELESAI)
             ->delete();
 
+        // 5. Clean up archived audit logs older than retention period (default 30 days, configurable via parameter)
+        $auditRetentionDays = (int) Parameter::get('audit_log_retention_days', 30);
+        if ($auditRetentionDays <= 0) {
+            $auditRetentionDays = 30;
+        }
+        $auditCutoff = Carbon::now()->subDays($auditRetentionDays);
+        $deletedAuditLogsCount = AuditLog::where('created_at', '<', $auditCutoff)->delete();
+
         $this->info('Berhasil membersihkan:');
         $this->line("- {$deletedMessagesCount} pesan chat riwayat.");
         $this->line("- {$clearedMedicalCount} catatan medis pesanan dikosongkan.");
         $this->line("- {$deletedNotificationsCount} notifikasi sistem lama dihapus.");
         $this->line("- {$deletedSupportTicketsCount} tiket bantuan selesai dihapus.");
+        $this->line("- {$deletedAuditLogsCount} log audit lama (> {$auditRetentionDays} hari) dibersihkan.");
 
         // Record audit log for compliance
         AuditLog::record([
@@ -73,10 +82,12 @@ class CleanupExpiredDataCommand extends Command
             'old_values' => null,
             'new_values' => [
                 'retention_days' => $retentionDays,
+                'audit_retention_days' => $auditRetentionDays,
                 'cutoff' => $cutoff->toIso8601String(),
                 'deleted_messages_count' => $deletedMessagesCount,
                 'cleared_medical_count' => $clearedMedicalCount,
                 'deleted_notifications_count' => $deletedNotificationsCount,
+                'deleted_audit_logs_count' => $deletedAuditLogsCount,
             ],
             'ip_address' => '127.0.0.1',
             'user_agent' => 'CLI/Artisan Schedule',

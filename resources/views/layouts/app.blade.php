@@ -5,7 +5,14 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Pijat In') }}</title>
+        @php
+            $appFavicon = \App\Models\Parameter::get('app_favicon');
+            $appName = \App\Models\Parameter::get('app_name', config('app.name', 'Pijat.In'));
+        @endphp
+        @if ($appFavicon)
+            <link rel="icon" href="{{ asset('storage/' . $appFavicon) }}">
+        @endif
+        <title>{{ $title ?? $appName }}</title>
 
         <!-- Fonts: Maison Neue & Fallbacks -->
         <link rel="preconnect" href="https://db.onlinewebfonts.com">
@@ -64,11 +71,11 @@
 
                     <!-- Brand -->
                     <div class="h-20 flex items-center px-6 border-b border-white/15 bg-white/10 backdrop-blur-xs">
-                        <span class="text-2xl font-black text-white">Pijat.In</span>
+                        <span class="text-2xl font-black text-white truncate">{{ $appName }}</span>
                     </div>
 
                     <!-- Mobile Navigation Links -->
-                    <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                    <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                         @if (Auth::user()->isSuperadmin())
                             <a href="{{ route('superadmin.regions.index') }}" 
                                class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.regions.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
@@ -93,6 +100,14 @@
                             <a href="{{ route('superadmin.parameters.index') }}" 
                                class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.parameters.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Parameter Sistem
+                            </a>
+                            <a href="{{ route('superadmin.branding.index') }}" 
+                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.branding.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Identitas Aplikasi
+                            </a>
+                            <a href="{{ route('superadmin.banks.index') }}" 
+                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.banks.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Master Rekening Bank
                             </a>
                             <a href="{{ route('superadmin.audit-logs.index') }}" 
                                class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.audit-logs.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
@@ -247,7 +262,7 @@
                 </header>
 
                 <!-- Page Main Body -->
-                <main class="flex-1 overflow-y-auto">
+                <main class="flex-1 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     {{ $slot }}
                 </main>
             </div>

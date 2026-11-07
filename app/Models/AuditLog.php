@@ -60,8 +60,14 @@ class AuditLog extends Model
             'catalog' => 'Katalog Layanan',
             'user' => 'Pengguna & Mitra',
             'penalty' => 'Poin & Sanksi',
-            'retention' => 'Pembersihan Data Sistem',
-            default => ucfirst($this->module),
+            'retention', 'system' => 'Pembersihan Data Sistem',
+            'bank' => 'Master Rekening Bank',
+            'order' => 'Pesanan Layanan',
+            'withdrawal' => 'Pencairan Dana (Withdraw)',
+            'complaint' => 'Aduan & Komplain',
+            'auth' => 'Otentikasi Akun',
+            'faq' => 'Pusat Bantuan & FAQ',
+            default => ucfirst(str_replace('_', ' ', $this->module)),
         };
     }
 
@@ -77,7 +83,11 @@ class AuditLog extends Model
             'activate' => 'Diaktifkan',
             'deactivate' => 'Dinonaktifkan',
             'status_change' => 'Perubahan Status',
-            default => ucfirst($this->action),
+            'login' => 'Login Masuk',
+            'logout' => 'Logout Keluar',
+            'password_change' => 'Ubah Kata Sandi',
+            'data_retention_cleanup' => 'Pembersihan Retensi Data',
+            default => ucfirst(str_replace('_', ' ', $this->action)),
         };
     }
 

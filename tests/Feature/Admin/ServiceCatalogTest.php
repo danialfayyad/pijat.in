@@ -6,6 +6,8 @@ use App\Models\Service;
 use App\Models\ServicePackage;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -315,4 +317,161 @@ test('validation rejects invalid duration or negative prices', function () {
     $response = $this->actingAs($admin)->post(route('admin.catalog.store'), $payload);
 
     $response->assertSessionHasErrors(['name', 'packages.0.duration_minutes', 'packages.0.price']);
+});
+
+test('admin can create a service with multiple photos upload', function () {
+    Storage::fake('public');
+
+    $admin = User::factory()->create(['role' => Role::Admin]);
+    AdminMenuPermission::create([
+        'user_id' => $admin->id,
+        'menu_code' => 'KATALOG',
+    ]);
+
+    $photos = [
+        UploadedFile::fake()->image('massage1.jpg', 600, 400),
+        UploadedFile::fake()->image('massage2.png', 600, 400),
+        UploadedFile::fake()->image('massage3.webp', 600, 400),
+    ];
+
+    $payload = [
+        'name' => 'Balinese Deep Tissue Massage',
+        'description' => 'Pijatan khas Bali dengan minyak esensial alami.',
+        'photos' => $photos,
+        'packages' => [
+            ['duration_minutes' => 90, 'price' => 150000],
+        ],
+    ];
+
+    $response = $this->actingAs($admin)->post(route('admin.catalog.store'), $payload);
+
+    $response->assertRedirect(route('admin.catalog.index'));
+
+    $service = Service::where('slug', 'balinese-deep-tissue-massage')->first();
+    expect($service)->not->toBeNull()
+        ->and($service->images)->toBeArray()
+        ->and(count($service->images))->toBe(3)
+        ->and($service->first_image_url)->not->toBeNull()
+        ->and(count($service->image_urls))->toBe(3);
+
+    foreach ($service->images as $path) {
+        Storage::disk('public')->assertExists($path);
+    }
+});
+
+test('admin can update service photos by adding new photos and removing existing ones', function () {
+    Storage::fake('public');
+
+    $admin = User::factory()->create(['role' => Role::Admin]);
+    AdminMenuPermission::create([
+        'user_id' => $admin->id,
+        'menu_code' => 'KATALOG',
+    ]);
+
+    $existingPhoto1 = UploadedFile::fake()->image('old1.jpg')->store('services', 'public');
+    $existingPhoto2 = UploadedFile::fake()->image('old2.jpg')->store('services', 'public');
+
+    $service = Service::create([
+        'name' => 'Refleksi Punggung & Bahu',
+        'description' => 'Fokus pada area punggung dan bahu.',
+        'images' => [$existingPhoto1, $existingPhoto2],
+        'is_active' => true,
+    ]);
+
+    $newPhoto = UploadedFile::fake()->image('new1.jpg');
+
+    $payload = [
+        'name' => 'Refleksi Punggung, Leher & Bahu',
+        'description' => 'Fokus pada area punggung, leher, dan bahu.',
+        'is_active' => 1,
+        'removed_images' => [$existingPhoto1], // Hapus foto 1
+        'photos' => [$newPhoto], // Tambah foto baru
+        'packages' => [
+            ['duration_minutes' => 60, 'price' => 110000],
+        ],
+    ];
+
+    $response = $this->actingAs($admin)->put(route('admin.catalog.update', $service), $payload);
+
+    $response->assertRedirect(route('admin.catalog.index'));
+
+    $service->refresh();
+
+    // Foto lama 1 terhapus dari disk dan database
+    Storage::disk('public')->assertMissing($existingPhoto1);
+    expect($service->images)->not->toContain($existingPhoto1);
+
+    // Foto lama 2 tetap ada
+    Storage::disk('public')->assertExists($existingPhoto2);
+    expect($service->images)->toContain($existingPhoto2);
+
+    // Foto baru tersimpan
+    expect(count($service->images))->toBe(2);
+    foreach ($service->images as $imgPath) {
+        Storage::disk('public')->assertExists($imgPath);
+    }
+});
+
+test('admin can upload photo larger than 2MB and it gets automatically compressed', function () {
+    Storage::fake('public');
+
+    $admin = User::factory()->create(['role' => Role::Admin]);
+    AdminMenuPermission::create([
+        'user_id' => $admin->id,
+        'menu_code' => 'KATALOG',
+    ]);
+
+    // Berkas 3.5MB (3500 kilobytes)
+    $largePhoto = UploadedFile::fake()->image('large_service_photo.jpg')->size(3500);
+
+    $payload = [
+        'name' => 'Hot Stone Massage Spesial',
+        'description' => 'Terapi batu hangat relaksasi tubuh.',
+        'photos' => [$largePhoto],
+        'packages' => [
+            ['duration_minutes' => 90, 'price' => 175000],
+        ],
+    ];
+
+    $response = $this->actingAs($admin)->post(route('admin.catalog.store'), $payload);
+
+    $response->assertRedirect(route('admin.catalog.index'));
+
+    $service = Service::where('slug', 'hot-stone-massage-spesial')->first();
+    expect($service)->not->toBeNull()
+        ->and($service->images)->toBeArray()
+        ->and(count($service->images))->toBe(1);
+
+    Storage::disk('public')->assertExists($service->images[0]);
+});
+
+test('deleting a service also removes its photos from storage disk', function () {
+    Storage::fake('public');
+
+    $admin = User::factory()->create(['role' => Role::Admin]);
+    AdminMenuPermission::create([
+        'user_id' => $admin->id,
+        'menu_code' => 'KATALOG',
+    ]);
+
+    $photo1 = UploadedFile::fake()->image('delete1.jpg')->store('services', 'public');
+    $photo2 = UploadedFile::fake()->image('delete2.jpg')->store('services', 'public');
+
+    $service = Service::create([
+        'name' => 'Layanan Pijat Uji Hapus',
+        'images' => [$photo1, $photo2],
+        'is_active' => true,
+    ]);
+
+    Storage::disk('public')->assertExists($photo1);
+    Storage::disk('public')->assertExists($photo2);
+
+    $response = $this->actingAs($admin)->delete(route('admin.catalog.destroy', $service));
+
+    $response->assertRedirect(route('admin.catalog.index'));
+
+    $this->assertDatabaseMissing('services', ['id' => $service->id]);
+
+    Storage::disk('public')->assertMissing($photo1);
+    Storage::disk('public')->assertMissing($photo2);
 });
