@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\SuperAdmin\AdminAssignmentController;
 use App\Http\Controllers\SuperAdmin\AuditLogController;
+use App\Http\Controllers\SuperAdmin\BankController;
+use App\Http\Controllers\SuperAdmin\BrandingSettingController;
 use App\Http\Controllers\SuperAdmin\ComplaintCategoryController;
 use App\Http\Controllers\SuperAdmin\FaqController;
 use App\Http\Controllers\SuperAdmin\FinanceReportController;
@@ -35,6 +37,17 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     // System Parameters (SA-01)
     Route::get('/parameters', [ParameterController::class, 'index'])->name('parameters.index');
     Route::post('/parameters', [ParameterController::class, 'update'])->name('parameters.update');
+
+    // App Branding & Identity Settings
+    Route::get('/branding', [BrandingSettingController::class, 'index'])->name('branding.index');
+    Route::put('/branding', [BrandingSettingController::class, 'update'])->name('branding.update');
+
+    // Master Rekening & Saluran Bank Pencairan
+    Route::get('/banks', [BankController::class, 'index'])->name('banks.index');
+    Route::post('/banks', [BankController::class, 'store'])->name('banks.store');
+    Route::put('/banks/{bank}', [BankController::class, 'update'])->name('banks.update');
+    Route::post('/banks/{bank}/toggle', [BankController::class, 'toggle'])->name('banks.toggle');
+    Route::delete('/banks/{bank}', [BankController::class, 'destroy'])->name('banks.destroy');
 
     // Centralized Audit Trail Logs (SA-03)
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');

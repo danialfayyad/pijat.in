@@ -108,6 +108,62 @@ class ParameterSeeder extends Seeder
                 'description' => 'Batas waktu penyimpanan sebelum data chat dan catatan medis dihapus otomatis demi kepatuhan UU PDP',
                 'unit' => 'Hari',
             ],
+            [
+                'key' => 'audit_log_retention_days',
+                'value' => '30',
+                'type' => 'integer',
+                'group' => 'compliance',
+                'label' => 'Masa Retensi Log Audit',
+                'description' => 'Batas waktu penyimpanan data log audit terpusat sebelum dihapus otomatis demi menjaga performa database',
+                'unit' => 'Hari',
+            ],
+
+            // 4. Identitas & Branding Aplikasi
+            [
+                'key' => 'app_name',
+                'value' => 'Pijat.In',
+                'type' => 'string',
+                'group' => 'branding',
+                'label' => 'Nama Aplikasi',
+                'description' => 'Nama utama aplikasi yang tampil di seluruh antarmuka sistem dan header',
+                'unit' => 'Teks',
+            ],
+            [
+                'key' => 'app_tagline',
+                'value' => 'Layanan Pijat & Relaksasi Profesional',
+                'type' => 'string',
+                'group' => 'branding',
+                'label' => 'Tagline / Slogan Aplikasi',
+                'description' => 'Slogan singkat aplikasi yang tampil pada landing page dan meta informasi',
+                'unit' => 'Teks',
+            ],
+            [
+                'key' => 'app_description',
+                'value' => 'Platform pemesanan terapis pijat dan relaksasi profesional terpercaya langsung ke lokasi Anda.',
+                'type' => 'string',
+                'group' => 'branding',
+                'label' => 'Deskripsi Singkat / Meta SEO',
+                'description' => 'Deskripsi ringkas aplikasi untuk pratinjau tautan media sosial dan mesin pencari',
+                'unit' => 'Teks',
+            ],
+            [
+                'key' => 'app_logo',
+                'value' => '',
+                'type' => 'string',
+                'group' => 'branding',
+                'label' => 'Logo Aplikasi',
+                'description' => 'File logo aplikasi format PNG, JPG, WebP, atau SVG (transparan)',
+                'unit' => 'File Gambar',
+            ],
+            [
+                'key' => 'app_favicon',
+                'value' => '',
+                'type' => 'string',
+                'group' => 'branding',
+                'label' => 'Favicon Aplikasi',
+                'description' => 'Ikon kecil pada tab peramban dan ikon home screen PWA format ICO atau PNG',
+                'unit' => 'File Ikon',
+            ],
         ];
 
         $validKeys = collect($parameters)->pluck('key')->all();

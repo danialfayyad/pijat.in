@@ -42,7 +42,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? config('app.name', 'Pijat.In') }}</title>
+    @php
+        $appFavicon = \App\Models\Parameter::get('app_favicon');
+        $appName = \App\Models\Parameter::get('app_name', config('app.name', 'Pijat.In'));
+        $appLogo = \App\Models\Parameter::get('app_logo');
+    @endphp
+
+    <title>{{ $title ?? $appName }}</title>
 
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#059669">
@@ -50,7 +56,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="manifest" href="/manifest.json">
-    <link rel="icon" href="/favicon.ico">
+    @if ($appFavicon)
+        <link rel="icon" href="{{ asset('storage/' . $appFavicon) }}">
+    @else
+        <link rel="icon" href="/favicon.ico">
+    @endif
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -75,15 +85,19 @@
                 @endif
                 <div class="flex items-center space-x-2 min-w-0">
                     @if (!$shouldHideLogo)
-                        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-xs shrink-0">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                            </svg>
-                        </div>
+                        @if ($appLogo)
+                            <img src="{{ asset('storage/' . $appLogo) }}" alt="{{ $appName }}" class="w-8 h-8 rounded-xl object-contain bg-white p-0.5 shadow-xs shrink-0">
+                        @else
+                            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-xs shrink-0">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                                </svg>
+                            </div>
+                        @endif
                     @endif
                     <div class="min-w-0">
                         <h1 class="text-sm font-bold text-slate-900 leading-tight truncate">
-                            {{ $headerTitle ?? 'Pijat.In' }}
+                            {{ $headerTitle ?? $appName }}
                         </h1>
                         <span class="text-[11px] text-slate-500 truncate block mt-0.5">
                             {{ $headerSubtitle ?? (Auth::user()?->role?->label() ?? 'PWA App') }}

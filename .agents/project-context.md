@@ -61,7 +61,25 @@ Pijat.in is presented as a massage and wellness marketplace. The public landing 
   - Automatic 15-minute deficit top-up invoice generation via Xendit / QRIS on insufficient balance with direct redirect to invoice page (Opsi 1).
   - Atomic auto-settlement on webhook / payment: credits customer wallet, debits order, transitions order to `MencariMitra`, triggers offer dispatch for instant orders, and redirects customer back to live order tracking.
   - 15-minute expiration countdown & auto-cancellation via `orders:process-cancellations`.
-- All 323 unit & feature tests in Pest passing (1,507 assertions) with Pint style formatting compliant.
+- App Branding & Identity Settings:
+  - Superadmin dynamic branding control (`/superadmin/branding`): Allows updating application name, slogan/tagline, meta SEO description, custom logo upload, and browser favicon upload.
+  - Automatic asset fallback: Seamlessly falls back to default system SVG vector assets when no custom logo or favicon is uploaded, with single-click reset capability.
+  - Dynamic shell integration: App name, logo, and favicon dynamically rendered in desktop sidebar (`sidebar.blade.php`), mobile drawer, PWA mobile shell (`pwa.blade.php`), and browser page titles.
+  - Audit log integration: Changes to branding parameters are logged in centralized `AuditLog`.
+- Master Rekening & Saluran Bank Pencairan:
+  - Superadmin bank management (`/superadmin/banks`): Manage supported withdrawal banks and disbursement channels manually via form (no forced seeders).
+  - Capabilities: Add new bank (name, code, optional account number/holder for operational settlement, notes, sort order, active status), edit bank details, toggle active/inactive status, and safe deletion (safeguard protects transaction integrity by soft deactivating instead of deleting if withdrawal requests exist).
+  - Navigation: Direct menu link in sidebar and mobile drawer under "Tata Kelola & Sistem".
+- Automated Audit Trail System & Data Pruning:
+  - Trait `LogsActivity` (`app/Traits/LogsActivity.php`): Automatic audit logging for Eloquent models on `created`, `updated` (capturing `old_values` vs `new_values` for changed fields, auto `status_change` label), and `deleted`. Strips sensitive fields (passwords, tokens). Fail-safe execution (does not interrupt business logic).
+  - Authentication Event Auditing: Global listeners in `AppServiceProvider` capture `Login` and `Logout` events for all user roles (Superadmin, Admin, Mitra, Pelanggan) recording actor, email, role, IP address, and user-agent.
+  - Automated Log Retention Pruning: Integrated into `CleanupExpiredDataCommand` (`app:cleanup-expired-data`) to prune audit logs older than retention period (default 30 days, configurable via parameter) to prevent database bloat.
+  - Enhanced Superadmin Log Viewer (`/superadmin/audit-logs`): Comprehensive Indonesian module/action labels and formatted select dropdowns.
+- Service Catalog Multiple Photos:
+  - Model & Database (`services.images` JSON column): Stores array of image paths for each service. Accessors `first_image_url` and `image_urls` resolve public storage assets with fallback.
+  - Admin Catalog Management (`/admin/catalog`): Multi-image upload on create modal with instant client-side preview; existing photo gallery management on edit modal with selective removal and incremental additions (up to 5 photos, max 2MB each). Auto-deletes files on service deletion.
+  - Customer Presentation (`/katalog` & `/katalog/{slug}`): Thumbnails with multi-photo count indicators on catalog listing; interactive hero gallery and thumbnail selector on customer service detail view.
+- All 341 unit & feature tests in Pest passing (1,617 assertions) with Pint style formatting compliant.
 
 ## Role model and authentication map
 

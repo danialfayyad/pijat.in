@@ -5,14 +5,20 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Service;
 use App\Models\ServicePackage;
+use App\Services\ImageCompressionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ServiceCatalogController extends Controller
 {
+    public function __construct(
+        protected ImageCompressionService $imageCompressionService
+    ) {}
+
     /**
      * Display service catalog listing.
      */
@@ -42,23 +48,44 @@ class ServiceCatalogController extends Controller
     }
 
     /**
-     * Store a newly created service with duration packages.
+     * Store a newly created service with duration packages and optional photos.
      */
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'photos' => ['nullable', 'array', 'max:5'],
+            'photos.*' => ['image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
             'packages' => ['required', 'array', 'min:1'],
             'packages.*.duration_minutes' => ['required', 'integer', 'min:15', 'max:360'],
             'packages.*.price' => ['required', 'numeric', 'min:0'],
+        ], [
+            'photos.max' => 'Maksimal 5 foto per layanan.',
+            'photos.*.image' => 'Berkas harus berupa gambar.',
+            'photos.*.mimes' => 'Format foto harus berupa JPG, PNG, atau WebP.',
+            'photos.*.max' => 'Ukuran setiap foto maksimal 10MB.',
         ]);
 
-        DB::transaction(function () use ($validated): void {
+        $imagePaths = [];
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $photo) {
+                $imagePaths[] = $this->imageCompressionService->compressAndStore(
+                    file: $photo,
+                    directory: 'services',
+                    maxDimension: 1280,
+                    quality: 80,
+                    disk: 'public'
+                );
+            }
+        }
+
+        DB::transaction(function () use ($validated, $imagePaths): void {
             $service = Service::create([
                 'name' => $validated['name'],
                 'slug' => Str::slug($validated['name']),
                 'description' => $validated['description'] ?? null,
+                'images' => ! empty($imagePaths) ? $imagePaths : null,
                 'is_active' => true,
             ]);
 
@@ -77,7 +104,7 @@ class ServiceCatalogController extends Controller
     }
 
     /**
-     * Update an existing service and its duration packages.
+     * Update an existing service, its duration packages, and photos.
      */
     public function update(Request $request, Service $service): RedirectResponse
     {
@@ -85,18 +112,55 @@ class ServiceCatalogController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'is_active' => ['nullable', 'boolean'],
+            'photos' => ['nullable', 'array', 'max:5'],
+            'photos.*' => ['image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+            'removed_images' => ['nullable', 'array'],
+            'removed_images.*' => ['string'],
             'packages' => ['required', 'array', 'min:1'],
             'packages.*.id' => ['nullable', 'integer', 'exists:service_packages,id'],
             'packages.*.duration_minutes' => ['required', 'integer', 'min:15', 'max:360'],
             'packages.*.price' => ['required', 'numeric', 'min:0'],
             'packages.*.is_active' => ['nullable', 'boolean'],
+        ], [
+            'photos.max' => 'Maksimal 5 foto per layanan.',
+            'photos.*.image' => 'Berkas harus berupa gambar.',
+            'photos.*.mimes' => 'Format foto harus berupa JPG, PNG, atau WebP.',
+            'photos.*.max' => 'Ukuran setiap foto maksimal 10MB.',
         ]);
 
-        DB::transaction(function () use ($service, $validated): void {
+        $currentImages = is_array($service->images) ? $service->images : [];
+
+        // Hapus foto yang ditandai untuk dihapus oleh pengguna
+        if (! empty($validated['removed_images'])) {
+            foreach ($validated['removed_images'] as $removedPath) {
+                if (in_array($removedPath, $currentImages, true)) {
+                    Storage::disk('public')->delete($removedPath);
+                    $currentImages = array_values(array_diff($currentImages, [$removedPath]));
+                }
+            }
+        }
+
+        // Unggah dan kompres foto-foto baru jika ada
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $photo) {
+                if (count($currentImages) < 5) {
+                    $currentImages[] = $this->imageCompressionService->compressAndStore(
+                        file: $photo,
+                        directory: 'services',
+                        maxDimension: 1280,
+                        quality: 80,
+                        disk: 'public'
+                    );
+                }
+            }
+        }
+
+        DB::transaction(function () use ($service, $validated, $currentImages): void {
             $service->update([
                 'name' => $validated['name'],
                 'slug' => Str::slug($validated['name']),
                 'description' => $validated['description'] ?? null,
+                'images' => ! empty($currentImages) ? $currentImages : null,
                 'is_active' => $validated['is_active'] ?? $service->is_active,
             ]);
 
@@ -181,6 +245,13 @@ class ServiceCatalogController extends Controller
     public function destroy(Service $service): RedirectResponse
     {
         $name = $service->name;
+
+        if (is_array($service->images)) {
+            foreach ($service->images as $imgPath) {
+                Storage::disk('public')->delete($imgPath);
+            }
+        }
+
         $service->delete();
 
         return redirect()->back(fallback: route('admin.catalog.index'))

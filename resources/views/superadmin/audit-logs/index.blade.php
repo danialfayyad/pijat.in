@@ -82,9 +82,16 @@
                             'user' => 'Pengguna & Mitra',
                             'penalty' => 'Poin & Sanksi',
                             'retention' => 'Pembersihan Data Sistem',
+                            'system' => 'Pembersihan Data Sistem',
+                            'bank' => 'Master Rekening Bank',
+                            'order' => 'Pesanan Layanan',
+                            'withdrawal' => 'Pencairan Dana (Withdraw)',
+                            'complaint' => 'Aduan & Komplain',
+                            'auth' => 'Otentikasi Akun',
+                            'faq' => 'Pusat Bantuan & FAQ',
                         ];
                     @endphp
-                    <select name="module" class="w-full text-xs rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 py-2">
+                    <select name="module" class="w-full text-xs rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 py-2 pl-3.5 pr-8">
                         <option value="">Semua Modul</option>
                         @foreach ($modules as $mod)
                             <option value="{{ $mod }}" @selected(request('module') === $mod)>
@@ -97,7 +104,7 @@
                 <!-- Aktor -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Aktor (Admin / User)</label>
-                    <select name="user_id" class="w-full text-xs rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 py-2">
+                    <select name="user_id" class="w-full text-xs rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 py-2 pl-3.5 pr-8">
                         <option value="">Semua Aktor</option>
                         @foreach ($actors as $actor)
                             <option value="{{ $actor->id }}" @selected(request('user_id') == $actor->id)>
