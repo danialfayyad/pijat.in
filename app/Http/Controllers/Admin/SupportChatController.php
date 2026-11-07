@@ -77,7 +77,7 @@ class SupportChatController extends Controller
         $tickets = $query->orderByRaw("CASE WHEN status = 'menunggu' THEN 1 WHEN status = 'berlangsung' THEN 2 ELSE 3 END")
             ->orderByDesc('last_message_at')
             ->orderByDesc('id')
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.support-chats.index', [

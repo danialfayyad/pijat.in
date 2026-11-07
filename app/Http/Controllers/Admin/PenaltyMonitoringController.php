@@ -118,7 +118,7 @@ class PenaltyMonitoringController extends Controller
         $users = $query->with(['partnerProfile.region', 'customerAddresses.region'])
             ->orderByDesc('penalty_points')
             ->orderByDesc('updated_at')
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.penalties.index', [

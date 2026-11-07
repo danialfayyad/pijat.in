@@ -87,7 +87,7 @@ class AdminFinanceController extends Controller
             });
         }
 
-        $withdrawals = $withdrawalQuery->latest()->paginate(15, ['*'], 'wd_page')->withQueryString();
+        $withdrawals = $withdrawalQuery->latest()->paginate(10, ['*'], 'wd_page')->withQueryString();
 
         // 2. Tab: Regional Ledger Transactions
         $ledgerQuery = WalletTransaction::with(['user', 'region'])
@@ -105,7 +105,7 @@ class AdminFinanceController extends Controller
             $ledgerQuery->whereDate('created_at', '<=', $request->input('end_date'));
         }
 
-        $ledgerTransactions = $ledgerQuery->latest()->paginate(20, ['*'], 'tx_page')->withQueryString();
+        $ledgerTransactions = $ledgerQuery->latest()->paginate(10, ['*'], 'tx_page')->withQueryString();
 
         return view('admin.finance.index', compact(
             'assignedRegions',

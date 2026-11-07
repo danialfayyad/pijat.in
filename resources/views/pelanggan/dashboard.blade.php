@@ -241,35 +241,104 @@
             </div>
         </div>
 
-        <!-- 7. GABUNGAN OPSI 3: BANNER PROMO & PENAWARAN SPESIAL -->
-        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 p-4 sm:p-5 text-white shadow-md">
-            <!-- Hiasan Watermark Bintang / Daun -->
-            <div class="absolute -right-4 -bottom-6 opacity-15 pointer-events-none">
-                <svg class="w-36 h-36" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-            </div>
-            <div class="relative z-10 space-y-2.5">
-                <div class="flex items-center space-x-2">
-                    <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider">Promo Spesial</span>
-                    <span class="text-xs font-semibold text-emerald-200">Voucher Relaksasi Pertama</span>
+        <!-- 7. GABUNGAN OPSI 3: BANNER PROMO & PENAWARAN SPESIAL (DINAMIS DARI SUPERADMIN) -->
+        @if ($banners->isNotEmpty())
+            <div class="space-y-3 pt-1" 
+                 x-data="{
+                     activeSlide: 0,
+                     totalSlides: {{ $banners->count() }},
+                     next() {
+                         this.activeSlide = (this.activeSlide + 1) % this.totalSlides;
+                     },
+                     prev() {
+                         this.activeSlide = (this.activeSlide - 1 + this.totalSlides) % this.totalSlides;
+                     }
+                 }">
+                <!-- Kontainer Slider Horisontal Responsif PWA -->
+                <div class="flex space-x-3.5 overflow-x-auto pb-1 scrollbar-none snap-x snap-mandatory -mx-4 px-4">
+                    @foreach ($banners as $index => $banner)
+                        <div class="shrink-0 w-full snap-center">
+                            @if ($banner->type === 'image' && $banner->image_url)
+                                <!-- Banner Format Poster Gambar Penuh -->
+                                <a href="{{ $banner->action_url ?: 'javascript:void(0)' }}" 
+                                   class="block relative overflow-hidden rounded-3xl border border-slate-200/90 shadow-md group cursor-pointer aspect-[16/7] sm:aspect-[21/9]">
+                                    <img src="{{ $banner->image_url }}" alt="{{ $banner->title }}" 
+                                         class="w-full h-full object-cover group-hover:scale-102 transition duration-500">
+                                    @if ($banner->action_text)
+                                        <div class="absolute bottom-3 right-3 py-1.5 px-3 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[11px] font-bold shadow-xs">
+                                            {{ $banner->action_text }} &rarr;
+                                        </div>
+                                    @endif
+                                </a>
+                            @else
+                                <!-- Banner Format Template Teks & Gradasi Elegan -->
+                                @php
+                                    $bgClasses = match ($banner->background_color) {
+                                        'teal' => 'bg-gradient-to-r from-teal-800 via-emerald-800 to-teal-900',
+                                        'slate' => 'bg-gradient-to-r from-slate-900 via-slate-800 to-zinc-900',
+                                        'amber' => 'bg-gradient-to-r from-amber-700 via-orange-700 to-amber-900',
+                                        'indigo' => 'bg-gradient-to-r from-indigo-900 via-blue-900 to-slate-900',
+                                        'rose' => 'bg-gradient-to-r from-rose-800 via-pink-800 to-rose-950',
+                                        default => 'bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900',
+                                    };
+                                @endphp
+                                <div class="relative overflow-hidden rounded-3xl {{ $bgClasses }} p-4 sm:p-5 text-white shadow-md">
+                                    <!-- Hiasan Watermark Bintang / Daun -->
+                                    <div class="absolute -right-4 -bottom-6 opacity-15 pointer-events-none">
+                                        <svg class="w-36 h-36" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="relative z-10 space-y-2.5">
+                                        <div class="flex items-center space-x-2">
+                                            @if ($banner->badge_text)
+                                                <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider">
+                                                    {{ $banner->badge_text }}
+                                                </span>
+                                            @endif
+                                            <span class="text-xs font-semibold text-emerald-200 truncate">{{ $banner->title }}</span>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-base font-black tracking-tight text-white leading-tight">
+                                                {{ $banner->subtitle ?: $banner->title }}
+                                            </h4>
+                                            @if ($banner->description)
+                                                <p class="text-xs text-white/90 mt-0.5 leading-relaxed line-clamp-2">
+                                                    {{ $banner->description }}
+                                                </p>
+                                            @endif
+                                        </div>
+                                        <div class="pt-1 flex items-center justify-between gap-2">
+                                            @if ($banner->promo_code)
+                                                <div class="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-xs px-3 py-1.5 rounded-xl border border-white/20">
+                                                    <span class="text-[10px] text-emerald-300 uppercase font-bold tracking-wider">Kode:</span>
+                                                    <span class="font-mono font-black text-xs text-white tracking-widest">{{ $banner->promo_code }}</span>
+                                                </div>
+                                            @else
+                                                <div></div>
+                                            @endif
+
+                                            @if ($banner->action_url)
+                                                <a href="{{ $banner->action_url }}" 
+                                                   class="py-1.5 px-3.5 rounded-full bg-white text-emerald-900 text-xs font-black shadow-xs hover:bg-emerald-50 active:scale-95 transition cursor-pointer">
+                                                    {{ $banner->action_text ?: 'Gunakan Promo' }} &rarr;
+                                                </a>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
-                <div>
-                    <h4 class="text-base font-black tracking-tight text-white leading-tight">Potongan Rp 25.000 untuk Anda</h4>
-                    <p class="text-xs text-emerald-100/90 mt-0.5 leading-relaxed">Nikmati perawatan tubuh berkualitas di rumah dengan harga lebih hemat.</p>
-                </div>
-                <div class="pt-1 flex items-center justify-between gap-2">
-                    <div class="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-xs px-3 py-1.5 rounded-xl border border-white/20">
-                        <span class="text-[10px] text-emerald-300 uppercase font-bold tracking-wider">Kode:</span>
-                        <span class="font-mono font-black text-xs text-white tracking-widest">PIJATHEMAT</span>
+
+                @if ($banners->count() > 1)
+                    <div class="flex items-center justify-center gap-1.5 pt-0.5">
+                        <span class="text-[10px] font-medium text-slate-400">Geser untuk promo lainnya &bull; {{ $banners->count() }} Penawaran</span>
                     </div>
-                    <a href="{{ route('pelanggan.catalog.index') }}" 
-                       class="py-1.5 px-3.5 rounded-full bg-white text-emerald-900 text-xs font-black shadow-xs hover:bg-emerald-50 active:scale-95 transition">
-                        Gunakan Promo →
-                    </a>
-                </div>
+                @endif
             </div>
-        </div>
+        @endif
 
         <!-- 8. GABUNGAN OPSI 1: 3 PILAR KEUNGGULAN & KEPERCAYAAN PELANGGAN -->
         <div class="space-y-3 pt-1">

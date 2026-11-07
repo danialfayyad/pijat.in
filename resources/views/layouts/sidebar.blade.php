@@ -23,7 +23,7 @@
     </div>
 
     <!-- Navigation Menu -->
-    <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+    <nav id="sidebar-nav" class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         @if (Auth::user()->isSuperadmin())
             <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
                 Menu Super Admin
@@ -104,6 +104,14 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                 </svg>
                 Identitas Aplikasi
+            </a>
+
+            <a href="{{ route('superadmin.banners.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.banners.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.banners.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Banner Promosi
             </a>
 
             <a href="{{ route('superadmin.banks.index') }}" 
@@ -277,4 +285,28 @@
             </div>
         </div>
     </div>
+
+    <!-- Preservasi Posisi Scroll Sidebar Backoffice (Aman & Pasif) -->
+    <script>
+        (function () {
+            const nav = document.getElementById('sidebar-nav');
+            if (!nav) return;
+
+            const saved = sessionStorage.getItem('pijatin_sidebar_scroll');
+            if (saved !== null) {
+                nav.scrollTop = parseInt(saved, 10);
+            } else {
+                const activeItem = nav.querySelector('a.bg-white');
+                if (activeItem) {
+                    activeItem.scrollIntoView({ block: 'nearest' });
+                }
+            }
+
+            nav.addEventListener('scroll', function () {
+                try {
+                    sessionStorage.setItem('pijatin_sidebar_scroll', nav.scrollTop.toString());
+                } catch (e) {}
+            }, { passive: true });
+        })();
+    </script>
 </aside>

@@ -39,7 +39,7 @@ class BankController extends Controller
 
         $banks = $query->orderBy('sort_order', 'asc')
             ->orderBy('name', 'asc')
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         $totalCount = Bank::count();

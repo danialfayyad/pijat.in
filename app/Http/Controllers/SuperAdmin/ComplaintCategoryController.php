@@ -36,7 +36,7 @@ class ComplaintCategoryController extends Controller
             }
         }
 
-        $categories = $query->orderBy('name')->paginate(15)->withQueryString();
+        $categories = $query->orderBy('name')->paginate(10)->withQueryString();
 
         $totalCount = ComplaintCategory::count();
         $activeCount = ComplaintCategory::where('is_active', true)->count();

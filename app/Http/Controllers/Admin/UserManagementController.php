@@ -84,7 +84,7 @@ class UserManagementController extends Controller
 
             $users = $partnerQuery->with(['partnerProfile.region', 'ratingsReceived'])
                 ->latest()
-                ->paginate(15)
+                ->paginate(10)
                 ->withQueryString();
 
             return view('admin.users.index', [
@@ -134,7 +134,7 @@ class UserManagementController extends Controller
 
         $users = $customerQuery->with(['primaryAddress.region'])
             ->latest()
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.users.index', [
