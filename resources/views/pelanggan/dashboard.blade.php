@@ -89,8 +89,8 @@
 
         <!-- 4. DUA TOMBOL AKSI CEPAT: PESAN INSTAN & JADWALKAN LAYANAN -->
         <div class="grid grid-cols-2 gap-3.5">
-            <!-- Card 1: Pesan Instan -->
-            <a href="{{ route('pelanggan.orders.create', ['type' => 'instan']) }}"
+            <!-- Card 1: Pesan Instan (Mengarahkan ke Katalog Layanan dengan jenis Instan) -->
+            <a href="{{ route('pelanggan.catalog.index', ['type' => 'instan']) }}"
                class="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-xs hover:border-emerald-300 hover:shadow-md active:scale-[0.98] transition flex flex-col items-center justify-center text-center group cursor-pointer">
                 <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mb-2.5 shadow-2xs group-hover:scale-110 transition">
                     <svg class="w-6 h-6 fill-amber-400 stroke-amber-500" viewBox="0 0 24 24">
@@ -102,8 +102,8 @@
                 </span>
             </a>
 
-            <!-- Card 2: Jadwalkan Layanan -->
-            <a href="{{ route('pelanggan.orders.create', ['type' => 'terjadwal']) }}"
+            <!-- Card 2: Jadwalkan Layanan (Mengarahkan ke Katalog Layanan dengan jenis Terjadwal) -->
+            <a href="{{ route('pelanggan.catalog.index', ['type' => 'terjadwal']) }}"
                class="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-xs hover:border-emerald-300 hover:shadow-md active:scale-[0.98] transition flex flex-col items-center justify-center text-center group cursor-pointer">
                 <div class="w-12 h-12 rounded-full bg-cyan-50 text-cyan-600 flex items-center justify-center mb-2.5 shadow-2xs group-hover:scale-110 transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

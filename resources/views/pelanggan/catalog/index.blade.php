@@ -1,104 +1,190 @@
-<x-pwa-layout title="Katalog Layanan - Pijat.In" headerTitle="Katalog Layanan" :backUrl="route('pelanggan.dashboard')">
-    <div class="py-2 space-y-4">
+<x-pwa-layout title="Layanan Pijat - Pijat.In" :hideHeader="true" :hideDock="true">
+    <div class="py-2 space-y-4"
+         x-data="{
+            activeCategory: 'semua',
+            searchQuery: '',
+            showSearch: false,
+            filterService(cat, name, desc) {
+                const matchCategory = this.activeCategory === 'semua' || this.activeCategory === cat;
+                const query = this.searchQuery.trim().toLowerCase();
+                const matchQuery = query === '' || name.toLowerCase().includes(query) || desc.toLowerCase().includes(query);
+                return matchCategory && matchQuery;
+            }
+         }"
+         @toggle-catalog-search.window="showSearch = !showSearch; if (showSearch) $nextTick(() => $refs.searchInput.focus())">
 
-        <!-- Header Title -->
-        <div>
-            <h2 class="text-base font-extrabold text-slate-900 leading-tight">Pilihan Layanan Pijat</h2>
-            <p class="text-xs text-slate-500">Tarif tetap, higienis, dan terapis berlisensi profesional.</p>
-        </div>
-
-        <!-- Transparent Pricing Banner (DEC-01 & CUS-03) -->
-        <div class="bg-emerald-50/90 border border-emerald-200 rounded-2xl p-4 flex items-start space-x-3.5 text-xs text-emerald-900">
-            <div class="w-8 h-8 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        <!-- Floating Top Bar Navigasi (Sesuai Gaya Desain Aplikasi) -->
+        <div class="flex items-center justify-between pb-1 pt-1">
+            <a href="{{ route('pelanggan.dashboard') }}" 
+               class="w-10 h-10 rounded-full bg-white text-slate-700 border border-slate-200/90 shadow-sm flex items-center justify-center hover:bg-slate-50 hover:text-emerald-800 active:scale-95 transition cursor-pointer"
+               title="Kembali ke Beranda"
+               aria-label="Kembali ke Beranda">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                 </svg>
-            </div>
-            <div>
-                <span class="font-bold text-emerald-950 block">Harga Pasti Tanpa Biaya Tersembunyi</span>
-                <p class="text-[11px] text-emerald-800 leading-relaxed mt-0.5">
-                    Semua paket layanan menggunakan tarif flat seragam di seluruh kota tanpa biaya transportasi tambahan dan tanpa opsi add-on.
-                </p>
-            </div>
+            </a>
+
+            <span class="text-xs font-black text-slate-900 uppercase tracking-widest">
+                Pilihan Layanan Pijat
+            </span>
+
+            <button type="button" 
+                    @click="showSearch = !showSearch; if (showSearch) $nextTick(() => $refs.searchInput.focus())"
+                    class="w-10 h-10 rounded-full bg-white text-slate-700 border border-slate-200/90 shadow-sm flex items-center justify-center hover:bg-slate-50 hover:text-emerald-800 active:scale-95 transition cursor-pointer"
+                    title="Cari Layanan"
+                    aria-label="Cari Layanan">
+                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </button>
         </div>
 
-        <!-- Services List -->
-        <div class="space-y-4">
+        <!-- Input Pencarian Dropdown / Expandable -->
+        <div x-show="showSearch" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             class="relative flex items-center w-full">
+            <svg class="w-4 h-4 text-emerald-600 absolute left-3.5 inset-y-0 my-auto pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text"
+                   x-ref="searchInput"
+                   x-model="searchQuery"
+                   placeholder="Cari jenis pijat atau keluhan (misal: relaksasi, otot, refleksi)..."
+                   class="w-full pl-10 pr-10 py-2.5 rounded-full bg-white border border-emerald-300 text-xs font-medium text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+            <button type="button" 
+                    x-show="searchQuery.length > 0" 
+                    @click="searchQuery = ''"
+                    class="absolute right-3.5 inset-y-0 my-auto flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- 2. CATEGORY FILTER PILLS (HORIZONTAL SCROLL PERSIS MOCKUP) -->
+        <div class="flex space-x-2 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4" style="scrollbar-width: none; -ms-overflow-style: none;">
+            <button type="button"
+                    @click="activeCategory = 'semua'"
+                    :class="activeCategory === 'semua' ? 'bg-[#064e3b] text-white shadow-xs font-black' : 'bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50 font-bold'"
+                    class="min-h-[38px] px-5 py-2 rounded-full text-xs transition cursor-pointer shrink-0">
+                Semua
+            </button>
+            <button type="button"
+                    @click="activeCategory = 'relaksasi'"
+                    :class="activeCategory === 'relaksasi' ? 'bg-[#064e3b] text-white shadow-xs font-black' : 'bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50 font-bold'"
+                    class="min-h-[38px] px-4 py-2 rounded-full text-xs transition cursor-pointer shrink-0">
+                Relaksasi
+            </button>
+            <button type="button"
+                    @click="activeCategory = 'terapeutik'"
+                    :class="activeCategory === 'terapeutik' ? 'bg-[#064e3b] text-white shadow-xs font-black' : 'bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50 font-bold'"
+                    class="min-h-[38px] px-4 py-2 rounded-full text-xs transition cursor-pointer shrink-0">
+                Terapeutik
+            </button>
+            <button type="button"
+                    @click="activeCategory = 'tradisional'"
+                    :class="activeCategory === 'tradisional' ? 'bg-[#064e3b] text-white shadow-xs font-black' : 'bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50 font-bold'"
+                    class="min-h-[38px] px-4 py-2 rounded-full text-xs transition cursor-pointer shrink-0">
+                Tradisional
+            </button>
+            <button type="button"
+                    @click="activeCategory = 'refleksi'"
+                    :class="activeCategory === 'refleksi' ? 'bg-[#064e3b] text-white shadow-xs font-black' : 'bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50 font-bold'"
+                    class="min-h-[38px] px-4 py-2 rounded-full text-xs transition cursor-pointer shrink-0">
+                Refleksi
+            </button>
+        </div>
+
+        <!-- 3. DAFTAR KARTU BESAR PERSIS MOCKUP REFERENSI -->
+        <div class="space-y-4 pt-1">
             @forelse ($services as $service)
-                <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-3.5">
-                    <!-- Service Header -->
-                    <div class="flex items-start space-x-3.5">
-                        @if ($service->first_image_url)
-                            <div class="relative w-14 h-14 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shrink-0 shadow-2xs">
-                                <img src="{{ $service->first_image_url }}" alt="{{ $service->name }}" class="w-full h-full object-cover">
-                                @if (count($service->images ?? []) > 1)
-                                    <span class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-md bg-slate-900/80 backdrop-blur-xs text-[8px] font-bold text-white">
-                                        +{{ count($service->images) - 1 }}
+                @php
+                    $lowestPrice = $service->activePackages->min('price');
+                    $primaryDuration = $service->activePackages->first()?->duration_minutes ?? 60;
+                    $categoryTag = match(true) {
+                        str_contains($service->slug, 'relaksasi') || str_contains($service->slug, 'full-body') || str_contains($service->slug, 'swedish') => 'relaksasi',
+                        str_contains($service->slug, 'terapeutik') || str_contains($service->slug, 'hot-stone') || str_contains($service->slug, 'deep-tissue') => 'terapeutik',
+                        str_contains($service->slug, 'refleksi') => 'refleksi',
+                        default => 'tradisional',
+                    };
+                @endphp
+
+                <!-- Large Service Card -->
+                <div x-show="filterService('{{ $categoryTag }}', '{{ addslashes($service->name) }}', '{{ addslashes($service->description) }}')"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     class="group relative overflow-hidden rounded-3xl bg-white border border-slate-200/90 shadow-sm hover:border-emerald-300 hover:shadow-md transition">
+                    
+                    <!-- Area Foto Landscape Imersif dengan Badge Durasi Mengambang -->
+                    <a href="{{ route('pelanggan.catalog.show', array_merge(['service' => $service], request()->has('type') ? ['type' => request()->query('type')] : [])) }}" class="block relative w-full h-44 sm:h-48 bg-slate-100 overflow-hidden cursor-pointer">
+                        <img src="/image/hero.jpg" 
+                             alt="{{ $service->name }}" 
+                             class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"></div>
+                        
+                        <!-- Floating Duration Badge (Persis Gambar: 60 Min / 90 Min) -->
+                        <div class="absolute top-3 right-3 px-3 py-1 rounded-full bg-slate-950/75 backdrop-blur-md text-white text-xs font-black shadow-md border border-white/20">
+                            {{ $primaryDuration }} Min
+                        </div>
+                    </a>
+
+                    <!-- Area Konten & Tombol Tambah (+) Persis Mockup -->
+                    <div class="p-4 sm:p-5 flex items-end justify-between gap-3">
+                        <div class="space-y-1.5 flex-1 min-w-0">
+                            <a href="{{ route('pelanggan.catalog.show', array_merge(['service' => $service], request()->has('type') ? ['type' => request()->query('type')] : [])) }}" class="block cursor-pointer">
+                                <h3 class="text-base font-black text-slate-900 group-hover:text-emerald-700 transition leading-snug truncate">
+                                    {{ $service->name }}
+                                </h3>
+                                <p class="text-xs text-slate-500 line-clamp-1 mt-0.5">
+                                    {{ $service->description }}
+                                </p>
+                            </a>
+
+                            <!-- Harga Mulai Dari -->
+                            <div class="pt-0.5">
+                                @if ($lowestPrice)
+                                    <span class="text-base font-black text-slate-900 font-mono tracking-tight block">
+                                        Rp {{ number_format($lowestPrice, 0, ',', '.') }}
                                     </span>
                                 @endif
                             </div>
-                        @else
-                            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center shrink-0">
-                                @if (str_contains($service->slug, 'hot-stone'))
-                                    <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 012.344 5.657 7.975 7.975 0 01-2.343 5.657z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"/>
-                                    </svg>
-                                @elseif (str_contains($service->slug, 'thai') || str_contains($service->slug, 'refleksi'))
-                                    <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                @elseif (str_contains($service->slug, 'swedish') || str_contains($service->slug, 'traditional') || str_contains($service->slug, 'herbal'))
-                                    <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                                    </svg>
-                                @else
-                                    <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/>
-                                    </svg>
-                                @endif
+
+                            <!-- Pilihan Durasi Paket Tersedia (Chips Rapi untuk Akses Cepat & Kompatibilitas Uji) -->
+                            <div class="flex flex-wrap gap-1.5 pt-1.5">
+                                @foreach ($service->activePackages as $pkg)
+                                    <a href="{{ route('pelanggan.orders.create', array_merge(['package_id' => $pkg->id], request()->has('type') ? ['type' => request()->query('type')] : [])) }}"
+                                       class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 text-slate-700 border border-slate-200/60 transition cursor-pointer">
+                                        <span>{{ $pkg->duration_minutes }} Menit</span>
+                                        <span class="text-slate-400 font-normal">•</span>
+                                        <span class="font-mono text-emerald-800">{{ $pkg->formatted_price }}</span>
+                                    </a>
+                                @endforeach
                             </div>
-                        @endif
-                        <div class="flex-1 min-w-0">
-                            <h3 class="font-extrabold text-sm text-slate-900 leading-tight">{{ $service->name }}</h3>
-                            <p class="text-xs text-slate-600 mt-1 leading-relaxed">{{ $service->description }}</p>
                         </div>
-                    </div>
 
-                    <!-- Packages Options Grid -->
-                    <div class="pt-2 border-t border-slate-100">
-                        <span class="text-xs font-bold text-slate-500 block mb-2">
-                            Pilihan Durasi Paket
-                        </span>
-
-                        <div class="grid grid-cols-3 gap-2">
-                            @foreach ($service->activePackages as $pkg)
-                                <div class="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 text-center">
-                                    <span class="block text-xs font-bold text-slate-800">{{ $pkg->duration_minutes }} Menit</span>
-                                    <span class="block text-xs font-black font-mono text-emerald-700 mt-0.5">{{ $pkg->formatted_price }}</span>
-                                </div>
-                            @endforeach
+                        <!-- Tombol Lingkaran Hijau (+) Persis Mockup -->
+                        <div class="shrink-0 pb-1">
+                            <a href="{{ route('pelanggan.catalog.show', array_merge(['service' => $service], request()->has('type') ? ['type' => request()->query('type')] : [])) }}"
+                               class="w-11 h-11 rounded-full bg-[#064e3b] hover:bg-[#043d2e] active:scale-95 text-white flex items-center justify-center shadow-md hover:shadow-lg transition cursor-pointer"
+                               title="Pilih Paket {{ $service->name }}"
+                               aria-label="Pilih Paket {{ $service->name }}">
+                                <svg class="w-5 h-5 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                                </svg>
+                            </a>
                         </div>
-                    </div>
-
-                    <!-- Action Button -->
-                    <div class="pt-1">
-                        <a href="{{ route('pelanggan.catalog.show', $service) }}" 
-                            class="w-full min-h-[44px] py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs text-center shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
-                            <span>Pilih Paket Layanan</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
-                            </svg>
-                        </a>
                     </div>
                 </div>
             @empty
-                <div class="text-center py-12 px-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs space-y-2">
-                    <p class="text-xs text-slate-500">Belum ada layanan yang aktif saat ini.</p>
+                <div class="text-center py-12 px-4 bg-white rounded-3xl border border-slate-200/80 shadow-xs space-y-2">
+                    <p class="text-xs text-slate-500 font-medium">Belum ada layanan yang aktif saat ini.</p>
                 </div>
             @endforelse
         </div>
 
     </div>
 </x-pwa-layout>
-
