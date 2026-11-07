@@ -1,4 +1,4 @@
-<x-pwa-layout title="Pelacakan Pesanan - Pijat.In" headerTitle="Pelacakan Pesanan" :backUrl="route('pelanggan.dashboard')" :fullBleed="true" :hideDock="true">
+<x-pwa-layout title="Pelacakan Pesanan - Pijat.In" :fullBleed="true" :hideDock="true" :hideHeader="true">
     <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -584,14 +584,25 @@
             <div id="pelanggan-order-map" class="w-full h-full absolute inset-0 z-0"></div>
         @endif
 
-        @if (! $isArchived)
-            <!-- FLOATING TOP PILL ("DYNAMIC ISLAND") OVER MAP -->
-            <div class="absolute top-3.5 left-3.5 right-3.5 z-10 pointer-events-none flex justify-center">
-                <div class="pointer-events-auto w-full max-w-sm bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-full shadow-xl border border-slate-100 flex items-center justify-between transition-all">
+        <!-- FLOATING TOP NAVIGATION OVER MAP -->
+        <div class="absolute top-4 left-4 right-4 z-20 pointer-events-none flex items-center space-x-2.5">
+            <!-- Floating Back Button -->
+            <a href="{{ route('pelanggan.dashboard') }}"
+               class="pointer-events-auto w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-xl border border-slate-100 text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/80 flex items-center justify-center shrink-0 transition-all active:scale-95"
+               aria-label="Kembali ke Beranda"
+               title="Kembali">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                </svg>
+            </a>
+
+            @if (! $isArchived)
+                <!-- Floating "Pesanan Aktif" Pill -->
+                <div class="pointer-events-auto flex-1 min-w-0 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-full shadow-xl border border-slate-100 flex items-center justify-between transition-all">
                     <!-- Left: Wellness Icon & Title -->
-                    <div class="flex items-center space-x-3 truncate">
-                        <div class="w-10 h-10 rounded-full bg-emerald-100/90 text-emerald-800 flex items-center justify-center shrink-0 shadow-xs">
-                            <svg class="w-5 h-5 text-emerald-700" fill="currentColor" viewBox="0 0 24 24">
+                    <div class="flex items-center space-x-2.5 truncate">
+                        <div class="w-9 h-9 rounded-full bg-emerald-100/90 text-emerald-800 flex items-center justify-center shrink-0 shadow-xs">
+                            <svg class="w-4.5 h-4.5 text-emerald-700" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A9.49 9.49 0 0012 20c4.41 0 8-3.59 8-8 0-.41-.03-.81-.08-1.2A9.94 9.94 0 0021 8h-4zm-5 10c-2.48 0-4.6-1.52-5.51-3.69C7.45 12.16 9.38 9.77 12 8.77c.86 2.5 2.54 6.8 5.48 8.44A6.012 6.012 0 0112 18z"/>
                             </svg>
                         </div>
@@ -614,27 +625,27 @@
                     </div>
 
                     <!-- Right: Recenter & Auto-Refresh Controls -->
-                    <div class="flex items-center space-x-1 shrink-0 pl-2">
+                    <div class="flex items-center space-x-1 shrink-0 pl-1.5">
                         <button type="button" 
                             @click="hasMitra ? fitRouteBounds() : fitBoundsSingle()" 
                             title="Pusatkan Peta"
-                            class="w-8 h-8 rounded-full bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 flex items-center justify-center transition active:scale-95 cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="w-7.5 h-7.5 rounded-full bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 flex items-center justify-center transition active:scale-95 cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
                             </svg>
                         </button>
                         <button type="button" 
                             @click="window.location.reload()" 
                             title="Segarkan data pesanan"
-                            class="w-8 h-8 rounded-full bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 flex items-center justify-center transition active:scale-95 cursor-pointer">
+                            class="w-7.5 h-7.5 rounded-full bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 flex items-center justify-center transition active:scale-95 cursor-pointer">
                             <svg class="w-3.5 h-3.5 text-emerald-600 animate-spin" style="animation-duration: 4s;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
                         </button>
                     </div>
                 </div>
-            </div>
-        @endif
+            @endif
+        </div>
 
         @if ($order->mitra_id)
             <x-order-chat-drawer
@@ -1457,61 +1468,98 @@
                     </div>
                 @endif
 
-                <!-- 3. Profil Terapis Penanggung Jawab (CUS-10: Tanpa NIK/Data Sensitif) -->
+                <!-- 3. Profil Terapis Penanggung Jawab (CUS-10: In-App Chat Only & Tanpa NIK/Data Sensitif) -->
                 @if ($order->mitra)
-                    <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs space-y-3">
-                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                            <h3 class="text-xs font-bold text-slate-900">Terapis Penanggung Jawab</h3>
-                            <span class="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                Terverifikasi
-                            </span>
+                    @php
+                        $isChatActive = in_array($order->status, [
+                            \App\Enums\OrderStatus::Dijadwalkan,
+                            \App\Enums\OrderStatus::MenujuLokasi,
+                            \App\Enums\OrderStatus::Tiba,
+                            \App\Enums\OrderStatus::SedangBerlangsung,
+                        ]);
+                    @endphp
+                    <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-4">
+                        <!-- Header Kartu: Judul & Status Badge Chat -->
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">
+                                Terapis Penanggung Jawab
+                            </h3>
+
+                            @if ($isChatActive)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/70">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    Chat Aktif
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200/70">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                    Chat Selesai
+                                </span>
+                            @endif
                         </div>
 
-                        <div class="flex items-center space-x-3">
-                            <div class="w-12 h-12 rounded-2xl bg-emerald-700 text-white font-extrabold text-base flex items-center justify-center shrink-0 shadow-xs">
-                                {{ strtoupper(substr($order->mitra->name, 0, 2)) }}
+                        <!-- Info Terapis (Avatar, Nama, Rating, Gender) -->
+                        <div class="flex items-center space-x-3.5">
+                            <!-- Avatar dengan Checkmark Terverifikasi -->
+                            <div class="relative shrink-0">
+                                <div class="w-12 h-12 rounded-2xl bg-[#064e3b] text-white font-black text-base flex items-center justify-center shadow-xs">
+                                    {{ strtoupper(substr($order->mitra->name, 0, 2)) }}
+                                </div>
+                                <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-600 border-2 border-white flex items-center justify-center text-[8px] text-white font-bold" title="Terverifikasi">
+                                    ✓
+                                </span>
                             </div>
+
                             <div class="flex-1 min-w-0">
-                                <h4 class="text-sm font-extrabold text-slate-900 truncate">{{ $order->mitra->name }}</h4>
-                                <div class="flex items-center space-x-2 mt-0.5 text-xs">
-                                    <span class="text-amber-600 font-bold flex items-center space-x-0.5">
+                                <div class="flex items-center space-x-1.5">
+                                    <h4 class="text-sm font-black text-slate-900 truncate">{{ $order->mitra->name }}</h4>
+                                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200/60">
+                                        Terverifikasi
+                                    </span>
+                                </div>
+                                <div class="flex items-center space-x-2 mt-1 text-xs">
+                                    <span class="text-amber-500 font-black flex items-center space-x-0.5">
                                         <span>★</span>
-                                        <span>{{ number_format($order->mitra->partnerRating(), 1) }}</span>
+                                        <span class="text-slate-800">{{ number_format($order->mitra->partnerRating(), 1) }}</span>
                                     </span>
                                     <span class="text-slate-300">•</span>
                                     <span class="text-slate-500 font-medium">
                                         {{ $order->mitra->completedOrdersCount() }} Layanan Selesai
                                     </span>
+                                    <span class="text-slate-300">•</span>
+                                    <span class="text-slate-600 font-bold capitalize">Terapis {{ $order->mitra->gender }}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                            <span class="text-slate-500">Gender Terapis:</span>
-                            <span class="font-bold text-slate-800 capitalize">Terapis {{ $order->mitra->gender }}</span>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-2 pt-1">
-                            <a href="tel:{{ $order->mitra->phone }}" 
-                               class="w-full min-h-[42px] py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
-                                <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                                <span>Hubungi Terapis</span>
-                            </a>
-
-                            @php
-                                $cleanMitraPhone = preg_replace('/[^0-9]/', '', $order->mitra->phone);
-                                if (str_starts_with($cleanMitraPhone, '0')) {
-                                    $cleanMitraPhone = '62' . substr($cleanMitraPhone, 1);
-                                }
-                            @endphp
-                            <a href="https://wa.me/{{ $cleanMitraPhone }}?text={{ urlencode('Halo ' . $order->mitra->name . ', saya pemesan untuk pesanan ' . $order->order_code . '.') }}" 
-                               target="_blank"
-                               class="w-full min-h-[42px] py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
-                                <svg class="w-4 h-4 text-emerald-700" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.587 1.771.889 2.796.889 3.182 0 5.768-2.586 5.768-5.766.001-3.18-2.585-5.766-5.768-5.766zm9.969 5.766c0 5.508-4.462 9.97-9.969 9.97-1.719 0-3.364-.44-4.811-1.222l-5.22 1.369 1.393-5.089c-.879-1.503-1.362-3.238-1.362-5.028 0-5.508 4.462-9.97 9.969-9.97 5.507 0 9.969 4.462 9.969 9.97z"/>
-                                </svg>
-                                <span>WhatsApp</span>
-                            </a>
+                        <!-- Aksi Chat Terapis di Dalam Aplikasi (Batas Waktu Otomatis) -->
+                        <div class="pt-1">
+                            @if ($isChatActive)
+                                <button type="button"
+                                        @click="$dispatch('open-order-chat')"
+                                        title="Hubungi Terapis"
+                                        aria-label="Hubungi Terapis"
+                                        class="w-full py-3 px-5 rounded-full bg-[#064e3b] hover:bg-[#043d2e] active:scale-[0.99] text-white font-black text-xs shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
+                                    <svg class="w-4 h-4 text-emerald-300" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zm-4 0h-2v2h2V9z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>Chat Terapis di Aplikasi</span>
+                                </button>
+                                <p class="text-[10px] text-slate-400 text-center font-medium mt-2">
+                                    Sesi chat aktif selama pesanan berlangsung demi privasi dan keamanan bersama.
+                                </p>
+                            @else
+                                <div class="w-full py-3 px-5 rounded-full bg-slate-100 border border-slate-200/80 text-slate-400 font-bold text-xs flex items-center justify-center space-x-2 select-none"
+                                     title="Hubungi Terapis">
+                                    <svg class="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>Sesi Chat Telah Berakhir</span>
+                                </div>
+                                <p class="text-[10px] text-slate-400 text-center font-medium mt-2">
+                                    Sesi chat ditutup otomatis setelah pesanan selesai demi keamanan data pribadi.
+                                </p>
+                            @endif
                         </div>
                     </div>
                 @endif

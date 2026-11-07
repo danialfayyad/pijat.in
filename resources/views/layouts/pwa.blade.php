@@ -209,9 +209,16 @@
                         <h1 class="text-sm font-bold text-slate-900 leading-tight truncate">
                             {{ $headerTitle ?? $appName }}
                         </h1>
-                        <span class="text-[11px] text-slate-500 truncate block mt-0.5">
-                            {{ $headerSubtitle ?? (Auth::user()?->role?->label() ?? 'PWA App') }}
-                        </span>
+                        @if ($headerSubtitle !== false)
+                            @php
+                                $subtitleText = $headerSubtitle ?? Auth::user()?->role?->label();
+                            @endphp
+                            @if ($subtitleText)
+                                <span class="text-[11px] text-slate-500 truncate block mt-0.5">
+                                    {{ $subtitleText }}
+                                </span>
+                            @endif
+                        @endif
                     </div>
                 </div>
             </div>
@@ -302,7 +309,7 @@
                     </a>
                 </nav>
             @elseif (Auth::user()->isPelanggan())
-                <!-- Pelanggan Dock (4 Tab Sesuai Desain: Beranda, Pesanan, Chat, Profil) -->
+                <!-- Pelanggan Dock (4 Tab: Beranda, Pesanan, Dompet, Profil) -->
                 <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-4 py-2 shadow-lg flex items-center justify-around" aria-label="Navigasi Utama Pelanggan">
                     <a href="{{ route('pelanggan.dashboard') }}" 
                         class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('pelanggan.dashboard') ? 'text-emerald-700 font-extrabold' : 'text-slate-500 hover:text-slate-900 font-medium' }}">
@@ -320,12 +327,12 @@
                         <span class="text-[11px] leading-none">Pesanan</span>
                     </a>
 
-                    <a href="{{ route('pelanggan.help.index') }}" 
-                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('pelanggan.help.*') ? 'text-emerald-700 font-extrabold' : 'text-slate-500 hover:text-slate-900 font-medium' }}">
-                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('pelanggan.help.*') ? 'text-emerald-700' : 'text-slate-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    <a href="{{ route('pelanggan.wallet.index') }}" 
+                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('pelanggan.wallet.*') ? 'text-emerald-700 font-extrabold' : 'text-slate-500 hover:text-slate-900 font-medium' }}">
+                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('pelanggan.wallet.*') ? 'text-emerald-700' : 'text-slate-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
-                        <span class="text-[11px] leading-none">Chat</span>
+                        <span class="text-[11px] leading-none">Dompet</span>
                     </a>
 
                     <a href="{{ route('profile.edit') }}" 

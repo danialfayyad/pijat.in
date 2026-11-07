@@ -1,156 +1,149 @@
-<x-pwa-layout title="{{ $service->name }} - Pijat.In" headerTitle="Detail Layanan" :backUrl="route('pelanggan.catalog.index')">
-    <div class="py-2 space-y-4"
+<x-pwa-layout title="{{ $service->name }} - Pijat.In" :hideHeader="true" :hideDock="true">
+    @php
+        $firstPkg = $service->activePackages->first();
+        $photos = !empty($service->image_urls) ? $service->image_urls : ['/image/hero.jpg'];
+    @endphp
+
+    <div class="-mx-4 -mt-3 -mb-8 flex flex-col"
          x-data="{
             packages: @js($service->activePackages),
-            selectedPackageId: {{ $service->activePackages->first()?->id ?? 'null' }},
+            selectedPackageId: {{ $firstPkg?->id ?? 'null' }},
+            activePhotoIdx: 0,
+            photos: @js($photos),
             getSelectedPackage() {
                 return this.packages.find(p => p.id === this.selectedPackageId) || this.packages[0];
             }
          }">
 
-        <!-- Service Media / Photo Showcase -->
-        @if (! empty($service->image_urls))
-            <div class="bg-white rounded-2xl overflow-hidden border border-slate-200/90 shadow-xs"
-                 x-data="{ activePhotoIdx: 0, photos: @js($service->image_urls) }">
-                <div class="relative w-full aspect-16/10 bg-slate-100 overflow-hidden">
-                    <img :src="photos[activePhotoIdx]" alt="{{ $service->name }}" class="w-full h-full object-cover transition duration-300">
-                    <div class="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-lg bg-slate-900/75 backdrop-blur-xs text-white text-[11px] font-bold"
-                         x-show="photos.length > 1">
-                        <span x-text="activePhotoIdx + 1"></span>/<span x-text="photos.length"></span>
-                    </div>
+        <!-- 1. FIXED TOP HERO IMAGE / SLIDER (TIDAK IKUT BERGERAK SAAT DI-SCROLL) -->
+        <div class="fixed top-0 left-0 right-0 max-w-md mx-auto h-72 sm:h-80 z-0 overflow-hidden pointer-events-none">
+            <template x-if="photos.length > 0">
+                <img :src="photos[activePhotoIdx]" 
+                     alt="{{ $service->name }}" 
+                     class="w-full h-full object-cover transition-all duration-300">
+            </template>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/30"></div>
+
+            <!-- Indicator Foto jika lebih dari 1 foto (dari CRUD Layanan) -->
+            <div class="absolute bottom-10 right-4 z-10 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[11px] font-bold"
+                 x-show="photos.length > 1">
+                <span x-text="activePhotoIdx + 1"></span>/<span x-text="photos.length"></span>
+            </div>
+        </div>
+
+        <!-- Floating Top Bar Actions: Back Button (Fixed di atas) -->
+        <div class="fixed top-4 left-0 right-0 max-w-md mx-auto px-4 flex items-center justify-between z-30 pointer-events-none">
+            <!-- Back Button -->
+            <a href="{{ route('pelanggan.catalog.index') }}" 
+               class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/20 flex items-center justify-center hover:bg-black/60 active:scale-95 transition shadow-lg cursor-pointer pointer-events-auto"
+               title="Kembali ke Katalog"
+               aria-label="Kembali ke Katalog">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                </svg>
+            </a>
+        </div>
+
+        <!-- Spacer agar Hero Image tampak di awal -->
+        <div class="h-64 sm:h-72 shrink-0"></div>
+
+        <!-- 2. OVERLAPPING WHITE BOTTOM SHEET BODY (SLIDES OVER FIXED HERO IMAGE & FULL KE BAWAH) -->
+        <div class="relative z-10 bg-white rounded-t-[32px] px-5 pt-6 pb-36 shadow-xl space-y-5 min-h-screen flex-1">
+            
+            <!-- Judul Layanan & Harga Real dari Database -->
+            <div class="space-y-2">
+                <div class="flex items-start justify-between gap-3">
+                    <h1 class="text-2xl font-black text-slate-900 tracking-tight leading-tight">
+                        {{ $service->name }}
+                    </h1>
+                    @if ($service->activePackages->count() > 0)
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/70 shrink-0">
+                            {{ $service->activePackages->count() }} Pilihan Paket
+                        </span>
+                    @endif
                 </div>
 
-                @if (count($service->image_urls) > 1)
-                    <div class="p-3 bg-slate-50/70 border-t border-slate-100 flex gap-2 overflow-x-auto no-scrollbar">
-                        <template x-for="(photoUrl, pIdx) in photos" :key="pIdx">
-                            <button type="button" @click="activePhotoIdx = pIdx"
-                                    class="relative w-14 h-14 rounded-xl overflow-hidden border-2 transition shrink-0 cursor-pointer"
-                                    :class="activePhotoIdx === pIdx ? 'border-emerald-600 ring-2 ring-emerald-500/30' : 'border-transparent opacity-70 hover:opacity-100'">
-                                <img :src="photoUrl" class="w-full h-full object-cover">
-                            </button>
-                        </template>
-                    </div>
-                @endif
-            </div>
-        @endif
+                <!-- Thumbnail Switcher jika admin mengunggah lebih dari 1 foto -->
+                <div class="flex items-center gap-2 pt-1 overflow-x-auto no-scrollbar" x-show="photos.length > 1">
+                    <template x-for="(photoUrl, pIdx) in photos" :key="pIdx">
+                        <button type="button" 
+                                @click="activePhotoIdx = pIdx"
+                                class="w-12 h-12 rounded-xl overflow-hidden border-2 transition shrink-0 cursor-pointer"
+                                :class="activePhotoIdx === pIdx ? 'border-emerald-700 ring-2 ring-emerald-500/30' : 'border-slate-200 opacity-60 hover:opacity-100'">
+                            <img :src="photoUrl" class="w-full h-full object-cover">
+                        </button>
+                    </template>
+                </div>
 
-        <!-- Service Main Card -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-3.5">
-            <div class="flex items-center space-x-3.5">
-                @if ($service->first_image_url)
-                    <div class="w-14 h-14 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shrink-0 shadow-2xs">
-                        <img src="{{ $service->first_image_url }}" alt="{{ $service->name }}" class="w-full h-full object-cover">
-                    </div>
-                @else
-                    <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center shrink-0">
-                        @if (str_contains($service->slug, 'hot-stone'))
-                            <svg class="w-7 h-7 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 012.344 5.657 7.975 7.975 0 01-2.343 5.657z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"/>
-                            </svg>
-                        @elseif (str_contains($service->slug, 'thai') || str_contains($service->slug, 'refleksi'))
-                            <svg class="w-7 h-7 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        @elseif (str_contains($service->slug, 'swedish') || str_contains($service->slug, 'traditional') || str_contains($service->slug, 'herbal'))
-                            <svg class="w-7 h-7 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                            </svg>
-                        @else
-                            <svg class="w-7 h-7 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/>
-                            </svg>
-                        @endif
-                    </div>
-                @endif
-                <div>
-                    <h2 class="text-base font-extrabold text-slate-900 leading-tight">{{ $service->name }}</h2>
-                    <span class="inline-block mt-1 text-xs font-semibold text-emerald-700">
-                        Standar Layanan Resmi Pijat.In
+                <!-- Harga Dinamis Sesuai Paket Terpilih -->
+                <div class="pt-1 flex items-baseline gap-2">
+                    <span class="text-2xl font-black text-slate-900 font-mono tracking-tight"
+                          x-text="'Rp ' + (getSelectedPackage() ? Number(getSelectedPackage().price).toLocaleString('id-ID') : '{{ number_format($firstPkg?->price ?? 0, 0, ',', '.') }}')">
+                        Rp {{ number_format($firstPkg?->price ?? 0, 0, ',', '.') }}
                     </span>
+                    <span class="text-xs text-slate-500 font-medium">/ sesi</span>
                 </div>
             </div>
 
-            <div class="text-xs text-slate-600 leading-relaxed pt-2 border-t border-slate-100">
-                <p>{{ $service->description }}</p>
+            <hr class="border-slate-100">
+
+            <!-- 3. PILIHAN DURASI PAKET LAYANAN (CUS-03) -->
+            <div class="space-y-2.5">
+                <span class="text-xs font-black text-slate-900 uppercase tracking-wider block">
+                    Pilihan Durasi Sesi
+                </span>
+
+                <div class="grid grid-cols-3 gap-2">
+                    @foreach ($service->activePackages as $pkg)
+                        <button type="button" 
+                                @click="selectedPackageId = {{ $pkg->id }}"
+                                class="p-3 rounded-2xl border text-center transition cursor-pointer select-none"
+                                :class="selectedPackageId === {{ $pkg->id }} ? 'bg-[#064e3b] text-white border-[#064e3b] shadow-md ring-2 ring-emerald-600/30 font-black' : 'bg-white text-slate-700 border-slate-200/90 hover:border-emerald-300 font-bold'">
+                            <span class="block text-xs">{{ $pkg->duration_minutes }} Menit</span>
+                            <span class="block text-[11px] font-mono mt-0.5" 
+                                  :class="selectedPackageId === {{ $pkg->id }} ? 'text-emerald-200 font-black' : 'text-emerald-700 font-black'">
+                                {{ $pkg->formatted_price }}
+                            </span>
+                        </button>
+                    @endforeach
+                </div>
             </div>
+
+            <!-- 4. DESKRIPSI LAYANAN (DARI CRUD LAYANAN) -->
+            <div class="space-y-1.5 pt-1">
+                <span class="text-xs font-black text-slate-900 uppercase tracking-wider block">
+                    Deskripsi Layanan
+                </span>
+                <p class="text-xs text-slate-600 leading-relaxed font-normal">
+                    {{ $service->description }}
+                </p>
+            </div>
+
+            <!-- 5. JAMINAN STANDAR LAYANAN (Bebas Ongkir, Protokol Gender, Tanpa Add-on) -->
+            <div class="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-4 space-y-2.5 text-xs text-emerald-950">
+                <div class="flex items-center space-x-2.5">
+                    <span class="w-5 h-5 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px] font-black shrink-0">✓</span>
+                    <span><strong>Bebas Ongkir:</strong> Tidak ada biaya transportasi terapis tambahan.</span>
+                </div>
+                <div class="flex items-center space-x-2.5">
+                    <span class="w-5 h-5 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px] font-black shrink-0">✓</span>
+                    <span><strong>Protokol Gender:</strong> Terapis dipastikan bergender sama dengan Anda.</span>
+                </div>
+                <div class="flex items-center space-x-2.5">
+                    <span class="w-5 h-5 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px] font-black shrink-0">✓</span>
+                    <span><strong>Tanpa Add-on:</strong> Tarif flat transparan tanpa biaya tambahan tersembunyi.</span>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Duration & Package Selection Card (CUS-03) -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-3.5">
-            <div>
-                <h3 class="text-xs font-bold text-slate-900">Pilih Durasi Paket</h3>
-                <p class="text-xs text-slate-500">Pilih durasi pijat yang sesuai dengan kebutuhan Anda</p>
-            </div>
-
-            <!-- Packages Options Radio Chips -->
-            <div class="grid grid-cols-1 gap-2.5">
-                @foreach ($service->activePackages as $pkg)
-                    <div @click="selectedPackageId = {{ $pkg->id }}"
-                         class="p-4 rounded-xl border cursor-pointer select-none transition flex items-center justify-between min-h-[48px]"
-                         :class="selectedPackageId === {{ $pkg->id }} ? 'bg-emerald-50/80 border-emerald-600 ring-1 ring-emerald-600 shadow-xs' : 'bg-slate-50/60 border-slate-200 hover:border-slate-300'">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-5 h-5 rounded-full border flex items-center justify-center transition"
-                                 :class="selectedPackageId === {{ $pkg->id }} ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300 bg-white'">
-                                <svg x-show="selectedPackageId === {{ $pkg->id }}" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-slate-900 block">{{ $pkg->duration_minutes }} Menit</span>
-                                <span class="text-[11px] text-slate-500">Sesi layanan penuh</span>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-xs font-black text-emerald-800 font-mono">{{ $pkg->formatted_price }}</span>
-                            <span class="text-[11px] text-slate-500 block">Tarif Tetap</span>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-
-            <!-- Summary Price Display -->
-            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/90 flex items-center justify-between text-xs">
-                <span class="text-slate-700 font-medium">Total Tarif Layanan:</span>
-                <span class="text-sm font-black text-slate-900 font-mono" x-text="'Rp ' + (getSelectedPackage() ? Number(getSelectedPackage().price).toLocaleString('id-ID') : '0')"></span>
-            </div>
-        </div>
-
-        <!-- Strict Standard Policy Badges -->
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs space-y-3 text-xs text-slate-700">
-            <div class="flex items-center space-x-3 text-emerald-900">
-                <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                </div>
-                <span><strong>Bebas Ongkir:</strong> Tidak ada biaya transportasi terapis tambahan.</span>
-            </div>
-            <div class="flex items-center space-x-3 text-emerald-900">
-                <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                    </svg>
-                </div>
-                <span><strong>Protokol Gender:</strong> Terapis dipastikan bergender sama dengan Anda.</span>
-            </div>
-            <div class="flex items-center space-x-3 text-emerald-900">
-                <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                </div>
-                <span><strong>Tanpa Add-on:</strong> Paket bersih tanpa biaya tambahan tersembunyi.</span>
-            </div>
-        </div>
-
-        <!-- Order Action Button (Slice 4 Order Flow) -->
-        <div class="pt-2">
+        <!-- 6. STICKY BOTTOM ACTION BAR (PESAN SEKARANG) -->
+        <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-4 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-2xl z-40">
             <button type="button" 
-                @click="window.location.href = '{{ route('pelanggan.orders.create') }}?package_id=' + selectedPackageId"
-                class="w-full min-h-[48px] py-3.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-sm transition flex items-center justify-center space-x-2 cursor-pointer">
-                <span>Pesan Layanan Sekarang</span>
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    @click="window.location.href = '{{ route('pelanggan.orders.create') }}?package_id=' + selectedPackageId + '{{ request()->has('type') ? '&type=' . request()->query('type') : '' }}'"
+                    class="w-full py-3.5 px-6 rounded-full bg-[#064e3b] hover:bg-[#043d2e] active:scale-[0.99] text-white font-black text-sm shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
+                <span>Pesan Sekarang</span>
+                <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                 </svg>
             </button>
@@ -158,4 +151,3 @@
 
     </div>
 </x-pwa-layout>
-
