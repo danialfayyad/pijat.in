@@ -1,243 +1,347 @@
-<x-pwa-layout title="Beranda Pelanggan - Pijat.In" headerTitle="Pijat.In">
-    <!-- Greeting & Header Card -->
-    <div class="py-2 space-y-4">
+<x-pwa-layout title="Beranda Pelanggan - Pijat.In" :hideHeader="true">
+    <div class="py-1 space-y-4">
 
-        <!-- User Greeting & Location Badge -->
-        <div class="flex items-center justify-between">
-            <div>
-                <span class="text-xs text-slate-500 font-medium">Selamat Datang,</span>
-                <h2 class="text-lg font-black text-slate-900 leading-tight">{{ auth()->user()->name }}</h2>
-            </div>
-            <div class="text-right">
-                <a href="{{ route('pelanggan.addresses.index') }}" 
-                   class="inline-flex items-center min-h-[44px] px-3 py-2 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/80 hover:bg-emerald-100 hover:border-emerald-300 transition cursor-pointer">
-                    <svg class="w-3.5 h-3.5 mr-1.5 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+        <!-- 1. TOP BAR SESUAI MOCKUP: LOKASI & NOTIFIKASI -->
+        <div class="flex items-center justify-between pt-1">
+            <!-- Lokasi Terpilih -->
+            <a href="{{ route('pelanggan.addresses.index') }}" 
+               class="inline-flex items-center space-x-2 py-1 px-3 rounded-full bg-white border border-slate-200/90 shadow-2xs hover:border-emerald-300 hover:shadow-xs transition group cursor-pointer"
+               title="Ubah Alamat Layanan">
+                <div class="w-6 h-6 rounded-full bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                     </svg>
-                    <span>{{ auth()->user()->region?->name ?? 'Pilih Alamat' }}</span>
-                </a>
+                </div>
+                <span class="text-xs font-black text-slate-900 group-hover:text-emerald-700 transition max-w-[170px] truncate">
+                    {{ auth()->user()->primaryAddress?->region?->name ?? auth()->user()->region?->name ?? 'Jakarta Selatan' }}
+                </span>
+                <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-700 transition shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                </svg>
+            </a>
+
+            <!-- Lonceng Notifikasi PWA -->
+            @php
+                $unreadNotificationCount = auth()->user()->systemNotifications()->unread()->count();
+            @endphp
+            <button type="button" 
+                    x-data="{ unread: {{ $unreadNotificationCount }} }"
+                    @notifications-read-all.window="unread = 0"
+                    @notification-read.window="unread = Math.max(0, unread - 1)"
+                    @notifications-updated.window="unread = $event.detail"
+                    @click="$dispatch('open-notification-modal')"
+                    onclick="window.dispatchEvent(new CustomEvent('open-notification-modal'))"
+                    class="relative w-10 h-10 rounded-full bg-white border border-slate-200/90 shadow-2xs text-slate-800 hover:bg-slate-50 active:scale-95 flex items-center justify-center transition cursor-pointer"
+                    title="Buka Notifikasi">
+                <svg class="w-5 h-5 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <span x-show="unread > 0" 
+                      class="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-rose-600 text-[9px] font-black text-white ring-2 ring-white"
+                      x-text="unread > 99 ? '99+' : unread">
+                </span>
+            </button>
+        </div>
+
+        <!-- 2. GREETING & SAPAAN HANGAT -->
+        <div class="space-y-0.5 pt-0.5">
+            <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center space-x-1.5">
+                <span>Halo, {{ explode(' ', trim(auth()->user()->name))[0] }}</span>
+                <span class="inline-block animate-wave origin-bottom-right">👋</span>
+            </h2>
+            <p class="text-xs text-slate-500 font-medium">Relaksasi hari ini, yuk?</p>
+        </div>
+
+        <!-- 3. KARTU SALDO ANDA (GAYA BOTANIKAL EMERALD PERSIS MOCKUP) -->
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#059669] via-[#047857] to-[#064e3b] p-5 text-white shadow-lg">
+            <!-- Pola Ilustrasi Daun / Botanikal Transparan di Sisi Kanan -->
+            <div class="absolute -right-6 -bottom-8 pointer-events-none opacity-20">
+                <svg width="220" height="220" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M160 20C110 30 70 80 80 140C90 200 170 190 190 130C210 70 190 30 160 20Z" fill="white"/>
+                    <path d="M120 70C80 80 40 120 50 170C60 210 120 200 140 150C160 100 140 80 120 70Z" fill="white" opacity="0.6"/>
+                    <path d="M80 140C120 100 160 60 190 30" stroke="white" stroke-width="4" stroke-linecap="round"/>
+                    <path d="M50 170C90 130 120 100 150 70" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+            </div>
+
+            <!-- Konten Kartu Saldo -->
+            <div class="relative z-10 space-y-3">
+                <div>
+                    <span class="text-xs font-medium text-emerald-100/90 block">Saldo Anda</span>
+                    <a href="{{ route('pelanggan.wallet.index') }}" class="group inline-block mt-0.5">
+                        <div class="text-2xl sm:text-3xl font-black tracking-tight text-white font-mono group-hover:underline">
+                            {{ auth()->user()->getOrCreateWallet()->formatted_balance }}
+                        </div>
+                    </a>
+                </div>
+
+                <div class="pt-1">
+                    <a href="{{ route('pelanggan.wallet.topup') }}" 
+                       class="inline-flex items-center space-x-2 py-2 px-4 rounded-full bg-white text-emerald-900 text-xs font-black shadow-md hover:bg-emerald-50 active:scale-95 transition cursor-pointer">
+                        <span>Isi Saldo</span>
+                        <svg class="w-3.5 h-3.5 text-emerald-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </a>
+                </div>
             </div>
         </div>
 
-        <!-- Wallet Card -->
-        <div class="bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-800 rounded-2xl p-5 text-white shadow-md relative overflow-hidden">
-            <div class="flex justify-between items-start relative z-10">
-                <a href="{{ route('pelanggan.wallet.index') }}" class="group block cursor-pointer">
-                    <span class="text-xs font-medium text-emerald-100 block group-hover:text-white transition">Saldo Dompet Pijat.In</span>
-                    <div class="text-2xl font-black tracking-tight mt-1 font-mono group-hover:underline">
-                        {{ auth()->user()->getOrCreateWallet()->formatted_balance }}
-                    </div>
-                </a>
-                <a href="{{ route('pelanggan.wallet.topup') }}" 
-                    class="min-h-[44px] min-w-[44px] px-4 py-2.5 rounded-xl bg-white text-emerald-800 text-xs font-extrabold shadow-sm hover:bg-emerald-50 active:scale-95 transition flex items-center space-x-1.5 shrink-0 cursor-pointer">
-                    <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+        <!-- 4. DUA TOMBOL AKSI CEPAT: PESAN INSTAN & JADWALKAN LAYANAN -->
+        <div class="grid grid-cols-2 gap-3.5">
+            <!-- Card 1: Pesan Instan -->
+            <a href="{{ route('pelanggan.orders.create', ['type' => 'instan']) }}"
+               class="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-xs hover:border-emerald-300 hover:shadow-md active:scale-[0.98] transition flex flex-col items-center justify-center text-center group cursor-pointer">
+                <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mb-2.5 shadow-2xs group-hover:scale-110 transition">
+                    <svg class="w-6 h-6 fill-amber-400 stroke-amber-500" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                    <span>Isi Saldo</span>
-                </a>
-            </div>
+                </div>
+                <span class="text-xs font-black text-slate-900 leading-snug block group-hover:text-emerald-700 transition">
+                    Pesan<br>Instan
+                </span>
+            </a>
 
-            <div class="mt-4 pt-3 border-t border-emerald-600/60 flex items-center justify-between text-xs text-emerald-100/90 relative z-10">
-                <a href="{{ route('pelanggan.addresses.index') }}" class="hover:underline flex items-center space-x-1 text-emerald-100 hover:text-white cursor-pointer py-1">
-                    <span class="truncate max-w-[220px]">
-                        Alamat: <strong>{{ auth()->user()->primaryAddress ? (auth()->user()->primaryAddress->label . ' (' . Str::limit(auth()->user()->primaryAddress->address_text, 22) . ')') : 'Atur Alamat Utama' }}</strong>
-                    </span>
-                    <svg class="w-3.5 h-3.5 text-emerald-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            <!-- Card 2: Jadwalkan Layanan -->
+            <a href="{{ route('pelanggan.orders.create', ['type' => 'terjadwal']) }}"
+               class="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-xs hover:border-emerald-300 hover:shadow-md active:scale-[0.98] transition flex flex-col items-center justify-center text-center group cursor-pointer">
+                <div class="w-12 h-12 rounded-full bg-cyan-50 text-cyan-600 flex items-center justify-center mb-2.5 shadow-2xs group-hover:scale-110 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                </a>
-                <span class="text-[11px] text-emerald-200 font-medium">Bebas Potongan</span>
-            </div>
+                </div>
+                <span class="text-xs font-black text-slate-900 leading-snug block group-hover:text-emerald-700 transition">
+                    Jadwalkan<br>Layanan
+                </span>
+            </a>
         </div>
 
         @if ($activeOrders->isNotEmpty())
-            <!-- Pesanan Berjalan / Menunggu Pembayaran -->
+            <!-- 5. PESANAN SEDANG BERJALAN (JIKA ADA PESANAN AKTIF) -->
             <div class="space-y-3 pt-1">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
-                        <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Pesanan Sedang Berjalan</h3>
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Pesanan Sedang Aktif</h3>
                     </div>
-                    <a href="{{ route('pelanggan.orders.index') }}" class="min-h-[44px] inline-flex items-center text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer">
-                        Semua Riwayat
+                    <a href="{{ route('pelanggan.orders.index') }}" class="text-xs font-bold text-emerald-700 hover:underline cursor-pointer">
+                        Lihat Semua Riwayat →
                     </a>
                 </div>
 
                 <div class="space-y-2.5">
                     @foreach ($activeOrders as $activeOrder)
-                        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:border-slate-300 transition space-y-3">
-                            <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                        <div class="bg-white rounded-2xl p-4 border border-emerald-200/90 shadow-sm space-y-3">
+                            <div class="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
                                 <div class="flex items-center space-x-2 text-xs">
-                                    <span class="font-mono text-slate-400 font-bold text-[11px]">{{ $activeOrder->order_code }}</span>
+                                    <span class="font-mono text-slate-500 font-bold text-[11px]">{{ $activeOrder->order_code }}</span>
                                     <span class="text-slate-300">•</span>
-                                    <span class="font-medium text-slate-600">
+                                    <span class="font-semibold text-slate-700">
                                         @if ($activeOrder->order_type->value === 'instan')
-                                            <span class="text-emerald-700 font-semibold">Pesanan Instan</span>
+                                            <span class="text-emerald-700 font-bold">⚡ Pesanan Instan</span>
                                         @else
-                                            {{ $activeOrder->local_scheduled_start_time?->translatedFormat('d M Y, H:i') }} {{ $activeOrder->timezone_abbr }}
+                                            📅 {{ $activeOrder->local_scheduled_start_time?->translatedFormat('d M Y, H:i') }}
                                         @endif
                                     </span>
                                 </div>
-                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold shrink-0 {{ $activeOrder->status->badgeClasses() }}">
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold shrink-0 {{ $activeOrder->status->badgeClasses() }}">
                                     {{ $activeOrder->status->label() }}
                                 </span>
                             </div>
 
-                            <div class="space-y-1">
-                                <h4 class="text-sm font-extrabold text-slate-900 leading-snug">{{ $activeOrder->service_name }}</h4>
-                                <div class="text-xs text-slate-500 flex items-center space-x-2">
-                                    <span>{{ $activeOrder->duration_minutes }} Menit</span>
-                                    <span class="text-slate-300">•</span>
-                                    <span>Terapis: {{ ucfirst($activeOrder->preferred_gender ?? 'Bebas') }}</span>
+                            <div class="flex items-center justify-between">
+                                <div class="space-y-0.5">
+                                    <h4 class="text-sm font-black text-slate-900 leading-snug">{{ $activeOrder->service_name }}</h4>
+                                    <p class="text-xs text-slate-500">{{ $activeOrder->duration_minutes }} Menit • Terapis: {{ ucfirst($activeOrder->preferred_gender ?? 'Bebas') }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="font-black text-slate-900 font-mono text-sm leading-tight block">
+                                        Rp {{ number_format($activeOrder->total_price, 0, ',', '.') }}
+                                    </span>
                                 </div>
                             </div>
 
-                            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                                <div>
-                                    <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">Total Tagihan</span>
-                                    <span class="font-black text-slate-900 font-mono text-base leading-tight">Rp {{ number_format($activeOrder->total_price, 0, ',', '.') }}</span>
-                                </div>
-
-                                @if ($activeOrder->status === \App\Enums\OrderStatus::MenungguPembayaran)
-                                    <a href="{{ route('pelanggan.orders.show', $activeOrder) }}" 
-                                       class="min-h-[40px] px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-bold text-xs shadow-xs transition flex items-center space-x-1.5 cursor-pointer">
-                                        <span>Bayar Sekarang</span>
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
-                                        </svg>
-                                    </a>
-                                @else
-                                    <a href="{{ route('pelanggan.orders.show', $activeOrder) }}" 
-                                       class="min-h-[40px] px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-bold text-xs shadow-xs transition flex items-center space-x-1.5 cursor-pointer">
-                                        <span>Lacak & Rincian</span>
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
-                                        </svg>
-                                    </a>
-                                @endif
+                            <div class="pt-2 border-t border-slate-100">
+                                <a href="{{ route('pelanggan.orders.show', $activeOrder) }}" 
+                                   class="w-full py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-[0.99] text-white font-black text-xs shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                                    <span>Lacak Status & Rincian Pesanan</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </a>
                             </div>
                         </div>
                     @endforeach
                 </div>
             </div>
-        @else
-            <!-- Shortcut Cepat ke Riwayat Pesanan saat Tidak Ada Pesanan Berjalan -->
-            <a href="{{ route('pelanggan.orders.index') }}" 
-               class="p-3.5 bg-white hover:bg-slate-50 active:scale-[0.99] rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between text-xs transition cursor-pointer group">
-                <div class="flex items-center space-x-3">
-                    <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 group-hover:bg-emerald-50 group-hover:text-emerald-700 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-                    </div>
-                    <div>
-                        <span class="font-extrabold text-slate-900 block leading-tight group-hover:text-emerald-800 transition">Riwayat & Status Pesanan</span>
-                        <span class="text-[11px] text-slate-500">Lihat semua riwayat pesanan selesai atau dibatalkan</span>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-1 text-slate-400 group-hover:text-emerald-700 transition">
-                    <span class="text-xs font-bold">Buka</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </div>
-            </a>
-
-            <!-- Shortcut Pusat Bantuan & FAQ -->
-            <a href="{{ route('pelanggan.help.index') }}" 
-               class="p-3.5 bg-white hover:bg-slate-50 active:scale-[0.99] rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between text-xs transition cursor-pointer group">
-                <div class="flex items-center space-x-3">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                    </div>
-                    <div>
-                        <span class="font-extrabold text-slate-900 block leading-tight group-hover:text-emerald-800 transition">Pusat Bantuan & Live Chat</span>
-                        <span class="text-[11px] text-slate-500">FAQ mandiri & bantuan live chat admin wilayah</span>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-1 text-slate-400 group-hover:text-emerald-700 transition">
-                    <span class="text-xs font-bold">Bantuan</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </div>
-            </a>
         @endif
 
-        <!-- Bebas Preferensi Gender Terapis (Opsi A) -->
-        <div class="bg-emerald-50/90 border border-emerald-200 rounded-2xl p-4 flex items-start space-x-3.5">
-            <div class="w-9 h-9 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-            </div>
-            <div class="text-xs">
-                <span class="font-bold text-emerald-950 block leading-tight">Pilihan Bebas Preferensi Terapis</span>
-                <p class="text-[11px] text-emerald-800 leading-relaxed mt-1">
-                    Anda bebas memilih preferensi terapis pria, wanita, atau siapa saja demi kenyamanan maksimal.
-                </p>
-            </div>
-        </div>
-
-        <!-- Layanan Pijat Pilihan -->
+        <!-- 6. KATEGORI LAYANAN DIPERBESAR & LEBIH IMERSIF -->
         <div class="space-y-3 pt-1">
             <div class="flex items-center justify-between">
                 <div>
-                    <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Katalog Layanan</h3>
-                    <p class="text-xs text-slate-500">Pilihan paket pijat dan refleksi tarif tetap</p>
+                    <h3 class="text-sm font-black text-slate-900 tracking-tight">Kategori Layanan</h3>
+                    <p class="text-xs text-slate-500">Pilihan paket relaksasi & refleksi terbaik</p>
                 </div>
-                <a href="{{ route('pelanggan.catalog.index') }}" class="min-h-[44px] inline-flex items-center text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer">
-                    Lihat Semua
+                <a href="{{ route('pelanggan.catalog.index') }}" class="inline-flex items-center space-x-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer">
+                    <span>Lihat Semua</span>
+                    <span>→</span>
                 </a>
             </div>
 
-            @forelse ($services as $service)
-                @php
-                    $lowestPrice = $service->activePackages->min('price');
-                    $durations = $service->activePackages->pluck('duration_minutes')->join(' / ');
-                @endphp
-                <a href="{{ route('pelanggan.catalog.show', $service) }}" 
-                    class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs flex items-center justify-between hover:border-emerald-300 hover:shadow-sm transition group block cursor-pointer">
-                    <div class="flex items-center space-x-3.5 pr-2 min-w-0">
-                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 transition">
-                            @if (str_contains($service->slug, 'hot-stone'))
-                                <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 012.344 5.657 7.975 7.975 0 01-2.343 5.657z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"/>
-                                </svg>
-                            @elseif (str_contains($service->slug, 'thai') || str_contains($service->slug, 'refleksi'))
-                                <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            @elseif (str_contains($service->slug, 'swedish') || str_contains($service->slug, 'traditional') || str_contains($service->slug, 'herbal'))
-                                <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                                </svg>
-                            @else
-                                <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/>
-                                </svg>
+            <!-- Deretan Kartu Horisontal Berukuran Besar & Proporsional -->
+            <div class="flex space-x-3.5 overflow-x-auto pb-3 pt-1 scrollbar-none snap-x -mx-4 px-4">
+                @forelse ($services as $service)
+                    @php
+                        $lowestPrice = $service->activePackages->min('price');
+                        $durations = $service->activePackages->pluck('duration_minutes')->join(' / ');
+                    @endphp
+                    <a href="{{ route('pelanggan.catalog.show', $service) }}" 
+                       class="shrink-0 w-52 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:border-emerald-300 hover:shadow-md transition group snap-start overflow-hidden flex flex-col justify-between cursor-pointer">
+                        <!-- Foto Spa & Relaksasi yang Menenangkan (Rasio Lebih Tinggi) -->
+                        <div class="relative w-full h-32 bg-slate-100 overflow-hidden">
+                            <img src="/image/hero.jpg" alt="{{ $service->name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent"></div>
+                            
+                            @if ($lowestPrice)
+                                <div class="absolute bottom-2 right-2 px-2.5 py-1 rounded-full bg-emerald-950/85 backdrop-blur-xs text-[11px] font-black text-emerald-300 font-mono shadow-xs border border-emerald-500/30">
+                                    Mulai Rp {{ number_format($lowestPrice, 0, ',', '.') }}
+                                </div>
                             @endif
-                        </div>
-                        <div class="min-w-0">
-                            <h4 class="font-bold text-xs text-slate-900 group-hover:text-emerald-700 transition truncate">{{ $service->name }}</h4>
-                            <p class="text-[11px] text-slate-600 line-clamp-1 mt-0.5">{{ $service->description }}</p>
+
                             @if ($durations)
-                                <div class="text-[11px] text-slate-500 font-medium mt-1">
-                                    Durasi: {{ $durations }} Menit
+                                <div class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-[10px] font-bold text-slate-800 shadow-2xs">
+                                    ⏱️ {{ $durations }} Min
                                 </div>
                             @endif
                         </div>
+
+                        <!-- Konten Kartu: Nama Layanan Utuh & Deskripsi -->
+                        <div class="p-3.5 flex-1 flex flex-col justify-between space-y-2">
+                            <div>
+                                <h4 class="text-sm font-black text-slate-900 group-hover:text-emerald-700 transition leading-snug line-clamp-2">
+                                    {{ $service->name }}
+                                </h4>
+                                <p class="text-[11px] text-slate-500 line-clamp-2 mt-1 leading-relaxed">
+                                    {{ $service->description }}
+                                </p>
+                            </div>
+
+                            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-700 group-hover:text-emerald-800">
+                                <span>Pesan Layanan</span>
+                                <span class="group-hover:translate-x-0.5 transition">→</span>
+                            </div>
+                        </div>
+                    </a>
+                @empty
+                    <div class="text-center py-6 bg-white rounded-2xl border border-slate-200 p-4 w-full">
+                        <p class="text-xs text-slate-500">Belum ada layanan aktif yang tersedia saat ini.</p>
                     </div>
-                    <div class="text-right shrink-0">
-                        @if ($lowestPrice)
-                            <span class="text-[10px] text-slate-500 block font-medium">Mulai dari</span>
-                            <span class="text-xs font-black text-slate-900 font-mono block">Rp {{ number_format($lowestPrice, 0, ',', '.') }}</span>
-                        @endif
-                        <span class="mt-1.5 min-h-[44px] min-w-[64px] px-3.5 py-2 bg-emerald-700 group-hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition inline-flex items-center justify-center">
-                            Pilih
-                        </span>
-                    </div>
-                </a>
-            @empty
-                <div class="text-center py-10 bg-white rounded-2xl border border-slate-200 p-4">
-                    <p class="text-xs text-slate-500">Belum ada layanan aktif yang tersedia saat ini.</p>
+                @endforelse
+            </div>
+        </div>
+
+        <!-- 7. GABUNGAN OPSI 3: BANNER PROMO & PENAWARAN SPESIAL -->
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 p-4 sm:p-5 text-white shadow-md">
+            <!-- Hiasan Watermark Bintang / Daun -->
+            <div class="absolute -right-4 -bottom-6 opacity-15 pointer-events-none">
+                <svg class="w-36 h-36" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+            </div>
+            <div class="relative z-10 space-y-2.5">
+                <div class="flex items-center space-x-2">
+                    <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider">Promo Spesial</span>
+                    <span class="text-xs font-semibold text-emerald-200">Voucher Relaksasi Pertama</span>
                 </div>
-            @endforelse
+                <div>
+                    <h4 class="text-base font-black tracking-tight text-white leading-tight">Potongan Rp 25.000 untuk Anda</h4>
+                    <p class="text-xs text-emerald-100/90 mt-0.5 leading-relaxed">Nikmati perawatan tubuh berkualitas di rumah dengan harga lebih hemat.</p>
+                </div>
+                <div class="pt-1 flex items-center justify-between gap-2">
+                    <div class="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-xs px-3 py-1.5 rounded-xl border border-white/20">
+                        <span class="text-[10px] text-emerald-300 uppercase font-bold tracking-wider">Kode:</span>
+                        <span class="font-mono font-black text-xs text-white tracking-widest">PIJATHEMAT</span>
+                    </div>
+                    <a href="{{ route('pelanggan.catalog.index') }}" 
+                       class="py-1.5 px-3.5 rounded-full bg-white text-emerald-900 text-xs font-black shadow-xs hover:bg-emerald-50 active:scale-95 transition">
+                        Gunakan Promo →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. GABUNGAN OPSI 1: 3 PILAR KEUNGGULAN & KEPERCAYAAN PELANGGAN -->
+        <div class="space-y-3 pt-1">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-black text-slate-900 tracking-tight">Kenapa Memilih Pijat.In?</h3>
+                <span class="text-[11px] font-bold text-slate-400">Jaminan Kualitas</span>
+            </div>
+
+            <div class="grid grid-cols-1 gap-2.5">
+                <!-- Pilar 1: Terapis Tersertifikasi -->
+                <div class="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs flex items-center space-x-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <h4 class="text-xs font-black text-slate-900">Terapis Tersertifikasi & Terverifikasi</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">Mitra profesional lulus seleksi kompetensi & uji latar belakang SKCK.</p>
+                    </div>
+                </div>
+
+                <!-- Pilar 2: Minyak Alami & Higienis -->
+                <div class="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs flex items-center space-x-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <h4 class="text-xs font-black text-slate-900">Alami, Steril & Higienis</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">Minyak aromaterapi esensial bermutu tinggi & linen bersih higienis.</p>
+                    </div>
+                </div>
+
+                <!-- Pilar 3: Bebas Biaya Transportasi -->
+                <div class="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs flex items-center space-x-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <h4 class="text-xs font-black text-slate-900">Tarif Tetap & Tanpa Biaya Tersembunyi</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-snug">Harga resmi transparan, bebas ongkir transport dan tanpa biaya liar.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. GABUNGAN OPSI 3: SHORTCUT PUSAT BANTUAN & LIVE CHAT -->
+        <div class="pt-1 pb-2">
+            <a href="{{ route('pelanggan.help.index') }}" 
+               class="p-4 bg-emerald-50/70 hover:bg-emerald-50 rounded-2xl border border-emerald-200/80 flex items-center justify-between text-xs transition cursor-pointer group">
+                <div class="flex items-center space-x-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="font-black text-slate-900 block leading-tight group-hover:text-emerald-800 transition">Butuh Bantuan atau Konsultasi?</span>
+                        <span class="text-[11px] text-slate-500 mt-0.5 block">Tim Live Chat & Pusat FAQ siap membantu kebutuhan Anda</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-1 text-emerald-700 font-bold shrink-0">
+                    <span>Hubungi</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </a>
         </div>
 
     </div>

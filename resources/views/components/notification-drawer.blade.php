@@ -1,71 +1,155 @@
-<div x-data="{
-        open: false,
-        loading: false,
-        filter: 'all',
-        notifications: [],
-        unreadCount: {{ Auth::user()?->systemNotifications()->unread()->count() ?? 0 }},
-        async fetchNotifications() {
-            this.loading = true;
-            try {
-                const res = await fetch('{{ route('notifications.index') }}?filter=' + this.filter, {
-                    headers: { 'Accept': 'application/json' }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    this.notifications = data.notifications;
-                    this.unreadCount = data.unread_count;
+<script>
+    function pwaNotificationDrawer(initialUnread = 0) {
+        return {
+            open: false,
+            loading: false,
+            filter: 'all',
+            notifications: [],
+            unreadCount: initialUnread,
+            pushPermission: ('Notification' in window) ? Notification.permission : 'unsupported',
+            isSubscribingPush: false,
+
+            openModal() {
+                this.open = true;
+                this.fetchNotifications();
+            },
+
+            showDeniedAlert() {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        iconHtml: '🔒',
+                        title: 'Izin Notifikasi Diblokir',
+                        html: '<div class="text-xs text-slate-600 leading-relaxed text-left space-y-2"><p>Izin notifikasi peramban Anda saat ini berstatus <strong>Diblokir (Block)</strong>.</p><div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200"><p class="font-bold text-slate-800">Cara mengaktifkan:</p><ol class="list-decimal list-inside space-y-1 mt-1 text-[11px] text-slate-600"><li>Klik ikon <strong>Setelan / Gembok 🔒</strong> di samping kolom URL browser.</li><li>Ubah setelan <strong>Notification</strong> menjadi <strong>Allow (Izinkan)</strong>.</li><li>Muat ulang (Refresh) halaman ini.</li></ol></div></div>',
+                        confirmButtonText: 'Mengerti',
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'swal-admin-theme',
+                            icon: 'swal2-warning',
+                            confirmButton: 'swal2-confirm'
+                        }
+                    });
+                } else {
+                    alert('Izin notifikasi saat ini diblokir di peramban Anda. Silakan klik ikon setelan/gembok 🔒 di samping kolom URL browser, lalu ubah izin Notifikasi menjadi Izinkan (Allow).');
                 }
-            } catch (e) {
-                console.error('Failed to load notifications', e);
-            } finally {
-                this.loading = false;
-            }
-        },
-        async markAsRead(id, actionUrl) {
-            try {
-                const res = await fetch('/notifications/' + id + '/read', {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content')
-                    }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    this.unreadCount = data.unread_count;
-                    const item = this.notifications.find(n => n.id === id);
-                    if (item) item.read = true;
-                    window.dispatchEvent(new CustomEvent('notification-read'));
-                    if (actionUrl) {
-                        window.location.href = actionUrl;
-                    }
+            },
+
+            showGrantedAlert() {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        iconHtml: '✓',
+                        title: 'Notifikasi Layar Aktif',
+                        text: 'Anda akan menerima pemberitahuan instan saat ada pesanan baru atau status layanan diperbarui.',
+                        confirmButtonText: 'Siap',
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'swal-admin-theme',
+                            icon: 'swal2-success',
+                            confirmButton: 'swal2-confirm'
+                        }
+                    });
                 }
-            } catch (e) {
-                console.error('Failed to mark notification as read', e);
-            }
-        },
-        async markAllAsRead() {
-            try {
-                const res = await fetch('{{ route('notifications.read-all') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+            },
+
+            async requestPush() {
+                this.isSubscribingPush = true;
+                try {
+                    if (window.PwaPushNotification) {
+                        const perm = await window.PwaPushNotification.requestPermission();
+                        this.pushPermission = perm;
+                        if (perm === 'denied') {
+                            this.showDeniedAlert();
+                        } else if (perm === 'granted') {
+                            this.showGrantedAlert();
+                        }
+                    } else if ('Notification' in window) {
+                        const perm = await Notification.requestPermission();
+                        this.pushPermission = perm;
+                        if (perm === 'denied') {
+                            this.showDeniedAlert();
+                        } else if (perm === 'granted') {
+                            this.showGrantedAlert();
+                        }
                     }
-                });
-                if (res.ok) {
-                    this.unreadCount = 0;
-                    this.notifications.forEach(n => n.read = true);
-                    window.dispatchEvent(new CustomEvent('notifications-read-all'));
+                } catch (err) {
+                    console.error('Request push error:', err);
+                } finally {
+                    this.isSubscribingPush = false;
                 }
-            } catch (e) {
-                console.error('Failed to mark all as read', e);
+            },
+
+            async fetchNotifications() {
+                this.loading = true;
+                try {
+                    const res = await fetch('{{ route('notifications.index') }}?filter=' + this.filter, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.notifications = data.notifications;
+                        this.unreadCount = data.unread_count;
+                    }
+                } catch (e) {
+                    console.error('Failed to load notifications', e);
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async markAsRead(id, actionUrl) {
+                try {
+                    const res = await fetch('/notifications/' + id + '/read', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+                        }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.unreadCount = data.unread_count;
+                        const item = this.notifications.find(n => n.id === id);
+                        if (item) item.read = true;
+                        window.dispatchEvent(new CustomEvent('notification-read'));
+                        if (actionUrl) {
+                            window.location.href = actionUrl;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to mark notification as read', e);
+                }
+            },
+
+            async markAllAsRead() {
+                try {
+                    const res = await fetch('{{ route('notifications.read-all') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+                        }
+                    });
+                    if (res.ok) {
+                        this.unreadCount = 0;
+                        this.notifications.forEach(n => n.read = true);
+                        window.dispatchEvent(new CustomEvent('notifications-read-all'));
+                    }
+                } catch (e) {
+                    console.error('Failed to mark all as read', e);
+                }
             }
-        }
-    }"
-    @open-notification-modal.window="open = true; fetchNotifications()"
+        };
+    }
+</script>
+
+<div x-data="pwaNotificationDrawer({{ Auth::user()?->systemNotifications()->unread()->count() ?? 0 }})"
+    @open-notification-modal.window="openModal()"
+    @notifications-updated.window="unreadCount = $event.detail"
+    @pwa-new-notification.window="if (open) fetchNotifications()"
+    @pwa-push-permission-changed.window="pushPermission = $event.detail"
     @keydown.escape.window="open = false"
     class="relative z-50">
 
@@ -158,6 +242,28 @@
                 </button>
             </div>
 
+            <!-- Web Push Notification Opt-In Banner (SYS-06, CUS-21, MIT-21) -->
+            <div x-show="pushPermission !== 'granted' && pushPermission !== 'unsupported'" 
+                 class="mx-2.5 mt-2 mb-1 p-2.5 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 shadow-2xs flex items-center justify-between gap-2">
+                <div class="flex items-center space-x-2 min-w-0">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <h4 class="text-[11px] font-extrabold text-slate-900 leading-tight">Aktifkan Notifikasi Layar</h4>
+                        <p class="text-[9.5px] text-slate-600 truncate mt-0.5">Pemberitahuan instan saat aplikasi di latar belakang.</p>
+                    </div>
+                </div>
+                <button type="button" 
+                        @click="requestPush()"
+                        :disabled="isSubscribingPush"
+                        class="shrink-0 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-lg text-[10px] font-bold shadow-xs transition cursor-pointer flex items-center space-x-1">
+                    <span x-text="isSubscribingPush ? '...' : 'Aktifkan'"></span>
+                </button>
+            </div>
+
         <!-- Notification List -->
         <div class="flex-1 overflow-y-auto divide-y divide-slate-100 p-2 space-y-2">
             <!-- Loading Spinner -->
@@ -238,8 +344,19 @@
         </div>
 
         <!-- Footer / Link to full page if needed -->
-        <div class="p-3 bg-slate-50 border-t border-slate-200 text-center text-[11px] text-slate-500">
-            <span>Notifikasi otomatis dibersihkan setiap 30 hari.</span>
+        <div class="p-2.5 bg-slate-50 border-t border-slate-200 text-[10px] text-slate-500 flex items-center justify-between px-3">
+            <span class="inline-flex items-center gap-1 font-medium">
+                <template x-if="pushPermission === 'granted'">
+                    <span class="inline-flex items-center gap-1 text-emerald-700 font-bold">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Web Push Aktif</span>
+                    </span>
+                </template>
+                <template x-if="pushPermission !== 'granted'">
+                    <span class="text-slate-400">Notifikasi Web</span>
+                </template>
+            </span>
+            <span class="text-slate-400">Pembersihan berkala 30 hari</span>
         </div>
     </div>
 </div>

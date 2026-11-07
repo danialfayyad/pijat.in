@@ -561,6 +561,14 @@
                     // Jalankan timer hitung mundur jika sesi sedang berlangsung
                     this.initCountdown();
 
+                    // Auto reload seketika saat notifikasi pembaruan pesanan tiba
+                    window.addEventListener('pwa-new-notification', (e) => {
+                        const notif = e.detail;
+                        if (notif && (notif.order_id == {{ $order->id }} || notif.data?.order_id == {{ $order->id }} || notif.action_url?.includes('/orders/{{ $order->id }}'))) {
+                            window.location.reload();
+                        }
+                    });
+
                     // Deteksi GPS Browser Realtime & Live Broadcast ke Server
                     if (navigator.geolocation) {
                         this.isLocating = true;
@@ -731,8 +739,18 @@
                     <span class="font-bold text-emerald-800 text-[11px]" x-text="etaText"></span>
                 </div>
 
-                <!-- Floating Actions: Recenter & Navigasi External -->
-                <div class="pointer-events-auto flex items-center space-x-2">
+                <!-- Floating Actions: Auto-Refresh, Recenter & Navigasi External -->
+                <div class="pointer-events-auto flex items-center space-x-1.5">
+                    <button type="button" 
+                        @click="window.location.reload()" 
+                        title="Muat Ulang Status Pesanan (Auto-Refresh Aktif)"
+                        class="h-9 px-2.5 rounded-full bg-white/95 backdrop-blur-md shadow-md border border-slate-200/80 text-slate-700 hover:text-emerald-700 active:scale-95 flex items-center space-x-1 text-[11px] font-bold transition cursor-pointer">
+                        <svg class="w-3.5 h-3.5 text-emerald-600 animate-spin" style="animation-duration: 4s;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span>Auto</span>
+                    </button>
+
                     <button type="button" @click="fitRouteBounds()" 
                         title="Pusatkan Peta"
                         class="w-9 h-9 rounded-full bg-white/95 backdrop-blur-md shadow-md border border-slate-200/80 text-slate-700 hover:text-emerald-700 active:scale-95 flex items-center justify-center transition cursor-pointer">

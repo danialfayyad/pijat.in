@@ -101,4 +101,26 @@ class NotificationController extends Controller
 
         return back()->with('success', 'Semua notifikasi telah ditandai dibaca.');
     }
+
+    /**
+     * Check unread notifications count and return latest notification for real-time polling.
+     */
+    public function checkUnread(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $unreadCount = $user->systemNotifications()->unread()->count();
+        $latest = $user->systemNotifications()->unread()->latest('id')->first();
+
+        return response()->json([
+            'unread_count' => $unreadCount,
+            'latest' => $latest ? [
+                'id' => $latest->id,
+                'event_code' => $latest->event_code,
+                'title' => $latest->title,
+                'body' => $latest->body,
+                'priority' => $latest->priority,
+                'action_url' => $latest->action_url ?? '/',
+            ] : null,
+        ]);
+    }
 }

@@ -169,3 +169,37 @@ test('NotificationService pruneOldNotifications helper deletes records older tha
     expect($deletedCount)->toBe(1)
         ->and(SystemNotification::find($notif->id))->toBeNull();
 });
+
+test('pwa layout contains web push notification manager and notification drawer for authenticated users (CUS-21, MIT-21)', function () {
+    $response = $this->actingAs($this->pelanggan)
+        ->get(route('pelanggan.dashboard'));
+
+    $response->assertOk()
+        ->assertSee('window.PwaPushNotification')
+        ->assertSee('window.PwaLiveNotifications')
+        ->assertSee('/sw.js')
+        ->assertSee('Aktifkan Notifikasi Layar')
+        ->assertSee('Pusat Notifikasi');
+});
+
+test('authenticated user can poll unread notification count via check-unread route', function () {
+    $notif = SystemNotification::create([
+        'user_id' => $this->pelanggan->id,
+        'event_code' => 'order_created',
+        'title' => 'Pesanan Berhasil Dibuat',
+        'body' => 'Pesanan Anda sedang diproses.',
+        'priority' => 'normal',
+    ]);
+
+    $response = $this->actingAs($this->pelanggan)
+        ->getJson(route('notifications.check-unread'));
+
+    $response->assertOk()
+        ->assertJson([
+            'unread_count' => 1,
+            'latest' => [
+                'id' => $notif->id,
+                'title' => 'Pesanan Berhasil Dibuat',
+            ],
+        ]);
+});

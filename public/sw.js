@@ -62,7 +62,7 @@ self.addEventListener('notificationclick', (event) => {
 
     const targetUrl = (event.notification.data && event.notification.data.action_url) 
         ? event.notification.data.action_url 
-        : '/admin/notifications';
+        : '/';
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {

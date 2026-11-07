@@ -25,7 +25,23 @@
                 if (!this.isActive) {
                     // Turning ON: Request GPS coordinate
                     if (!navigator.geolocation) {
-                        alert('Browser Anda tidak mendukung deteksi lokasi GPS.');
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'info',
+                                iconHtml: 'i',
+                                title: 'GPS Tidak Didukung',
+                                text: 'Browser Anda tidak mendukung deteksi lokasi GPS.',
+                                confirmButtonText: 'Tutup',
+                                buttonsStyling: false,
+                                customClass: {
+                                    popup: 'swal-admin-theme',
+                                    icon: 'swal2-info',
+                                    confirmButton: 'swal2-confirm'
+                                }
+                            });
+                        } else {
+                            alert('Browser Anda tidak mendukung deteksi lokasi GPS.');
+                        }
                         this.isToggling = false;
                         return;
                     }
@@ -36,7 +52,23 @@
                         },
                         async (error) => {
                             console.warn('Geolocation error:', error);
-                            alert('Izin akses lokasi GPS diperlukan untuk mengaktifkan status Online agar sistem dapat mencocokkan pesanan di sekitar Anda.');
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    iconHtml: '📍',
+                                    title: 'Akses GPS Diperlukan',
+                                    text: 'Izin akses lokasi GPS diperlukan untuk mengaktifkan status Online agar sistem dapat mencocokkan pesanan di sekitar Anda.',
+                                    confirmButtonText: 'Mengerti',
+                                    buttonsStyling: false,
+                                    customClass: {
+                                        popup: 'swal-admin-theme',
+                                        icon: 'swal2-warning',
+                                        confirmButton: 'swal2-confirm'
+                                    }
+                                });
+                            } else {
+                                alert('Izin akses lokasi GPS diperlukan untuk mengaktifkan status Online agar sistem dapat mencocokkan pesanan di sekitar Anda.');
+                            }
                             this.isToggling = false;
                         },
                         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -77,11 +109,43 @@
                             this.disableOnlineFeatures();
                         }
                     } else {
-                        alert(data.message || 'Gagal mengubah status kesiapan.');
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                iconHtml: '✕',
+                                title: 'Gagal Mengubah Status',
+                                text: data.message || 'Gagal mengubah status kesiapan.',
+                                confirmButtonText: 'Tutup',
+                                buttonsStyling: false,
+                                customClass: {
+                                    popup: 'swal-admin-theme',
+                                    icon: 'swal2-error',
+                                    confirmButton: 'swal2-confirm'
+                                }
+                            });
+                        } else {
+                            alert(data.message || 'Gagal mengubah status kesiapan.');
+                        }
                     }
                 } catch (e) {
                     console.error('Toggle error:', e);
-                    alert('Terjadi kesalahan jaringan.');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            iconHtml: '✕',
+                            title: 'Kesalahan Jaringan',
+                            text: 'Terjadi kesalahan jaringan atau server tidak merespons.',
+                            confirmButtonText: 'Tutup',
+                            buttonsStyling: false,
+                            customClass: {
+                                popup: 'swal-admin-theme',
+                                icon: 'swal2-error',
+                                confirmButton: 'swal2-confirm'
+                            }
+                        });
+                    } else {
+                        alert('Terjadi kesalahan jaringan.');
+                    }
                 } finally {
                     this.isToggling = false;
                 }
@@ -219,11 +283,43 @@
                     if (res.ok && data.success) {
                         window.location.href = data.redirect_url;
                     } else {
-                        alert(data.message || 'Gagal menerima pesanan.');
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                iconHtml: '⏰',
+                                title: 'Waktu Penawaran Berakhir',
+                                text: data.message || 'Waktu penawaran telah habis atau pesanan sudah tidak tersedia.',
+                                confirmButtonText: 'Mengerti',
+                                buttonsStyling: false,
+                                customClass: {
+                                    popup: 'swal-admin-theme',
+                                    icon: 'swal2-warning',
+                                    confirmButton: 'swal2-confirm'
+                                }
+                            });
+                        } else {
+                            alert(data.message || 'Gagal menerima pesanan.');
+                        }
                         this.activeOffer = null;
                     }
                 } catch (e) {
-                    alert('Gagal menghubungi server.');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            iconHtml: '✕',
+                            title: 'Gangguan Koneksi',
+                            text: 'Gagal menghubungi server. Periksa koneksi internet Anda.',
+                            confirmButtonText: 'Tutup',
+                            buttonsStyling: false,
+                            customClass: {
+                                popup: 'swal-admin-theme',
+                                icon: 'swal2-error',
+                                confirmButton: 'swal2-confirm'
+                            }
+                        });
+                    } else {
+                        alert('Gagal menghubungi server.');
+                    }
                     this.activeOffer = null;
                 } finally {
                     this.isAccepting = false;

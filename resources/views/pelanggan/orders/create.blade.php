@@ -7,7 +7,7 @@
             recipientType: '{{ old('recipient_type', 'myself') }}',
             recipientGender: '{{ old('recipient_gender', $user->gender ?? 'pria') }}',
             preferredGender: '{{ old('preferred_gender', 'bebas') }}',
-            orderType: '{{ old('order_type', 'terjadwal') }}',
+            orderType: '{{ old('order_type', request()->query('type', 'terjadwal')) }}',
             todayDate: '{{ $todayDate }}',
             minDate: '{{ $minScheduleDate->format('Y-m-d') }}',
             maxDate: '{{ $maxScheduleDate->format('Y-m-d') }}',

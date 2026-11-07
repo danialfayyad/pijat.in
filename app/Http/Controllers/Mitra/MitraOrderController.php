@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderRating;
 use App\Models\User;
+use App\Services\NotificationService;
 use App\Services\OrderCancellationService;
 use App\Services\OrderSettlementService;
 use Carbon\Carbon;
@@ -187,6 +188,8 @@ class MitraOrderController extends Controller
                     'actor_role' => 'mitra',
                     'note' => 'Pesanan terjadwal berhasil diambil oleh mitra (FCFS)',
                 ]);
+
+                app(NotificationService::class)->notifyOrderConfirmed($lockedOrder);
             });
 
             return redirect()->route('mitra.orders.my-schedule')
@@ -499,6 +502,8 @@ class MitraOrderController extends Controller
             if ($targetStatus === OrderStatus::Selesai) {
                 $this->settlementService->settle($order);
             }
+
+            app(NotificationService::class)->notifyOrderStatusChanged($order, $targetStatus);
         });
 
         $successMessages = [

@@ -40,4 +40,9 @@ return [
         'webhook_token' => env('XENDIT_WEBHOOK_TOKEN', 'pijatin_webhook_secret_key'),
     ],
 
+    'vapid' => [
+        'public_key' => env('VAPID_PUBLIC_KEY', 'BABvODv5LBkv3E_oOkCsH6ntg108NeciREk2_RSES_QCZ9iKbM6b1XqcO628KjLgteCcqMzKFYKOOkutMQGiEys'),
+        'private_key' => env('VAPID_PRIVATE_KEY', 'AXII_EIp1dBQ3_1h5W8pycYGiCoC1bVQ4E2GExeMdI0'),
+    ],
+
 ];

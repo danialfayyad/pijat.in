@@ -8,6 +8,7 @@
     'hideDock' => null,
     'hideLogo' => null,
     'hideNotification' => false,
+    'hideHeader' => false,
     'requireLocation' => true,
 ])
 @php
@@ -52,9 +53,117 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" href="/favicon.ico">
 
-    <!-- Fonts -->
+    <!-- Fonts: Maison Neue & Fallbacks -->
+    <link rel="preconnect" href="https://db.onlinewebfonts.com">
+    <link href="https://db.onlinewebfonts.com/c/2173dceabf0710a335c0bca178efc162?family=Maison+Neue" rel="stylesheet" type="text/css"/>
+    <link href="https://db.onlinewebfonts.com/c/b596fe7f763c7633f489a1acdbb13c70?family=Maison+Neue+Demi" rel="stylesheet" type="text/css"/>
+    <link href="https://db.onlinewebfonts.com/c/4a373e70cd01dec089c1dd1185ceba51?family=Maison+Neue+Bold" rel="stylesheet" type="text/css"/>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        div:where(.swal2-container).swal2-backdrop-show {
+            background: rgba(15, 23, 42, 0.65) !important;
+            backdrop-filter: blur(4px) !important;
+            -webkit-backdrop-filter: blur(4px) !important;
+            z-index: 99999 !important;
+        }
+        div:where(.swal2-container) div:where(.swal2-popup).swal-admin-theme {
+            width: calc(100% - 2rem) !important;
+            max-width: 380px !important;
+            padding: 1.5rem !important;
+            border-radius: 1.5rem !important;
+            border: 1px solid rgba(226, 232, 240, 0.9) !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+            font-family: inherit !important;
+            background: #ffffff !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon {
+            width: 3.5rem !important;
+            height: 3.5rem !important;
+            margin: 0.25rem auto 1rem !important;
+            border: none !important;
+            border-radius: 9999px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            position: relative !important;
+            box-sizing: border-box !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon .swal2-icon-content {
+            font-size: 1.6rem !important;
+            font-weight: 800 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1 !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-question,
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-info {
+            background-color: #ecfdf5 !important;
+            color: #059669 !important;
+            box-shadow: 0 0 0 8px #f0fdf4 !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-warning {
+            background-color: #fef3c7 !important;
+            color: #d97706 !important;
+            box-shadow: 0 0 0 8px #fffbeb !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-success {
+            background-color: #ecfdf5 !important;
+            color: #059669 !important;
+            box-shadow: 0 0 0 8px #f0fdf4 !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-error {
+            background-color: #fef2f2 !important;
+            color: #e11d48 !important;
+            box-shadow: 0 0 0 8px #fff1f2 !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-title {
+            font-size: 1.05rem !important;
+            font-weight: 800 !important;
+            color: #0f172a !important;
+            line-height: 1.25 !important;
+            padding: 0 !important;
+            margin: 0 0 0.5rem 0 !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-html-container {
+            font-size: 0.8rem !important;
+            color: #64748b !important;
+            line-height: 1.5 !important;
+            margin: 0 0 1.25rem 0 !important;
+            padding: 0 0.25rem !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-actions {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 0.625rem !important;
+            margin: 0 !important;
+            width: 100% !important;
+            padding: 0 !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-confirm {
+            margin: 0 !important;
+            flex: 1 1 0% !important;
+            width: auto !important;
+            min-height: 42px !important;
+            padding: 0.625rem 1rem !important;
+            font-size: 0.75rem !important;
+            font-weight: 700 !important;
+            border-radius: 0.75rem !important;
+            background-color: #059669 !important;
+            color: #ffffff !important;
+            box-shadow: 0 1px 2px 0 rgba(5, 150, 105, 0.2) !important;
+            transition: all 0.15s ease-in-out !important;
+            border: none !important;
+            cursor: pointer !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-confirm:hover {
+            background-color: #047857 !important;
+        }
+    </style>
 
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -64,6 +173,7 @@
     <div class="{{ ($fullBleed ?? false) ? 'h-[100dvh] max-h-[100dvh] flex flex-col justify-between max-w-md mx-auto bg-slate-50 relative shadow-2xl border-x border-slate-200/80 overflow-hidden' : 'min-h-screen flex flex-col justify-between max-w-md mx-auto bg-slate-50 relative shadow-2xl border-x border-slate-200/80' }}">
 
         <!-- Top PWA App Bar -->
+        @if (!($hideHeader ?? false))
         <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/70 px-4 py-2.5 flex items-center justify-between shrink-0 min-h-[56px]">
             <div class="flex items-center space-x-2 min-w-0">
                 @if (isset($backUrl))
@@ -107,6 +217,7 @@
                             x-data="{ unread: {{ $unreadNotificationCount }} }"
                             @notifications-read-all.window="unread = 0"
                             @notification-read.window="unread = Math.max(0, unread - 1)"
+                            @notifications-updated.window="unread = $event.detail"
                             @click="$dispatch('open-notification-modal')"
                             onclick="window.dispatchEvent(new CustomEvent('open-notification-modal'))"
                             class="relative p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
@@ -123,6 +234,7 @@
                 @endif
             </div>
         </header>
+        @endif
 
         <!-- Main Content Area -->
         <main class="{{ ($fullBleed ?? false) ? 'flex-1 relative overflow-hidden h-full flex flex-col min-h-0' : ($shouldHideDock ? 'flex-1 pb-8 px-4 pt-3' : 'flex-1 pb-24 px-4 pt-3') }}">
@@ -176,46 +288,38 @@
                     </a>
                 </nav>
             @elseif (Auth::user()->isPelanggan())
-                <!-- Pelanggan Dock -->
-                <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 py-2 shadow-lg flex items-center justify-around" aria-label="Navigasi Utama Pelanggan">
+                <!-- Pelanggan Dock (4 Tab Sesuai Desain: Beranda, Pesanan, Chat, Profil) -->
+                <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-4 py-2 shadow-lg flex items-center justify-around" aria-label="Navigasi Utama Pelanggan">
                     <a href="{{ route('pelanggan.dashboard') }}" 
-                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('pelanggan.dashboard') ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900 font-medium' }}">
-                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('pelanggan.dashboard') ? 'text-emerald-700' : 'text-slate-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('pelanggan.dashboard') ? 'text-emerald-700 font-extrabold' : 'text-slate-500 hover:text-slate-900 font-medium' }}">
+                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('pelanggan.dashboard') ? 'text-emerald-700' : 'text-slate-500' }}" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
                         </svg>
                         <span class="text-[11px] leading-none">Beranda</span>
                     </a>
 
-                    <a href="{{ route('pelanggan.catalog.index') }}" 
-                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('pelanggan.catalog.*') ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900 font-medium' }}">
-                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('pelanggan.catalog.*') ? 'text-emerald-700' : 'text-slate-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                        </svg>
-                        <span class="text-[11px] leading-none">Layanan</span>
-                    </a>
-
-                    <a href="{{ route('pelanggan.wallet.index') }}" 
-                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('pelanggan.wallet.*') ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900 font-medium' }}">
-                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('pelanggan.wallet.*') ? 'text-emerald-700' : 'text-slate-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                        </svg>
-                        <span class="text-[11px] leading-none">Dompet</span>
-                    </a>
-
                     <a href="{{ route('pelanggan.orders.index') }}" 
-                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('pelanggan.orders.*') ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900 font-medium' }}">
-                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('pelanggan.orders.*') ? 'text-emerald-700' : 'text-slate-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('pelanggan.orders.*') ? 'text-emerald-700 font-extrabold' : 'text-slate-500 hover:text-slate-900 font-medium' }}">
+                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('pelanggan.orders.*') ? 'text-emerald-700' : 'text-slate-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                         </svg>
                         <span class="text-[11px] leading-none">Pesanan</span>
                     </a>
 
+                    <a href="{{ route('pelanggan.help.index') }}" 
+                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('pelanggan.help.*') ? 'text-emerald-700 font-extrabold' : 'text-slate-500 hover:text-slate-900 font-medium' }}">
+                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('pelanggan.help.*') ? 'text-emerald-700' : 'text-slate-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        <span class="text-[11px] leading-none">Chat</span>
+                    </a>
+
                     <a href="{{ route('profile.edit') }}" 
-                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('profile.*') ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900 font-medium' }}">
-                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('profile.*') ? 'text-emerald-700' : 'text-slate-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] py-1 px-2 rounded-xl transition cursor-pointer {{ request()->routeIs('profile.*') ? 'text-emerald-700 font-extrabold' : 'text-slate-500 hover:text-slate-900 font-medium' }}">
+                        <svg class="w-5 h-5 mb-1 {{ request()->routeIs('profile.*') ? 'text-emerald-700' : 'text-slate-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
-                        <span class="text-[11px] leading-none">Akun</span>
+                        <span class="text-[11px] leading-none">Profil</span>
                     </a>
                 </nav>
             @endif
@@ -396,6 +500,238 @@
         </script>
     @endif
     @auth
+        <!-- PWA Web Push Notification Manager (SYS-06, CUS-21, MIT-21) -->
+        <script>
+            window.PwaPushNotification = {
+                isSupported: ('serviceWorker' in navigator) && ('PushManager' in window) && ('Notification' in window),
+                get permission() {
+                    return ('Notification' in window) ? Notification.permission : 'unsupported';
+                },
+
+                urlBase64ToUint8Array(base64String) {
+                    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+                    const base64 = (base64String + padding)
+                        .replace(/-/g, '+')
+                        .replace(/_/g, '/');
+                    const rawData = window.atob(base64);
+                    const outputArray = new Uint8Array(rawData.length);
+                    for (let i = 0; i < rawData.length; ++i) {
+                        outputArray[i] = rawData.charCodeAt(i);
+                    }
+                    return outputArray;
+                },
+
+                async registerServiceWorker() {
+                    if (!('serviceWorker' in navigator)) return null;
+                    try {
+                        const reg = await navigator.serviceWorker.register('/sw.js');
+                        return reg;
+                    } catch (e) {
+                        console.debug('PWA Service Worker register info:', e);
+                        return null;
+                    }
+                },
+
+                async syncSubscription() {
+                    if (!this.isSupported || this.permission !== 'granted') return null;
+                    try {
+                        const reg = await navigator.serviceWorker.ready;
+                        let subscription = await reg.pushManager.getSubscription();
+
+                        if (!subscription) {
+                            const res = await fetch('{{ route("push.public-key") }}');
+                            const { publicKey } = await res.json();
+                            if (!publicKey) return null;
+
+                            subscription = await reg.pushManager.subscribe({
+                                userVisibleOnly: true,
+                                applicationServerKey: this.urlBase64ToUint8Array(publicKey)
+                            });
+                        }
+
+                        const subData = subscription.toJSON();
+                        await fetch('{{ route("push.subscribe") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                            },
+                            body: JSON.stringify({
+                                endpoint: subscription.endpoint,
+                                public_key: subData.keys?.p256dh || null,
+                                auth_token: subData.keys?.auth || null,
+                                content_encoding: 'aes128gcm'
+                            })
+                        });
+
+                        window.dispatchEvent(new CustomEvent('pwa-push-subscribed', { detail: subscription }));
+                        return subscription;
+                    } catch (e) {
+                        console.debug('PWA push sync error:', e);
+                        return null;
+                    }
+                },
+
+                async requestPermission() {
+                    if (!('Notification' in window)) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'info',
+                                iconHtml: 'i',
+                                title: 'Tidak Didukung',
+                                text: 'Peramban Anda tidak mendukung fitur Web Push Notification.',
+                                confirmButtonText: 'Tutup',
+                                buttonsStyling: false,
+                                customClass: {
+                                    popup: 'swal-admin-theme',
+                                    icon: 'swal2-info',
+                                    confirmButton: 'swal2-confirm'
+                                }
+                            });
+                        } else {
+                            alert('Peramban Anda tidak mendukung Web Push Notification.');
+                        }
+                        return 'unsupported';
+                    }
+
+                    try {
+                        const perm = await Notification.requestPermission();
+                        if (perm === 'granted') {
+                            window.dispatchEvent(new CustomEvent('pwa-push-permission-changed', { detail: 'granted' }));
+                            try {
+                                await this.syncSubscription();
+                            } catch (syncErr) {
+                                console.debug('Push sync warning:', syncErr);
+                            }
+                        } else if (perm === 'denied') {
+                            window.dispatchEvent(new CustomEvent('pwa-push-permission-changed', { detail: 'denied' }));
+                        }
+                        return perm;
+                    } catch (e) {
+                        console.error('PWA push request error:', e);
+                        return 'error';
+                    }
+                }
+            };
+
+            // Auto-register service worker and sync if permission already granted
+            if ('serviceWorker' in navigator) {
+                window.PwaPushNotification.registerServiceWorker().then(() => {
+                    if (window.PwaPushNotification.permission === 'granted') {
+                        window.PwaPushNotification.syncSubscription();
+                    }
+                });
+            }
+
+            // Real-time notification poller and screen alerter for PWA (Pelanggan & Mitra)
+            window.PwaLiveNotifications = {
+                pollTimer: null,
+                lastNotifiedId: parseInt(localStorage.getItem('pijatin_last_notified_id') || '0', 10),
+
+                playChime() {
+                    try {
+                        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                        osc.frequency.setValueAtTime(880.00, ctx.currentTime + 0.12);
+                        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                        osc.start();
+                        osc.stop(ctx.currentTime + 0.45);
+                    } catch (e) {}
+                },
+
+                triggerAlert(notif) {
+                    this.playChime();
+
+                    // Native Browser / Desktop Notification Toast (if allowed)
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        try {
+                            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                                navigator.serviceWorker.ready.then((reg) => {
+                                    reg.showNotification(notif.title || 'Pijat.In', {
+                                        body: notif.body || 'Pemberitahuan baru diterima.',
+                                        icon: '/favicon.ico',
+                                        badge: '/favicon.ico',
+                                        tag: 'pijatin_notif_' + notif.id,
+                                        renotify: true,
+                                        data: { action_url: notif.action_url || '/' }
+                                    });
+                                });
+                            } else {
+                                const n = new Notification(notif.title || 'Pijat.In', {
+                                    body: notif.body || 'Pemberitahuan baru diterima.',
+                                    icon: '/favicon.ico'
+                                });
+                                n.onclick = () => {
+                                    window.focus();
+                                    if (notif.action_url) window.location.href = notif.action_url;
+                                };
+                            }
+                        } catch (e) {
+                            console.debug('Native notification display error:', e);
+                        }
+                    }
+
+                    // In-App Toast Alert via SweetAlert2
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: notif.priority === 'high' ? 'warning' : 'info',
+                            title: notif.title,
+                            text: notif.body,
+                            showConfirmButton: false,
+                            timer: 5000,
+                            timerProgressBar: true,
+                            didOpen: (toast) => {
+                                toast.style.cursor = 'pointer';
+                                toast.addEventListener('click', () => {
+                                    if (notif.action_url) window.location.href = notif.action_url;
+                                });
+                            }
+                        });
+                    }
+
+                    window.dispatchEvent(new CustomEvent('pwa-new-notification', { detail: notif }));
+                },
+
+                async poll() {
+                    try {
+                        const res = await fetch('{{ route("notifications.check-unread") }}', {
+                            headers: { 'Accept': 'application/json' }
+                        });
+                        if (!res.ok) return;
+                        const data = await res.json();
+
+                        window.dispatchEvent(new CustomEvent('notifications-updated', { detail: data.unread_count }));
+
+                        if (data.latest && data.latest.id > this.lastNotifiedId) {
+                            const isFirstRun = this.lastNotifiedId === 0;
+                            this.lastNotifiedId = data.latest.id;
+                            localStorage.setItem('pijatin_last_notified_id', data.latest.id.toString());
+
+                            if (!isFirstRun) {
+                                this.triggerAlert(data.latest);
+                            }
+                        }
+                    } catch (e) {}
+                },
+
+                start() {
+                    if (this.pollTimer) clearInterval(this.pollTimer);
+                    this.poll();
+                    this.pollTimer = setInterval(() => this.poll(), 4000);
+                }
+            };
+
+            window.PwaLiveNotifications.start();
+        </script>
         <x-notification-drawer />
     @endauth
 </body>
