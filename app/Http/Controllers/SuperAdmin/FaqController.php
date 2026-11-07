@@ -37,7 +37,7 @@ class FaqController extends Controller
         }
 
         $faqs = $query->latest()
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         $categories = Faq::select('category')->distinct()->pluck('category')->filter()->values();

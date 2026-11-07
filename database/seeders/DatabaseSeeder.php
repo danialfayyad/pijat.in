@@ -36,6 +36,7 @@ class DatabaseSeeder extends Seeder
             ParameterSeeder::class,
             LegalDocumentSeeder::class,
             FinanceSeeder::class,
+            FaqSeeder::class,
         ]);
     }
 }

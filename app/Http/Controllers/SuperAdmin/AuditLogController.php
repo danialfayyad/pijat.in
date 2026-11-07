@@ -30,7 +30,7 @@ class AuditLogController extends Controller
             $query->dateRange($request->input('start_date'), $request->input('end_date'));
         }
 
-        $logs = $query->paginate(20)->withQueryString();
+        $logs = $query->paginate(10)->withQueryString();
 
         $modules = AuditLog::select('module')->distinct()->pluck('module');
         $actors = User::whereIn('role', ['superadmin', 'admin'])->orderBy('name')->get(['id', 'name', 'email', 'role']);

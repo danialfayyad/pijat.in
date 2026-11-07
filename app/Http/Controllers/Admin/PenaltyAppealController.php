@@ -75,7 +75,7 @@ class PenaltyAppealController extends Controller
         }
 
         $appeals = $query->orderByDesc('created_at')
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.appeals.index', [

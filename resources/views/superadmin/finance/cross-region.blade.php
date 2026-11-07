@@ -127,19 +127,41 @@
             </div>
         </div>
 
-        <!-- 3. Tabel Ringkasan Finansial per Wilayah (Dengan Tombol Ekspor di Toolbar) -->
-        <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
-            <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <h3 class="font-bold text-slate-800 text-base">Ringkasan Finansial per Wilayah</h3>
+        <!-- 3. Sistem Tab Interaktif: Ringkasan Finansial vs Rincian Buku Kas -->
+        <div x-data="{ activeTab: '{{ request('page') ? 'ledger' : request('tab', 'summary') }}' }" class="space-y-4">
+            <!-- Navigasi Tab & Tombol Aksi Ekspor -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
+                <!-- Segmented Tab Controls -->
+                <div class="bg-slate-100 p-1 rounded-2xl inline-flex items-center gap-1 border border-slate-200/80">
+                    <button type="button"
+                            @click="activeTab = 'summary'"
+                            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 cursor-pointer"
+                            :class="activeTab === 'summary' ? 'bg-white text-emerald-800 shadow-xs' : 'text-slate-600 hover:text-slate-800'">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        <span>Ringkasan per Wilayah</span>
+                    </button>
 
-                <!-- Tombol Ekspor (Dipindahkan dari Header) -->
+                    <button type="button"
+                            @click="activeTab = 'ledger'"
+                            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 cursor-pointer"
+                            :class="activeTab === 'ledger' ? 'bg-white text-emerald-800 shadow-xs' : 'text-slate-600 hover:text-slate-800'">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <span>Rincian Buku Kas Lintas Wilayah</span>
+                    </button>
+                </div>
+
+                <!-- Tombol Ekspor Data Lintas Wilayah -->
                 <div class="flex items-center gap-2">
                     <a href="{{ route('superadmin.finance.export.csv', request()->query()) }}"
                        class="px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl shadow-2xs transition flex items-center gap-1.5">
                         <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        Ekspor CSV
+                        <span>Ekspor CSV</span>
                     </a>
                     <a href="{{ route('superadmin.finance.export.print', request()->query()) }}"
                        target="_blank"
@@ -147,103 +169,138 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                         </svg>
-                        Cetak / PDF
+                        <span>Cetak / PDF</span>
                     </a>
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-xs">
-                    <thead>
-                        <tr class="border-b border-slate-100 bg-slate-50/75 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
-                            <th class="py-3 px-5 whitespace-nowrap">Wilayah</th>
-                            <th class="py-3 px-5 text-right whitespace-nowrap">Arus Masuk</th>
-                            <th class="py-3 px-5 text-right whitespace-nowrap">Arus Keluar</th>
-                            <th class="py-3 px-5 text-right whitespace-nowrap">Net Kas</th>
-                            <th class="py-3 px-5 text-right whitespace-nowrap">Komisi Platform</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        @foreach ($summaryPerRegion as $item)
-                            <tr class="hover:bg-slate-50/60 transition">
-                                <td class="py-3.5 px-5 font-bold text-slate-900 whitespace-nowrap">{{ $item['region']->name }}</td>
-                                <td class="py-3.5 px-5 text-right font-semibold text-emerald-700 whitespace-nowrap">Rp {{ number_format($item['inflow'], 0, ',', '.') }}</td>
-                                <td class="py-3.5 px-5 text-right font-semibold text-slate-700 whitespace-nowrap">Rp {{ number_format($item['outflow'], 0, ',', '.') }}</td>
-                                <td class="py-3.5 px-5 text-right font-bold {{ $item['net'] >= 0 ? 'text-emerald-700' : 'text-rose-600' }} whitespace-nowrap">
-                                    Rp {{ number_format($item['net'], 0, ',', '.') }}
-                                </td>
-                                <td class="py-3.5 px-5 text-right font-bold text-slate-900 whitespace-nowrap">Rp {{ number_format($item['commission'], 0, ',', '.') }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
+            <!-- Panel 1: Tabel Ringkasan Finansial per Wilayah -->
+            <div x-show="activeTab === 'summary'" x-cloak class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-base">Ringkasan Finansial per Wilayah</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Perbandingan arus kas, net kas, dan komisi platform di setiap wilayah operasional terpilih.</p>
+                    </div>
+                </div>
 
-        <!-- 4. Tabel Rincian Buku Kas Lintas Wilayah (5 Kolom Bersih, Tanpa Scrollbar Horizontal) -->
-        <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
-            <div class="p-5 border-b border-slate-100">
-                <h3 class="font-bold text-slate-800 text-base">Rincian Buku Kas Lintas Wilayah</h3>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-xs text-slate-600">
-                    <thead>
-                        <tr class="border-b border-slate-100 bg-slate-50/75 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
-                            <th class="py-3 px-5 whitespace-nowrap">Waktu</th>
-                            <th class="py-3 px-5 whitespace-nowrap">Wilayah</th>
-                            <th class="py-3 px-5 whitespace-nowrap">Pengguna</th>
-                            <th class="py-3 px-5 whitespace-nowrap">Jenis</th>
-                            <th class="py-3 px-5 text-right whitespace-nowrap">Nominal</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        @forelse ($transactions as $tx)
-                            @php
-                                $jenisLabel = match ($tx->reference_type) {
-                                    'topup' => 'Top-up Saldo',
-                                    'order_payment' => 'Pembayaran Pesanan',
-                                    'order_earning' => 'Pendapatan Layanan',
-                                    'order_refund' => 'Refund Pesanan',
-                                    'withdrawal_request' => 'Pencairan Mitra',
-                                    'customer_withdrawal' => 'Pencairan Pelanggan',
-                                    'withdrawal_refund' => 'Refund Pencairan',
-                                    default => ucwords(str_replace('_', ' ', $tx->reference_type)),
-                                };
-                            @endphp
-                            <tr class="hover:bg-slate-50/60 transition">
-                                <td class="py-3.5 px-5 font-mono text-[11px] text-slate-500 whitespace-nowrap">
-                                    {{ $tx->created_at->format('d M Y, H:i') }}
-                                </td>
-                                <td class="py-3.5 px-5 text-slate-700 font-medium whitespace-nowrap">
-                                    {{ $tx->region?->name ?? 'Nasional' }}
-                                </td>
-                                <td class="py-3.5 px-5 whitespace-nowrap">
-                                    <span class="font-semibold text-slate-900 block">{{ $tx->user?->name ?? 'Sistem' }}</span>
-                                    <span class="text-[10px] text-slate-500">{{ $tx->user?->role?->label() ?? '-' }}</span>
-                                </td>
-                                <td class="py-3.5 px-5 whitespace-nowrap" title="{{ $tx->description }}">
-                                    <span class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700">
-                                        <span class="w-1.5 h-1.5 rounded-full {{ $tx->isCredit() ? 'bg-emerald-500' : 'bg-slate-400' }}"></span>
-                                        {{ $jenisLabel }}
-                                    </span>
-                                </td>
-                                <td class="py-3.5 px-5 text-right whitespace-nowrap font-bold {{ $tx->isCredit() ? 'text-emerald-700' : 'text-slate-800' }}">
-                                    {{ $tx->isCredit() ? '+' : '-' }}Rp {{ number_format($tx->amount, 0, ',', '.') }}
-                                </td>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-slate-100 bg-slate-50/75 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                                <th class="py-3 px-5 whitespace-nowrap">Wilayah</th>
+                                <th class="py-3 px-5 text-right whitespace-nowrap">Arus Masuk</th>
+                                <th class="py-3 px-5 text-right whitespace-nowrap">Arus Keluar</th>
+                                <th class="py-3 px-5 text-right whitespace-nowrap">Net Kas</th>
+                                <th class="py-3 px-5 text-right whitespace-nowrap">Komisi Platform</th>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="py-12 text-center text-slate-400 text-xs">
-                                    Tidak ada transaksi mutasi pada periode dan filter wilayah ini.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse ($summaryPerRegion as $item)
+                                <tr class="hover:bg-slate-50/60 transition">
+                                    <td class="py-3.5 px-5 font-bold text-slate-900 whitespace-nowrap">{{ $item['region']->name }}</td>
+                                    <td class="py-3.5 px-5 text-right font-semibold text-emerald-700 whitespace-nowrap">Rp {{ number_format($item['inflow'], 0, ',', '.') }}</td>
+                                    <td class="py-3.5 px-5 text-right font-semibold text-slate-700 whitespace-nowrap">Rp {{ number_format($item['outflow'], 0, ',', '.') }}</td>
+                                    <td class="py-3.5 px-5 text-right font-bold {{ $item['net'] >= 0 ? 'text-emerald-700' : 'text-rose-600' }} whitespace-nowrap">
+                                        Rp {{ number_format($item['net'], 0, ',', '.') }}
+                                    </td>
+                                    <td class="py-3.5 px-5 text-right font-bold text-slate-900 whitespace-nowrap">Rp {{ number_format($item['commission'], 0, ',', '.') }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="py-12 text-center text-slate-400 text-xs">
+                                        Tidak ada data wilayah yang dipilih.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                        @if (count($summaryPerRegion) > 1)
+                            <tfoot class="bg-slate-50/75 border-t-2 border-slate-200 font-bold text-slate-800">
+                                <tr>
+                                    <td class="py-3 px-5">Total Keseluruhan</td>
+                                    <td class="py-3 px-5 text-right text-emerald-700">Rp {{ number_format($totalInflow, 0, ',', '.') }}</td>
+                                    <td class="py-3 px-5 text-right text-slate-700">Rp {{ number_format($totalOutflow, 0, ',', '.') }}</td>
+                                    <td class="py-3 px-5 text-right {{ ($totalInflow - $totalOutflow) >= 0 ? 'text-emerald-700' : 'text-rose-600' }}">
+                                        Rp {{ number_format($totalInflow - $totalOutflow, 0, ',', '.') }}
+                                    </td>
+                                    <td class="py-3 px-5 text-right text-slate-900">
+                                        Rp {{ number_format(collect($summaryPerRegion)->sum('commission'), 0, ',', '.') }}
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        @endif
+                    </table>
+                </div>
             </div>
 
-            <div class="px-5 py-4 border-t border-slate-100">
-                {{ $transactions->links() }}
+            <!-- Panel 2: Tabel Rincian Buku Kas Lintas Wilayah -->
+            <div x-show="activeTab === 'ledger'" x-cloak class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-base">Rincian Buku Kas Lintas Wilayah</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Histori mutasi kredit & debit keuangan lintas wilayah secara kronologis.</p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs text-slate-600">
+                        <thead>
+                            <tr class="border-b border-slate-100 bg-slate-50/75 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                                <th class="py-3 px-5 whitespace-nowrap">Waktu</th>
+                                <th class="py-3 px-5 whitespace-nowrap">Wilayah</th>
+                                <th class="py-3 px-5 whitespace-nowrap">Pengguna</th>
+                                <th class="py-3 px-5 whitespace-nowrap">Jenis</th>
+                                <th class="py-3 px-5 text-right whitespace-nowrap">Nominal</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse ($transactions as $tx)
+                                @php
+                                    $jenisLabel = match ($tx->reference_type) {
+                                        'topup' => 'Top-up Saldo',
+                                        'order_payment' => 'Pembayaran Pesanan',
+                                        'order_earning' => 'Pendapatan Layanan',
+                                        'order_refund' => 'Refund Pesanan',
+                                        'withdrawal_request' => 'Pencairan Mitra',
+                                        'customer_withdrawal' => 'Pencairan Pelanggan',
+                                        'withdrawal_refund' => 'Refund Pencairan',
+                                        default => ucwords(str_replace('_', ' ', $tx->reference_type)),
+                                    };
+                                @endphp
+                                <tr class="hover:bg-slate-50/60 transition">
+                                    <td class="py-3.5 px-5 font-mono text-[11px] text-slate-500 whitespace-nowrap">
+                                        {{ $tx->created_at->format('d M Y, H:i') }}
+                                    </td>
+                                    <td class="py-3.5 px-5 text-slate-700 font-medium whitespace-nowrap">
+                                        {{ $tx->region?->name ?? 'Nasional' }}
+                                    </td>
+                                    <td class="py-3.5 px-5 whitespace-nowrap">
+                                        <span class="font-semibold text-slate-900 block">{{ $tx->user?->name ?? 'Sistem' }}</span>
+                                        <span class="text-[10px] text-slate-500">{{ $tx->user?->role?->label() ?? '-' }}</span>
+                                    </td>
+                                    <td class="py-3.5 px-5 whitespace-nowrap" title="{{ $tx->description }}">
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700">
+                                            <span class="w-1.5 h-1.5 rounded-full {{ $tx->isCredit() ? 'bg-emerald-500' : 'bg-slate-400' }}"></span>
+                                            {{ $jenisLabel }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3.5 px-5 text-right whitespace-nowrap font-bold {{ $tx->isCredit() ? 'text-emerald-700' : 'text-slate-800' }}">
+                                        {{ $tx->isCredit() ? '+' : '-' }}Rp {{ number_format($tx->amount, 0, ',', '.') }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="py-12 text-center text-slate-400 text-xs">
+                                        Tidak ada transaksi mutasi pada periode dan filter wilayah ini.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="px-5 py-4 border-t border-slate-100">
+                    {{ $transactions->links() }}
+                </div>
             </div>
         </div>
     </div>

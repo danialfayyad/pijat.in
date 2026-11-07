@@ -3,6 +3,7 @@
 use App\Http\Controllers\SuperAdmin\AdminAssignmentController;
 use App\Http\Controllers\SuperAdmin\AuditLogController;
 use App\Http\Controllers\SuperAdmin\BankController;
+use App\Http\Controllers\Superadmin\BannerController;
 use App\Http\Controllers\SuperAdmin\BrandingSettingController;
 use App\Http\Controllers\SuperAdmin\ComplaintCategoryController;
 use App\Http\Controllers\SuperAdmin\FaqController;
@@ -41,6 +42,13 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     // App Branding & Identity Settings
     Route::get('/branding', [BrandingSettingController::class, 'index'])->name('branding.index');
     Route::put('/branding', [BrandingSettingController::class, 'update'])->name('branding.update');
+
+    // Customer Promo & Announcement Banners Management
+    Route::get('/banners', [BannerController::class, 'index'])->name('banners.index');
+    Route::post('/banners', [BannerController::class, 'store'])->name('banners.store');
+    Route::put('/banners/{banner}', [BannerController::class, 'update'])->name('banners.update');
+    Route::post('/banners/{banner}/toggle', [BannerController::class, 'toggle'])->name('banners.toggle');
+    Route::delete('/banners/{banner}', [BannerController::class, 'destroy'])->name('banners.destroy');
 
     // Master Rekening & Saluran Bank Pencairan
     Route::get('/banks', [BankController::class, 'index'])->name('banks.index');

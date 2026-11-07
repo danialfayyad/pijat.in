@@ -79,7 +79,7 @@ class ComplaintController extends Controller
         $resolvedCount = (clone $statsBase)->resolved()->count();
         $rejectedCount = (clone $statsBase)->rejected()->count();
 
-        $complaints = $query->latest()->paginate(15)->withQueryString();
+        $complaints = $query->latest()->paginate(10)->withQueryString();
 
         $accessibleRegions = $admin->isSuperadmin()
             ? Region::active()->orderBy('name')->get()

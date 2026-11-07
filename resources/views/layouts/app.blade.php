@@ -105,6 +105,10 @@
                                class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.branding.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Identitas Aplikasi
                             </a>
+                            <a href="{{ route('superadmin.banners.index') }}" 
+                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.banners.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Banner Promosi
+                            </a>
                             <a href="{{ route('superadmin.banks.index') }}" 
                                class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.banks.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Master Rekening Bank

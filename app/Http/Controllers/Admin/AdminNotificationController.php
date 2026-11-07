@@ -26,7 +26,7 @@ class AdminNotificationController extends Controller
             $query->unread();
         }
 
-        $notifications = $query->paginate(15)->withQueryString();
+        $notifications = $query->paginate(10)->withQueryString();
 
         $queueSummary = $notificationService->getAdminQueueSummary($admin);
         $unreadCount = $admin->systemNotifications()->unread()->count();

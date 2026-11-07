@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Pelanggan;
 
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Banner;
 use App\Models\Order;
 use App\Models\Service;
 use Illuminate\Http\Request;
@@ -28,6 +29,10 @@ class CustomerDashboardController extends Controller
             ->orderBy('id', 'desc')
             ->get();
 
-        return view('pelanggan.dashboard', compact('user', 'services', 'activeOrders'));
+        $banners = Banner::active()
+            ->ordered()
+            ->get();
+
+        return view('pelanggan.dashboard', compact('user', 'services', 'activeOrders', 'banners'));
     }
 }

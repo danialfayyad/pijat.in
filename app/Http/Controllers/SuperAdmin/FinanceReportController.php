@@ -119,7 +119,7 @@ class FinanceReportController extends Controller
         $totalInflow = (float) (clone $txQuery)->where('type', 'credit')->sum('amount');
         $totalOutflow = (float) (clone $txQuery)->where('type', 'debit')->sum('amount');
 
-        $transactions = $txQuery->latest()->paginate(25)->withQueryString();
+        $transactions = $txQuery->latest()->paginate(10)->withQueryString();
 
         // Summary per selected region
         $summaryPerRegion = Region::whereIn('id', $selectedRegionIds)->get()->map(function ($reg) use ($startDate, $endDate) {
