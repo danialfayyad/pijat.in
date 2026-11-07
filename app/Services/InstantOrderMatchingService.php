@@ -217,13 +217,20 @@ class InstantOrderMatchingService
 
             $now = Carbon::now();
 
-            return OrderDispatch::create([
+            $dispatch = OrderDispatch::create([
                 'order_id' => $order->id,
                 'partner_id' => $nextCandidate->partner_id,
                 'offered_at' => $now,
                 'expires_at' => $now->copy()->addSeconds(self::OFFER_DURATION_SECONDS),
                 'status' => OrderDispatch::STATUS_OFFERED,
             ]);
+
+            $partnerUser = User::find($nextCandidate->partner_id);
+            if ($partnerUser) {
+                app(NotificationService::class)->notifyInstantOrderOffered($order, $partnerUser);
+            }
+
+            return $dispatch;
         });
     }
 
@@ -266,6 +273,8 @@ class InstantOrderMatchingService
                 'actor_role' => 'mitra',
                 'notes' => 'Mitra menerima pesanan instan dalam batas waktu 60 detik.',
             ]);
+
+            app(NotificationService::class)->notifyOrderConfirmed($order);
 
             return true;
         });

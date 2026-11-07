@@ -47,6 +47,7 @@ Route::middleware('auth')->group(function () {
 
     // In-App User Notifications (Pelanggan & Mitra)
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/check-unread', [NotificationController::class, 'checkUnread'])->name('notifications.check-unread');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
 });

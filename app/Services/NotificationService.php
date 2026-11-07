@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Enums\OrderStatus;
 use App\Enums\Role;
 use App\Enums\UserStatus;
 use App\Models\Complaint;
+use App\Models\Order;
 use App\Models\PenaltyAppeal;
 use App\Models\PushSubscription;
 use App\Models\Region;
@@ -25,7 +27,7 @@ class NotificationService
      */
     public function getVapidPublicKey(): string
     {
-        return config('services.vapid.public_key', env('VAPID_PUBLIC_KEY', 'BKp5T8WcZ9-MockVapidPublicKeyForWebPushInDevelopmentAndTesting-1234567890abcdef'));
+        return config('services.vapid.public_key', env('VAPID_PUBLIC_KEY', 'BABvODv5LBkv3E_oOkCsH6ntg108NeciREk2_RSES_QCZ9iKbM6b1XqcO628KjLgteCcqMzKFYKOOkutMQGiEys'));
     }
 
     /**
@@ -70,7 +72,18 @@ class NotificationService
         array $data = [],
         string $priority = 'normal'
     ): SystemNotification {
-        // 1. Create In-App System Notification record
+        // 1. Deduplication guard: ignore duplicate identical notification created within the last 5 seconds
+        $recentDuplicate = SystemNotification::where('user_id', $user->id)
+            ->where('event_code', $eventCode)
+            ->where('title', $title)
+            ->where('created_at', '>=', Carbon::now()->subSeconds(5))
+            ->first();
+
+        if ($recentDuplicate) {
+            return $recentDuplicate;
+        }
+
+        // 2. Create In-App System Notification record
         $notification = SystemNotification::create([
             'user_id' => $user->id,
             'event_code' => $eventCode,
@@ -80,7 +93,7 @@ class NotificationService
             'data' => $data,
         ]);
 
-        // 2. Dispatch Web Push to all registered device subscriptions for this user
+        // 3. Dispatch Web Push to all registered device subscriptions for this user
         $subscriptions = $user->pushSubscriptions;
         foreach ($subscriptions as $subscription) {
             $this->dispatchWebPushPayload($subscription, [
@@ -360,6 +373,194 @@ class NotificationService
             ],
             'high'
         );
+    }
+
+    /**
+     * Notify customer when order is successfully created.
+     */
+    public function notifyOrderCreated(Order $order): ?SystemNotification
+    {
+        if (! $order->customer) {
+            return null;
+        }
+
+        return $this->sendToUser(
+            $order->customer,
+            'order_created',
+            'Pesanan Berhasil Dibuat',
+            "Pesanan #{$order->order_code} ({$order->service_name}) berhasil dibuat. Sistem sedang memproses pencarian mitra.",
+            [
+                'order_id' => $order->id,
+                'order_code' => $order->order_code,
+                'action_url' => route('pelanggan.orders.show', $order),
+                'action_label' => 'Lihat Pesanan',
+            ],
+            'normal'
+        );
+    }
+
+    /**
+     * Notify partner when an instant order offer is dispatched to them (MIT-05 & SYS-01).
+     */
+    public function notifyInstantOrderOffered(Order $order, User $partner): ?SystemNotification
+    {
+        $formattedPrice = number_format((float) $order->total_price, 0, ',', '.');
+
+        return $this->sendToUser(
+            $partner,
+            'instant_order_offered',
+            'Tawaran Pesanan Baru Masuk! ⚡',
+            "Pesanan instan #{$order->order_code} ({$order->service_name}) - Rp {$formattedPrice}. Segera konfirmasi dalam 60 detik!",
+            [
+                'order_id' => $order->id,
+                'order_code' => $order->order_code,
+                'action_url' => route('mitra.dashboard'),
+                'action_label' => 'Buka Dashboard',
+            ],
+            'high'
+        );
+    }
+
+    /**
+     * Notify customer and partner when order is confirmed / taken.
+     */
+    public function notifyOrderConfirmed(Order $order): void
+    {
+        $order->loadMissing(['customer', 'mitra']);
+
+        // 1. Notify Customer
+        if ($order->customer) {
+            $partnerName = $order->mitra?->name ?? 'Terapis';
+            $this->sendToUser(
+                $order->customer,
+                'order_confirmed',
+                'Terapis Ditemukan! 🎉',
+                "Terapis {$partnerName} telah menerima pesanan #{$order->order_code} Anda dan bersiap melayani.",
+                [
+                    'order_id' => $order->id,
+                    'order_code' => $order->order_code,
+                    'action_url' => route('pelanggan.orders.show', $order),
+                    'action_label' => 'Pantau Pesanan',
+                ],
+                'high'
+            );
+        }
+
+        // 2. Notify Partner
+        if ($order->mitra) {
+            $this->sendToUser(
+                $order->mitra,
+                'order_taken',
+                'Pesanan Berhasil Diterima ✓',
+                "Anda telah menerima pesanan #{$order->order_code} ({$order->service_name}). Silakan cek rincian dan jadwal layanan.",
+                [
+                    'order_id' => $order->id,
+                    'order_code' => $order->order_code,
+                    'action_url' => route('mitra.orders.show', $order),
+                    'action_label' => 'Rincian Tugas',
+                ],
+                'high'
+            );
+        }
+    }
+
+    /**
+     * Notify customer when order status progresses (Menuju Lokasi, Tiba, Berlangsung, Selesai).
+     */
+    public function notifyOrderStatusChanged(Order $order, OrderStatus $newStatus): ?SystemNotification
+    {
+        $order->loadMissing(['customer', 'mitra']);
+        if (! $order->customer) {
+            return null;
+        }
+
+        $partnerName = $order->mitra?->name ?? 'Terapis';
+
+        $statusPayloads = [
+            OrderStatus::MenujuLokasi->value => [
+                'event_code' => 'order_on_the_way',
+                'title' => 'Terapis Menuju Lokasi 🛵',
+                'body' => "Terapis {$partnerName} sedang dalam perjalanan ke lokasi Anda.",
+            ],
+            OrderStatus::Tiba->value => [
+                'event_code' => 'order_arrived',
+                'title' => 'Terapis Telah Tiba 📍',
+                'body' => "Terapis {$partnerName} sudah sampai di alamat tujuan Anda.",
+            ],
+            OrderStatus::SedangBerlangsung->value => [
+                'event_code' => 'order_in_progress',
+                'title' => 'Sesi Pijat Dimulai 💆',
+                'body' => "Layanan #{$order->order_code} sedang berlangsung. Selamat menikmati!",
+            ],
+            OrderStatus::Selesai->value => [
+                'event_code' => 'order_completed',
+                'title' => 'Layanan Telah Selesai ✨',
+                'body' => 'Sesi pijat telah selesai. Berikan penilaian bintang untuk terapis Anda!',
+            ],
+        ];
+
+        if (! isset($statusPayloads[$newStatus->value])) {
+            return null;
+        }
+
+        $config = $statusPayloads[$newStatus->value];
+
+        return $this->sendToUser(
+            $order->customer,
+            $config['event_code'],
+            $config['title'],
+            $config['body'],
+            [
+                'order_id' => $order->id,
+                'order_code' => $order->order_code,
+                'action_url' => route('pelanggan.orders.show', $order),
+                'action_label' => 'Lihat Pesanan',
+            ],
+            'high'
+        );
+    }
+
+    /**
+     * Notify parties when an order is cancelled.
+     */
+    public function notifyOrderCancelled(Order $order, ?string $reason = null, ?string $cancelledByRole = null): void
+    {
+        $order->loadMissing(['customer', 'mitra']);
+        $reasonText = $reason ? " Alasan: {$reason}" : '';
+
+        // Notify customer if not cancelled by customer
+        if ($order->customer && $cancelledByRole !== 'pelanggan') {
+            $this->sendToUser(
+                $order->customer,
+                'order_cancelled',
+                'Pesanan Dibatalkan',
+                "Pesanan #{$order->order_code} telah dibatalkan.{$reasonText}",
+                [
+                    'order_id' => $order->id,
+                    'order_code' => $order->order_code,
+                    'action_url' => route('pelanggan.orders.show', $order),
+                    'action_label' => 'Rincian Pesanan',
+                ],
+                'high'
+            );
+        }
+
+        // Notify partner if partner was assigned and cancellation was not by partner
+        if ($order->mitra && $cancelledByRole !== 'mitra') {
+            $this->sendToUser(
+                $order->mitra,
+                'order_cancelled',
+                'Pesanan Dibatalkan',
+                "Pesanan #{$order->order_code} telah dibatalkan oleh {$cancelledByRole}.{$reasonText}",
+                [
+                    'order_id' => $order->id,
+                    'order_code' => $order->order_code,
+                    'action_url' => route('mitra.orders.my-schedule'),
+                    'action_label' => 'Jadwal Saya',
+                ],
+                'high'
+            );
+        }
     }
 
     /**

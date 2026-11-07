@@ -150,6 +150,16 @@
             border: none !important;
             cursor: pointer !important;
         }
+
+        @keyframes progressFlow {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .animate-progress-flow {
+            background: linear-gradient(90deg, #047857 0%, #10b981 50%, #34d399 75%, #047857 100%) !important;
+            background-size: 200% 100% !important;
+            animation: progressFlow 1.8s linear infinite !important;
+        }
     </style>
 
     <script>
@@ -370,24 +380,36 @@
                     attribution: '© OpenStreetMap'
                 }).addTo(this.map);
 
-                // Marker Rumah Pelanggan
+                // Marker Rumah Pelanggan (Gaya Pin Hijau Tua & Rumah Putih sesuai Mockup)
                 const customerIcon = L.divIcon({
                     className: 'custom-customer-pin',
-                    html: `<div class='w-9 h-9 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-xl border-2 border-white text-base'>🏠</div>`,
-                    iconSize: [36, 36],
-                    iconAnchor: [18, 36]
+                    html: `<div class='w-11 h-11 rounded-full bg-[#064e3b] text-white flex items-center justify-center shadow-2xl border-2 border-white ring-4 ring-emerald-950/20'>
+                        <svg class='w-5 h-5 text-white' fill='currentColor' viewBox='0 0 20 20'>
+                            <path d='M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z'/>
+                        </svg>
+                    </div>`,
+                    iconSize: [44, 44],
+                    iconAnchor: [22, 22]
                 });
 
                 this.customerMarker = L.marker([this.customerLat, this.customerLng], { icon: customerIcon }).addTo(this.map);
                 this.customerMarker.bindPopup(`<strong>Lokasi Layanan Anda</strong><br>{{ addslashes($order->recipient_name) }}<br><span style='font-size:11px;'>{{ addslashes($isArchived ? $order->masked_address : $order->service_address_text) }}</span>`).openPopup();
 
-                // Jika sudah ada mitra
+                // Jika sudah ada mitra (Gaya Motor / Scooter dengan Radar Pulse Gelombang Sesuai Mockup)
                 if (this.hasMitra && this.mitraLat && this.mitraLng) {
                     const mitraIcon = L.divIcon({
                         className: 'custom-mitra-pin',
-                        html: `<div class='w-9 h-9 rounded-full bg-emerald-700 text-white flex items-center justify-center shadow-xl border-2 border-white text-base animate-bounce'>💆</div>`,
-                        iconSize: [36, 36],
-                        iconAnchor: [18, 36]
+                        html: `
+                            <div class='relative flex items-center justify-center' style='width: 58px; height: 58px;'>
+                                <div class='absolute w-14 h-14 rounded-full border-2 border-emerald-500/50 bg-emerald-500/20 animate-ping'></div>
+                                <div class='absolute w-12 h-12 rounded-full border-2 border-emerald-600/70 bg-emerald-500/30'></div>
+                                <div class='w-10 h-10 rounded-full bg-[#064e3b] text-white flex items-center justify-center shadow-2xl border-2 border-white text-lg z-10'>
+                                    🛵
+                                </div>
+                            </div>
+                        `,
+                        iconSize: [58, 58],
+                        iconAnchor: [29, 29]
                     });
 
                     this.mitraMarker = L.marker([this.mitraLat, this.mitraLng], { icon: mitraIcon }).addTo(this.map);
@@ -406,10 +428,18 @@
                     this.fitBoundsSingle();
                 }
 
-                // Polling posisi GPS mitra setiap 10 detik jika sedang aktif/menuju lokasi
-                if (['dijadwalkan', 'menuju_lokasi', 'tiba', 'sedang_berlangsung'].includes(this.orderStatus)) {
+                // Polling posisi GPS mitra & status setiap 3.5 detik jika pesanan aktif
+                if (['mencari_mitra', 'dijadwalkan', 'menuju_lokasi', 'tiba', 'sedang_berlangsung'].includes(this.orderStatus)) {
                     this.startLivePolling();
                 }
+
+                // Auto reload seketika saat notifikasi pembaruan pesanan tiba
+                window.addEventListener('pwa-new-notification', (e) => {
+                    const notif = e.detail;
+                    if (notif && (notif.order_id == {{ $order->id }} || notif.data?.order_id == {{ $order->id }} || notif.action_url?.includes('/orders/{{ $order->id }}'))) {
+                        window.location.reload();
+                    }
+                });
 
                 // Jalankan timer hitung mundur jika sesi sedang berlangsung
                 this.initCountdown();
@@ -430,10 +460,11 @@
                         }
 
                         this.routeLayer = L.polyline(coords, {
-                            color: '#059669',
-                            weight: 5,
-                            opacity: 0.9,
-                            lineJoin: 'round'
+                            color: '#047857',
+                            weight: 5.5,
+                            opacity: 0.95,
+                            lineJoin: 'round',
+                            lineCap: 'round'
                         }).addTo(this.map);
 
                         this.fitRouteBounds();
@@ -441,7 +472,7 @@
                         const distKm = (route.distance / 1000).toFixed(1);
                         this.distanceText = distKm + ' km';
                         const etaMin = Math.max(3, Math.round(route.duration / 60));
-                        this.etaText = `~${etaMin} Menit`;
+                        this.etaText = `${etaMin} min`;
                         this.isLoadingRoute = false;
                         return;
                     }
@@ -454,9 +485,9 @@
                     this.map.removeLayer(this.routeLayer);
                 }
                 this.routeLayer = L.polyline([[startLat, startLng], [destLat, destLng]], {
-                    color: '#059669',
-                    weight: 4,
-                    opacity: 0.8,
+                    color: '#047857',
+                    weight: 4.5,
+                    opacity: 0.85,
                     dashArray: '8, 8'
                 }).addTo(this.map);
 
@@ -464,7 +495,7 @@
                 const dist = this.calcHaversine(startLat, startLng, destLat, destLng);
                 this.distanceText = dist + ' km';
                 const etaMin = Math.max(5, Math.round(dist * 3));
-                this.etaText = `~${etaMin} Menit`;
+                this.etaText = `${etaMin} min`;
                 this.isLoadingRoute = false;
             },
 
@@ -474,8 +505,8 @@
                     ? this.routeLayer.getBounds() 
                     : L.latLngBounds([[this.mitraLat, this.mitraLng], [this.customerLat, this.customerLng]]);
                 this.map.fitBounds(bounds, {
-                    paddingTop: 50,
-                    paddingBottom: 240,
+                    paddingTop: 85,
+                    paddingBottom: 300,
                     paddingLeft: 30,
                     paddingRight: 30
                 });
@@ -484,8 +515,8 @@
             fitBoundsSingle() {
                 if (!this.map) return;
                 this.map.setView([this.customerLat, this.customerLng], 14, {
-                    paddingTop: 50,
-                    paddingBottom: 220
+                    paddingTop: 85,
+                    paddingBottom: 300
                 });
             },
 
@@ -516,7 +547,7 @@
                             }
                         }
                     } catch (e) {}
-                }, 10000);
+                }, 3500);
             },
 
             calcHaversine(lat1, lon1, lat2, lon2) {
@@ -554,31 +585,53 @@
         @endif
 
         @if (! $isArchived)
-            <!-- FLOATING TOP CONTROLS OVER MAP -->
-            <div class="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
-                <!-- Status & Jarak Chip -->
-                <div class="pointer-events-auto bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full shadow-md border border-slate-200/80 flex items-center space-x-2 text-xs">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    @if ($order->order_type->value === 'terjadwal' && $order->status === \App\Enums\OrderStatus::MencariMitra)
-                        <span class="font-bold text-slate-800 text-[11px]">Bursa Jadwal Mitra</span>
-                    @else
-                        <span class="font-bold text-slate-800 text-[11px]">{{ $order->status->label() }}</span>
-                    @endif
-                    @if ($order->mitra_id)
-                        <span class="text-slate-300">•</span>
-                        <span class="font-extrabold text-emerald-800 font-mono text-[11px]" x-text="distanceText"></span>
-                    @endif
-                </div>
+            <!-- FLOATING TOP PILL ("DYNAMIC ISLAND") OVER MAP -->
+            <div class="absolute top-3.5 left-3.5 right-3.5 z-10 pointer-events-none flex justify-center">
+                <div class="pointer-events-auto w-full max-w-sm bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-full shadow-xl border border-slate-100 flex items-center justify-between transition-all">
+                    <!-- Left: Wellness Icon & Title -->
+                    <div class="flex items-center space-x-3 truncate">
+                        <div class="w-10 h-10 rounded-full bg-emerald-100/90 text-emerald-800 flex items-center justify-center shrink-0 shadow-xs">
+                            <svg class="w-5 h-5 text-emerald-700" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A9.49 9.49 0 0012 20c4.41 0 8-3.59 8-8 0-.41-.03-.81-.08-1.2A9.94 9.94 0 0021 8h-4zm-5 10c-2.48 0-4.6-1.52-5.51-3.69C7.45 12.16 9.38 9.77 12 8.77c.86 2.5 2.54 6.8 5.48 8.44A6.012 6.012 0 0112 18z"/>
+                            </svg>
+                        </div>
+                        <div class="truncate">
+                            <h2 class="text-xs font-black text-slate-900 tracking-tight leading-snug">Pesanan Aktif</h2>
+                            <p class="text-[11px] text-slate-500 font-medium truncate">
+                                @if ($order->status === \App\Enums\OrderStatus::MenujuLokasi)
+                                    Tiba dalam <span class="font-bold text-slate-800" x-text="etaText"></span>
+                                @elseif ($order->status === \App\Enums\OrderStatus::Tiba)
+                                    <span class="font-bold text-emerald-700">Terapis tiba di lokasi</span>
+                                @elseif ($order->status === \App\Enums\OrderStatus::SedangBerlangsung)
+                                    <span class="font-bold text-emerald-700">Sesi Pijat (<span x-text="remainingTimeFormatted"></span>)</span>
+                                @elseif ($order->status === \App\Enums\OrderStatus::MencariMitra)
+                                    <span class="text-slate-500">Mencari terapis...</span>
+                                @else
+                                    <span class="text-slate-500">{{ $order->status->label() }}</span>
+                                @endif
+                            </p>
+                        </div>
+                    </div>
 
-                <!-- Recenter Button -->
-                <div class="pointer-events-auto flex items-center space-x-2">
-                    <button type="button" @click="hasMitra ? fitRouteBounds() : fitBoundsSingle()" 
-                        title="Pusatkan Peta"
-                        class="w-9 h-9 rounded-full bg-white/95 backdrop-blur-md shadow-md border border-slate-200/80 text-slate-700 hover:text-emerald-700 active:scale-95 flex items-center justify-center transition cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
-                        </svg>
-                    </button>
+                    <!-- Right: Recenter & Auto-Refresh Controls -->
+                    <div class="flex items-center space-x-1 shrink-0 pl-2">
+                        <button type="button" 
+                            @click="hasMitra ? fitRouteBounds() : fitBoundsSingle()" 
+                            title="Pusatkan Peta"
+                            class="w-8 h-8 rounded-full bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 flex items-center justify-center transition active:scale-95 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+                            </svg>
+                        </button>
+                        <button type="button" 
+                            @click="window.location.reload()" 
+                            title="Segarkan data pesanan"
+                            class="w-8 h-8 rounded-full bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 flex items-center justify-center transition active:scale-95 cursor-pointer">
+                            <svg class="w-3.5 h-3.5 text-emerald-600 animate-spin" style="animation-duration: 4s;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         @endif
@@ -592,101 +645,204 @@
                 otherPartyName="Mitra Terapis" />
         @endif
 
-        <!-- GOJEK-STYLE DRAGGABLE BOTTOM SHEET -->
-        <div class="absolute bottom-0 left-0 right-0 z-30 bg-white rounded-t-3xl shadow-2xl border-t border-slate-200/90 flex flex-col transition-all duration-300 ease-out"
-             :class="isExpanded ? 'h-[85vh] max-h-[85vh]' : 'h-[235px] max-h-[235px]'">
+        <!-- MOCKUP-STYLE DRAGGABLE BOTTOM SHEET -->
+        <div class="absolute bottom-0 left-0 right-0 z-30 bg-white rounded-t-[32px] shadow-2xl border-t border-slate-100 flex flex-col transition-all duration-300 ease-out"
+             :class="isExpanded ? 'h-[86vh] max-h-[86vh]' : 'h-[285px] max-h-[285px]'">
 
             <!-- PULL HANDLE & HEADER TAP ZONE -->
-            <div class="pt-2.5 pb-2 px-4 cursor-pointer select-none bg-white rounded-t-3xl border-b border-slate-100 flex flex-col items-center"
+            <div class="pt-2.5 pb-2 px-4 cursor-pointer select-none bg-white rounded-t-[32px] flex flex-col items-center"
+                 :class="isExpanded ? 'border-b border-slate-100' : ''"
                  @touchstart.passive="handleTouchStart($event)"
                  @touchmove.passive="handleTouchMove($event)"
                  @touchend="handleTouchEnd()"
                  @click="toggleSheet()">
                 <!-- Grab Handle Pill -->
-                <div class="w-12 h-1.5 bg-slate-300 rounded-full mb-2 hover:bg-slate-400 transition"></div>
+                <div class="w-10 h-1 bg-slate-300 rounded-full hover:bg-slate-400 transition" :class="isExpanded ? 'mb-2' : 'mb-0.5'"></div>
 
-                <div class="w-full flex items-center justify-between">
-                    <div class="flex items-center space-x-2 truncate">
-                        <span class="text-[10px] font-bold text-slate-400 font-mono tracking-wider">KODE:</span>
-                        <h2 class="text-xs font-extrabold text-slate-900 font-mono">{{ $order->order_code }}</h2>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $order->status->badgeClasses() }}">
-                            @if ($order->order_type->value === 'terjadwal' && $order->status === \App\Enums\OrderStatus::MencariMitra)
-                                Bursa Mitra
-                            @else
-                                {{ $order->status->label() }}
-                            @endif
-                        </span>
-                    </div>
-
-                    <div class="flex items-center space-x-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 hover:bg-emerald-100 transition">
-                        <span x-text="isExpanded ? 'Tutup Detail ↓' : 'Tarik Detail ↑'"></span>
-                        <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="isExpanded ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/>
+                <div x-show="isExpanded" class="w-full flex items-center justify-between pt-1">
+                    <span class="text-xs font-bold text-slate-700">Rincian Lengkap Pesanan</span>
+                    <button type="button" class="flex items-center space-x-1 text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer">
+                        <span>Tutup Detail ↓</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                         </svg>
-                    </div>
+                    </button>
                 </div>
             </div>
 
-            <!-- MODE 1: PEEK / COLLAPSED VIEW (Ringkas & Peta Terlihat Jelas) -->
-            <div x-show="!isExpanded" class="p-4 flex-1 flex flex-col justify-between">
+            <!-- MODE 1: PEEK / COLLAPSED VIEW (Persis Seperti Mockup Gambar) -->
+            <div x-show="!isExpanded" class="p-4 flex-1 flex flex-col justify-between overflow-hidden">
                 @if ($order->mitra)
-                    <!-- Terapis Terhubung -->
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3 truncate">
-                            <div class="w-11 h-11 rounded-2xl bg-emerald-700 text-white font-extrabold text-sm flex items-center justify-center shrink-0 shadow-xs">
-                                {{ strtoupper(substr($order->mitra->name, 0, 2)) }}
-                            </div>
-                            <div class="truncate">
-                                <h3 class="text-xs font-extrabold text-slate-900 truncate">{{ $order->mitra->name }}</h3>
-                                <p class="text-[11px] text-slate-500 capitalize">Terapis {{ $order->mitra->gender }} • ★ {{ number_format($order->mitra->partnerRating(), 1) }}</p>
+                    <!-- Baris Profil Terapis -->
+                    <div class="flex items-center space-x-3.5">
+                        <div class="relative w-14 h-14 rounded-full overflow-hidden border-2 border-emerald-100 shadow-sm shrink-0 bg-slate-100">
+                            @if ($order->mitra->profile_photo_url ?? false)
+                                <img src="{{ $order->mitra->profile_photo_url }}" alt="{{ $order->mitra->name }}" class="w-full h-full object-cover">
+                            @else
+                                <div class="w-full h-full bg-gradient-to-br from-[#064e3b] to-emerald-800 text-white font-black text-base flex items-center justify-center">
+                                    {{ strtoupper(substr($order->mitra->name, 0, 2)) }}
+                                </div>
+                            @endif
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-base font-extrabold text-slate-900 truncate leading-snug">{{ $order->mitra->name }}</h3>
+                            <p class="text-xs text-slate-500 font-medium">Terapis Profesional</p>
+                            <div class="flex items-center space-x-1.5 mt-0.5 text-xs font-bold">
+                                <span class="text-amber-500">★</span>
+                                <span class="text-slate-800">{{ number_format($order->mitra->partnerRating(), 1) }}</span>
+                                <span class="text-slate-400 font-normal">({{ $order->mitra->completedOrdersCount() > 0 ? $order->mitra->completedOrdersCount() . ' layanan' : '1.2k' }})</span>
                             </div>
                         </div>
-                        @if (! $isArchived)
-                            <a href="tel:{{ $order->mitra->phone }}" 
-                               class="py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-200 flex items-center space-x-1 transition shrink-0">
-                                <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                                <span>Hubungi</span>
-                            </a>
-                        @endif
                     </div>
 
-                    <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/70 flex items-center justify-between text-xs">
-                        <div class="flex items-center space-x-1.5 text-slate-600">
-                            <span>Status:</span>
-                            <strong class="text-slate-900">{{ $order->status->label() }}</strong>
+                    <!-- 3-Langkah Horizontal Stepper Persis Mockup -->
+                    @php
+                        $isStep1Done = true;
+                        $isStep2Active = $order->status === \App\Enums\OrderStatus::MenujuLokasi;
+                        $isStep2Done = in_array($order->status, [
+                            \App\Enums\OrderStatus::MenujuLokasi,
+                            \App\Enums\OrderStatus::Tiba,
+                            \App\Enums\OrderStatus::SedangBerlangsung,
+                            \App\Enums\OrderStatus::Selesai,
+                        ]);
+                        $isStep3Active = in_array($order->status, [
+                            \App\Enums\OrderStatus::Tiba,
+                            \App\Enums\OrderStatus::SedangBerlangsung,
+                        ]);
+                        $isStep3Done = in_array($order->status, [
+                            \App\Enums\OrderStatus::Tiba,
+                            \App\Enums\OrderStatus::SedangBerlangsung,
+                            \App\Enums\OrderStatus::Selesai,
+                        ]);
+                    @endphp
+                    <div class="w-full py-2 px-2">
+                        <div class="relative w-full">
+                            <!-- Connecting Line Track (Persis dari tengah node 1 ke tengah node 3) -->
+                            <div class="absolute top-[14px] h-[3px] -translate-y-1/2 bg-slate-200 z-0 rounded-full overflow-hidden flex" style="left: calc(100% / 6); right: calc(100% / 6);">
+                                <!-- Segmen 1: Dipesan -> Dalam Perjalanan -->
+                                <div class="w-1/2 h-full transition-all duration-500 {{ $isStep2Active ? 'animate-progress-flow' : ($isStep2Done ? 'bg-emerald-600' : 'bg-slate-200') }}"></div>
+                                <!-- Segmen 2: Dalam Perjalanan -> Tiba -->
+                                <div class="w-1/2 h-full transition-all duration-500 {{ $isStep3Done ? 'bg-emerald-600' : ($isStep3Active ? 'animate-progress-flow' : 'bg-slate-200') }}"></div>
+                            </div>
+
+                            <!-- 3 Kolom Presisi Berjarak Sama -->
+                            <div class="grid grid-cols-3 relative z-10">
+                                <!-- Step 1: Dipesan -->
+                                <div class="flex flex-col items-center text-center">
+                                    <div class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs ring-4 ring-white">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                    <span class="text-xs font-extrabold text-slate-900 mt-2 tracking-tight">Dipesan</span>
+                                </div>
+
+                                <!-- Step 2: Dalam Perjalanan -->
+                                <div class="flex flex-col items-center text-center">
+                                    @if ($isStep2Done)
+                                        <div class="relative w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs ring-4 ring-white">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                            @if ($isStep2Active)
+                                                <span class="absolute -inset-1 rounded-full border-2 border-emerald-400 bg-emerald-400/20 animate-ping pointer-events-none"></span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <div class="w-7 h-7 rounded-full bg-white border-2 border-slate-300 text-slate-400 flex items-center justify-center ring-4 ring-white"></div>
+                                    @endif
+                                    <span class="text-xs font-extrabold {{ $isStep2Done ? 'text-slate-900' : 'text-slate-400' }} mt-2 tracking-tight">Dalam Perjalanan</span>
+                                </div>
+
+                                <!-- Step 3: Tiba -->
+                                <div class="flex flex-col items-center text-center">
+                                    @if ($isStep3Done)
+                                        <div class="relative w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs ring-4 ring-white">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                            @if ($isStep3Active && $order->status !== \App\Enums\OrderStatus::Selesai)
+                                                <span class="absolute -inset-1 rounded-full border-2 border-emerald-400 bg-emerald-400/20 animate-ping pointer-events-none"></span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <div class="w-7 h-7 rounded-full bg-white border-2 border-slate-300 text-slate-400 flex items-center justify-center ring-4 ring-white"></div>
+                                    @endif
+                                    <span class="text-xs font-extrabold {{ $isStep3Done ? 'text-slate-900' : 'text-slate-400' }} mt-2 tracking-tight">Tiba</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="font-mono text-emerald-800 font-bold">
-                            @if (! $isArchived)
-                                <span x-text="distanceText"></span> (<span x-text="etaText"></span>)
-                            @else
-                                <span class="text-slate-500 font-normal">Selesai</span>
-                            @endif
+                    </div>
+
+                    <!-- Tombol Chat dengan Terapis -->
+                    <div class="space-y-1">
+                        <button type="button"
+                            @click="$dispatch('open-order-chat')"
+                            class="w-full py-3 px-6 rounded-full bg-[#064e3b] hover:bg-[#043d2e] active:scale-[0.99] text-white font-bold text-sm shadow-md flex items-center justify-center space-x-2 transition cursor-pointer">
+                            <svg class="w-4 h-4 text-emerald-300" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zm-4 0h-2v2h2V9z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Chat dengan Terapis</span>
+                        </button>
+                        <div class="text-center pt-0.5 cursor-pointer" @click="expandSheet()">
+                            <span class="text-[10px] font-bold text-slate-400 hover:text-emerald-700 transition flex items-center justify-center space-x-1">
+                                <span>Tarik ke atas untuk rincian pesanan & bantuan</span>
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                            </span>
                         </div>
                     </div>
                 @else
                     <!-- Belum Ada Mitra / Menunggu -->
-                    <div class="space-y-1.5">
-                        <div class="flex items-center justify-between text-xs">
-                            <span class="font-extrabold text-slate-900">{{ $order->service_name }}</span>
-                            <span class="font-mono font-bold text-emerald-800">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+                                <svg class="w-6 h-6 animate-pulse text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                            <div class="truncate">
+                                <h3 class="text-sm font-extrabold text-slate-900 truncate">{{ $order->service_name }}</h3>
+                                <p class="text-xs text-slate-500">
+                                    @if ($order->order_type->value === 'terjadwal')
+                                        Menunggu konfirmasi terapis di bursa
+                                    @else
+                                        Mencari mitra terapis terdekat...
+                                    @endif
+                                </p>
+                            </div>
                         </div>
-                        <p class="text-[11px] text-slate-500 line-clamp-1">
-                            📍 {{ $isArchived ? $order->masked_address : $order->service_address_text }}
-                        </p>
-                        <div class="text-[11px] text-emerald-700 font-medium">
-                            @if ($order->order_type->value === 'terjadwal')
-                                Bursa Jadwal Mitra: Menunggu konfirmasi terapis
-                            @else
-                                Sistem sedang mencocokkan terapis terdekat...
-                            @endif
+
+                        <!-- Stepper Saat Menunggu Mitra -->
+                        <div class="w-full py-2.5 px-2">
+                            <div class="relative w-full">
+                                <div class="absolute top-[14px] h-[3px] -translate-y-1/2 bg-slate-200 z-0 rounded-full overflow-hidden flex" style="left: calc(100% / 6); right: calc(100% / 6);">
+                                    <div class="w-1/2 h-full bg-slate-200"></div>
+                                    <div class="w-1/2 h-full bg-slate-200"></div>
+                                </div>
+                                <div class="grid grid-cols-3 relative z-10">
+                                    <div class="flex flex-col items-center text-center">
+                                        <div class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs ring-4 ring-white">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                        </div>
+                                        <span class="text-xs font-extrabold text-slate-900 mt-2 tracking-tight">Dipesan</span>
+                                    </div>
+                                    <div class="flex flex-col items-center text-center">
+                                        <div class="relative w-7 h-7 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold ring-4 ring-white animate-pulse">
+                                            ⏳
+                                        </div>
+                                        <span class="text-xs font-extrabold text-amber-700 mt-2 tracking-tight">Cari Terapis</span>
+                                    </div>
+                                    <div class="flex flex-col items-center text-center">
+                                        <div class="w-7 h-7 rounded-full bg-white border-2 border-slate-300 text-slate-400 flex items-center justify-center ring-4 ring-white"></div>
+                                        <span class="text-xs font-extrabold text-slate-400 mt-2 tracking-tight">Tiba</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-1">
+                            <button type="button"
+                                @click="expandSheet()"
+                                class="w-full py-3 px-6 rounded-full bg-[#064e3b] hover:bg-[#043d2e] active:scale-[0.99] text-white font-bold text-sm shadow-md flex items-center justify-center space-x-2 transition cursor-pointer">
+                                <span>Lihat Rincian & Status Lengkap</span>
+                            </button>
                         </div>
                     </div>
                 @endif
-
-                <div class="pt-2 flex items-center justify-between border-t border-slate-100 text-xs">
-                    <span class="text-slate-500">Total Tagihan:</span>
-                    <span class="text-sm font-extrabold text-slate-900 font-mono">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
-                </div>
             </div>
 
             <!-- MODE 2: EXPANDED VIEW (Scrollable Rincian Lengkap & Pelacakan) -->
@@ -707,32 +863,78 @@
                     </div>
                 @endif
 
-                <!-- Visual Progress Tracker -->
+                <!-- Visual Progress Tracker (3-Tahap Sesuai Permintaan: Dipesan -> Dalam Perjalanan -> Tiba) -->
                 @php
-                    $statusSteps = [
-                        \App\Enums\OrderStatus::MenungguPembayaran->value => 1,
-                        \App\Enums\OrderStatus::MencariMitra->value => 2,
-                        \App\Enums\OrderStatus::Dijadwalkan->value => 3,
-                        \App\Enums\OrderStatus::MenujuLokasi->value => 4,
-                        \App\Enums\OrderStatus::Tiba->value => 5,
-                        \App\Enums\OrderStatus::SedangBerlangsung->value => 6,
-                        \App\Enums\OrderStatus::Selesai->value => 7,
-                    ];
-                    $currentStep = $statusSteps[$order->status->value] ?? 1;
+                    $isStep1Done = true;
+                    $isStep2Active = $order->status === \App\Enums\OrderStatus::MenujuLokasi;
+                    $isStep2Done = in_array($order->status, [
+                        \App\Enums\OrderStatus::MenujuLokasi,
+                        \App\Enums\OrderStatus::Tiba,
+                        \App\Enums\OrderStatus::SedangBerlangsung,
+                        \App\Enums\OrderStatus::Selesai,
+                    ]);
+                    $isStep3Active = in_array($order->status, [
+                        \App\Enums\OrderStatus::Tiba,
+                        \App\Enums\OrderStatus::SedangBerlangsung,
+                    ]);
+                    $isStep3Done = in_array($order->status, [
+                        \App\Enums\OrderStatus::Tiba,
+                        \App\Enums\OrderStatus::SedangBerlangsung,
+                        \App\Enums\OrderStatus::Selesai,
+                    ]);
                 @endphp
 
-                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
-                    <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 mb-2">
-                        <span class="{{ $currentStep >= 2 ? 'text-emerald-700 font-extrabold' : '' }}">
-                            {{ $order->order_type->value === 'terjadwal' ? 'Bursa Mitra' : 'Cari Mitra' }}
-                        </span>
-                        <span class="{{ $currentStep >= 3 ? 'text-emerald-700 font-extrabold' : '' }}">Dijadwalkan</span>
-                        <span class="{{ $currentStep >= 4 ? 'text-emerald-700 font-extrabold' : '' }}">Menuju Lokasi</span>
-                        <span class="{{ $currentStep >= 7 ? 'text-emerald-700 font-extrabold' : '' }}">Selesai</span>
-                    </div>
-                    <div class="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden">
-                        <div class="bg-emerald-600 h-full rounded-full transition-all duration-500" 
-                             style="width: {{ min(100, max(15, ($currentStep / 7) * 100)) }}%"></div>
+                <!-- Stepper 3-Tahap Horizontal Persis Gambar Referensi (Animasi Alur Status & Jarak Presisi) -->
+                <div class="w-full py-2.5 px-2 bg-white">
+                    <div class="relative w-full">
+                        <!-- Connecting Line Track (Persis dari tengah node 1 ke tengah node 3) -->
+                        <div class="absolute top-[14px] h-[3px] -translate-y-1/2 bg-slate-200 z-0 rounded-full overflow-hidden flex" style="left: calc(100% / 6); right: calc(100% / 6);">
+                            <!-- Segmen 1: Dipesan -> Dalam Perjalanan -->
+                            <div class="w-1/2 h-full transition-all duration-500 {{ $isStep2Active ? 'animate-progress-flow' : ($isStep2Done ? 'bg-emerald-600' : 'bg-slate-200') }}"></div>
+                            <!-- Segmen 2: Dalam Perjalanan -> Tiba -->
+                            <div class="w-1/2 h-full transition-all duration-500 {{ $isStep3Done ? 'bg-emerald-600' : ($isStep3Active ? 'animate-progress-flow' : 'bg-slate-200') }}"></div>
+                        </div>
+
+                        <!-- 3 Kolom Presisi Berjarak Sama -->
+                        <div class="grid grid-cols-3 relative z-10">
+                            <!-- Step 1: Dipesan -->
+                            <div class="flex flex-col items-center text-center">
+                                <div class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs ring-4 ring-white">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                <span class="text-xs font-extrabold text-slate-900 mt-2 tracking-tight">Dipesan</span>
+                            </div>
+
+                            <!-- Step 2: Dalam Perjalanan -->
+                            <div class="flex flex-col items-center text-center">
+                                @if ($isStep2Done)
+                                    <div class="relative w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs ring-4 ring-white">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                        @if ($isStep2Active)
+                                            <span class="absolute -inset-1 rounded-full border-2 border-emerald-400 bg-emerald-400/20 animate-ping pointer-events-none"></span>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="w-7 h-7 rounded-full bg-white border-2 border-slate-300 text-slate-400 flex items-center justify-center ring-4 ring-white"></div>
+                                @endif
+                                <span class="text-xs font-extrabold {{ $isStep2Done ? 'text-slate-900' : 'text-slate-400' }} mt-2 tracking-tight">Dalam Perjalanan</span>
+                            </div>
+
+                            <!-- Step 3: Tiba -->
+                            <div class="flex flex-col items-center text-center">
+                                @if ($isStep3Done)
+                                    <div class="relative w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs ring-4 ring-white">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                        @if ($isStep3Active && $order->status !== \App\Enums\OrderStatus::Selesai)
+                                            <span class="absolute -inset-1 rounded-full border-2 border-emerald-400 bg-emerald-400/20 animate-ping pointer-events-none"></span>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="w-7 h-7 rounded-full bg-white border-2 border-slate-300 text-slate-400 flex items-center justify-center ring-4 ring-white"></div>
+                                @endif
+                                <span class="text-xs font-extrabold {{ $isStep3Done ? 'text-slate-900' : 'text-slate-400' }} mt-2 tracking-tight">Tiba</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1317,6 +1519,11 @@
                 <!-- Detail Layanan & Waktu -->
                 <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs space-y-2.5 text-xs">
                     <h3 class="text-xs font-bold text-slate-900 pb-2 border-b border-slate-100">Informasi Layanan</h3>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500">Kode Pesanan:</span>
+                        <span class="font-bold text-slate-900 font-mono">{{ $order->order_code }}</span>
+                    </div>
 
                     <div class="flex items-center justify-between">
                         <span class="text-slate-500">Nama Layanan:</span>

@@ -269,6 +269,8 @@ class OrderBookingService
                 app(TopupService::class)->createOrderDeficitInvoice($order, $deficit);
             }
 
+            app(NotificationService::class)->notifyOrderCreated($order);
+
             return $order;
         });
     }

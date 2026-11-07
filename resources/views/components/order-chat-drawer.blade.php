@@ -6,7 +6,8 @@
     'otherPartyName' => 'Terapis / Pelanggan',
 ])
 
-<div x-data="{
+<div @open-order-chat.window="openChat()"
+     x-data="{
         showChat: false,
         messages: [],
         newMessage: '',

@@ -7,7 +7,11 @@
 
         <title>{{ config('app.name', 'Pijat In') }}</title>
 
-        <!-- Fonts -->
+        <!-- Fonts: Maison Neue & Fallbacks -->
+        <link rel="preconnect" href="https://db.onlinewebfonts.com">
+        <link href="https://db.onlinewebfonts.com/c/2173dceabf0710a335c0bca178efc162?family=Maison+Neue" rel="stylesheet" type="text/css"/>
+        <link href="https://db.onlinewebfonts.com/c/b596fe7f763c7633f489a1acdbb13c70?family=Maison+Neue+Demi" rel="stylesheet" type="text/css"/>
+        <link href="https://db.onlinewebfonts.com/c/4a373e70cd01dec089c1dd1185ceba51?family=Maison+Neue+Bold" rel="stylesheet" type="text/css"/>
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
 
