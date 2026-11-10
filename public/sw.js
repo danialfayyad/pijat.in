@@ -12,8 +12,8 @@ self.addEventListener('push', (event) => {
     let payload = {
         title: 'Pijat.In Pemberitahuan',
         body: 'Anda memiliki notifikasi operasional baru.',
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/badge-72x72.png',
         tag: 'pijatin-notification',
         data: {
             action_url: '/notifications'

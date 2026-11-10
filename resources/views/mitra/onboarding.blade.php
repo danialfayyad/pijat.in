@@ -604,8 +604,13 @@
                             <label class="block text-xs font-semibold text-slate-700 min-h-[32px] flex items-end mb-1">
                                 <span>Nama Bank <span class="text-rose-500">*</span></span>
                             </label>
-                            <input type="text" name="bank_name" x-model="bankName" required placeholder="BCA / Mandiri / BRI / BNI"
-                                class="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-emerald-600 focus:ring-emerald-600 transition">
+                            <select name="bank_name" x-model="bankName" required
+                                class="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:border-emerald-600 focus:ring-emerald-600 transition cursor-pointer">
+                                <option value="">-- Pilih Bank --</option>
+                                @foreach (\App\Models\Bank::active()->orderBy('sort_order')->orderBy('name')->get() as $bank)
+                                    <option value="{{ $bank->name }}">{{ $bank->name }} ({{ strtoupper($bank->code) }})</option>
+                                @endforeach
+                            </select>
                             @error('bank_name') <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p> @enderror
                         </div>
 

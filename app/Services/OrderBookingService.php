@@ -264,9 +264,10 @@ class OrderBookingService
                     $this->matchingService->dispatchNextOffer($order);
                 }
             } else {
-                // CUS-09: Insufficient balance -> generate deficit invoice via Xendit / QRIS
+                // CUS-09: Insufficient balance -> generate deficit invoice via Xendit / QRIS / selected payment method
                 $deficit = (float) $package->price - (float) $wallet->balance;
-                app(TopupService::class)->createOrderDeficitInvoice($order, $deficit);
+                $paymentMethod = $data['payment_method'] ?? 'QRIS';
+                app(TopupService::class)->createOrderDeficitInvoice($order, $deficit, $paymentMethod);
             }
 
             app(NotificationService::class)->notifyOrderCreated($order);

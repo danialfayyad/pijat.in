@@ -32,12 +32,16 @@
                     <label class="block text-xs font-bold text-slate-700 mb-1">
                         Nama Bank <span class="text-rose-500">*</span>
                     </label>
-                    <input type="text"
-                           name="bank_name"
-                           value="{{ old('bank_name', $user->primaryBankAccount?->bank_name) }}"
-                           required
-                           placeholder="Contoh: BCA, Mandiri, BRI, BNI"
-                           class="w-full text-xs rounded-xl border border-slate-200 focus:ring-emerald-500 focus:border-emerald-500 py-2.5">
+                    <select name="bank_name"
+                            required
+                            class="w-full text-xs rounded-xl border border-slate-200 bg-white focus:ring-emerald-500 focus:border-emerald-500 py-2.5 px-3 cursor-pointer">
+                        <option value="">-- Pilih Bank Terdaftar --</option>
+                        @foreach (\App\Models\Bank::active()->orderBy('sort_order')->orderBy('name')->get() as $bank)
+                            <option value="{{ $bank->name }}" {{ old('bank_name', $user->primaryBankAccount?->bank_name) === $bank->name || old('bank_name', $user->primaryBankAccount?->bank_name) === $bank->code ? 'selected' : '' }}>
+                                {{ $bank->name }} ({{ strtoupper($bank->code) }})
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div>
