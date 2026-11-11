@@ -89,7 +89,6 @@
                 <div class="text-2xl font-bold text-slate-800">
                     {{ number_format($totalTransactions) }} <span class="text-sm font-semibold text-slate-500">Transaksi</span>
                 </div>
-                <div class="text-[11px] text-slate-400">Aktivitas keuangan tercatat</div>
             </div>
 
             <!-- Total Arus Masuk -->
@@ -99,7 +98,6 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">Rp {{ number_format($totalInflow, 0, ',', '.') }}</div>
-                <div class="text-[11px] text-emerald-600 font-medium">Top-up & komisi layanan</div>
             </div>
 
             <!-- Total Arus Keluar -->
@@ -109,7 +107,6 @@
                     <span class="w-2 h-2 rounded-full bg-slate-400"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">Rp {{ number_format($totalOutflow, 0, ',', '.') }}</div>
-                <div class="text-[11px] text-slate-400">Pencairan & refund</div>
             </div>
 
             <!-- Arus Kas Bersih (Net) -->
@@ -120,9 +117,6 @@
                 </div>
                 <div class="text-2xl font-bold {{ $totalInflow >= $totalOutflow ? 'text-emerald-700' : 'text-rose-600' }}">
                     Rp {{ number_format($totalInflow - $totalOutflow, 0, ',', '.') }}
-                </div>
-                <div class="text-[11px] {{ $totalInflow >= $totalOutflow ? 'text-emerald-600' : 'text-rose-500' }} font-medium">
-                    {{ $totalInflow >= $totalOutflow ? 'Surplus kas periode ini' : 'Defisit kas periode ini' }}
                 </div>
             </div>
         </div>

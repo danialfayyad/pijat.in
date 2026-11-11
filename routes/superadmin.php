@@ -6,15 +6,17 @@ use App\Http\Controllers\SuperAdmin\BankController;
 use App\Http\Controllers\Superadmin\BannerController;
 use App\Http\Controllers\SuperAdmin\BrandingSettingController;
 use App\Http\Controllers\SuperAdmin\ComplaintCategoryController;
+use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\FaqController;
 use App\Http\Controllers\SuperAdmin\FinanceReportController;
 use App\Http\Controllers\SuperAdmin\LegalDocumentController;
 use App\Http\Controllers\SuperAdmin\ParameterController;
 use App\Http\Controllers\SuperAdmin\RegionController;
+use App\Http\Controllers\SuperAdmin\VoucherController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
-    Route::get('/dashboard', fn () => redirect()->route('superadmin.regions.index'))->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/regions', [RegionController::class, 'index'])->name('regions.index');
     Route::get('/regions/presets', [RegionController::class, 'presets'])->name('regions.presets');
@@ -56,6 +58,13 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
     Route::put('/banks/{bank}', [BankController::class, 'update'])->name('banks.update');
     Route::post('/banks/{bank}/toggle', [BankController::class, 'toggle'])->name('banks.toggle');
     Route::delete('/banks/{bank}', [BankController::class, 'destroy'])->name('banks.destroy');
+
+    // Master Voucher & Kupon Diskon (Bisnis & Finansial)
+    Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers.index');
+    Route::post('/vouchers', [VoucherController::class, 'store'])->name('vouchers.store');
+    Route::put('/vouchers/{voucher}', [VoucherController::class, 'update'])->name('vouchers.update');
+    Route::post('/vouchers/{voucher}/toggle', [VoucherController::class, 'toggle'])->name('vouchers.toggle');
+    Route::delete('/vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('vouchers.destroy');
 
     // Centralized Audit Trail Logs (SA-03)
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');

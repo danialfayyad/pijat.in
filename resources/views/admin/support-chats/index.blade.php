@@ -26,7 +26,6 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($counts['aktif']) }}</div>
-                <div class="text-[11px] text-slate-400">Perlu penanganan admin</div>
             </div>
 
             <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-1">
@@ -35,7 +34,6 @@
                     <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-amber-600">{{ number_format($counts['menunggu']) }}</div>
-                <div class="text-[11px] text-slate-400">Belum ada admin yang membalas</div>
             </div>
 
             <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-1">
@@ -44,7 +42,6 @@
                     <span class="w-2 h-2 rounded-full bg-blue-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-blue-700">{{ number_format($counts['berlangsung']) }}</div>
-                <div class="text-[11px] text-slate-400">Sedang dalam obrolan aktif</div>
             </div>
 
             <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-1">
@@ -53,90 +50,94 @@
                     <span class="w-2 h-2 rounded-full bg-slate-300"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-600">{{ number_format($counts['selesai']) }}</div>
-                <div class="text-[11px] text-slate-400">Kasus bantuan ditutup</div>
             </div>
         </div>
 
-        <!-- Filter Status Tabs (Di Luar Tabel, Sesuai Standar Sistem) -->
-        <div class="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-none">
-            <!-- Tab Semua -->
-            <a href="{{ route('admin.support-chats.index', array_merge(request()->except('status', 'page'), ['status' => 'semua'])) }}"
-               class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition whitespace-nowrap {{ $currentStatus === 'semua' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/90' }}">
-                Semua
+        <!-- Role Filter Tabs (Di Luar Tabel, Sesuai Standar Sistem) -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-none">
+            <!-- Tab Semua Peran -->
+            <a href="{{ route('admin.support-chats.index', array_merge(request()->except('role', 'page'), ['role' => 'semua'])) }}"
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $currentRole === 'semua' || !$currentRole ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+                Semua Peran
             </a>
 
-            <!-- Tab Menunggu -->
-            <a href="{{ route('admin.support-chats.index', array_merge(request()->except('status', 'page'), ['status' => 'menunggu'])) }}"
-               class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition whitespace-nowrap {{ $currentStatus === 'menunggu' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/90' }}">
-                Menunggu
+            <!-- Tab Pelanggan -->
+            <a href="{{ route('admin.support-chats.index', array_merge(request()->except('role', 'page'), ['role' => 'pelanggan'])) }}"
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $currentRole === 'pelanggan' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+                Pelanggan
             </a>
 
-            <!-- Tab Berlangsung -->
-            <a href="{{ route('admin.support-chats.index', array_merge(request()->except('status', 'page'), ['status' => 'berlangsung'])) }}"
-               class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition whitespace-nowrap {{ $currentStatus === 'berlangsung' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/90' }}">
-                Berlangsung
-            </a>
-
-            <!-- Tab Selesai -->
-            <a href="{{ route('admin.support-chats.index', array_merge(request()->except('status', 'page'), ['status' => 'selesai'])) }}"
-               class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition whitespace-nowrap {{ $currentStatus === 'selesai' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/90' }}">
-                Selesai
+            <!-- Tab Mitra -->
+            <a href="{{ route('admin.support-chats.index', array_merge(request()->except('role', 'page'), ['role' => 'mitra'])) }}"
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $currentRole === 'mitra' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+                Mitra
             </a>
         </div>
 
         <!-- Master Card -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-            <!-- Header Toolbar -->
-            <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h3 class="font-bold text-slate-800 text-base">Antrean Live Chat Wilayah</h3>
-                </div>
+            <!-- Header Controls: Title & Filters (Konsisten dengan Standar Backoffice) -->
+            <div class="p-5 border-b border-slate-100 space-y-3.5">
+                <h3 class="font-bold text-slate-800 text-base">
+                    Antrean Live Chat Wilayah
+                </h3>
 
-                <div class="flex items-center gap-2.5 flex-wrap">
-                    <!-- Role & Region Filters -->
-                    <form method="GET" action="{{ route('admin.support-chats.index') }}" class="flex items-center gap-2 flex-wrap">
-                        <input type="hidden" name="status" value="{{ $currentStatus }}">
+                <form method="GET" action="{{ route('admin.support-chats.index') }}" class="flex flex-wrap items-center gap-3">
+                    @if (request('role') && request('role') !== 'semua')
+                        <input type="hidden" name="role" value="{{ request('role') }}">
+                    @endif
 
-                        <!-- Search Input -->
-                        <div class="relative w-48 sm:w-56">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
-                            <input type="text" 
-                                   name="search" 
-                                   value="{{ $search }}" 
-                                   placeholder="Cari tiket, subjek, user..." 
-                                   class="w-full text-xs border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                    <!-- 1. Search Input -->
+                    <div class="relative w-56 sm:w-64">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
                         </div>
-                        
-                        <!-- Segmented Role Tabs (Sesuai Desain) -->
-                        <div class="bg-slate-100/90 p-1 rounded-2xl inline-flex items-center gap-1 shrink-0">
-                            <a href="{{ route('admin.support-chats.index', array_merge(request()->except('role', 'page'), ['role' => 'semua'])) }}"
-                               class="px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition {{ $currentRole === 'semua' || !$currentRole ? 'bg-white text-slate-800 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-800' }}">
-                                Semua
-                            </a>
-                            <a href="{{ route('admin.support-chats.index', array_merge(request()->except('role', 'page'), ['role' => 'pelanggan'])) }}"
-                               class="px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition {{ $currentRole === 'pelanggan' ? 'bg-white text-slate-800 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-800' }}">
-                                Pelanggan
-                            </a>
-                            <a href="{{ route('admin.support-chats.index', array_merge(request()->except('role', 'page'), ['role' => 'mitra'])) }}"
-                               class="px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition {{ $currentRole === 'mitra' ? 'bg-white text-slate-800 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-800' }}">
-                                Mitra
-                            </a>
-                        </div>
+                        <input type="text" 
+                               name="search" 
+                               value="{{ $search }}" 
+                               placeholder="Cari tiket, subjek, user..." 
+                               class="w-full text-xs border border-slate-200 rounded-xl pl-9 pr-3.5 py-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs placeholder:text-xs placeholder-slate-400">
+                    </div>
 
-                        @if ($accessibleRegions->count() > 1)
-                            <select name="region_id" onchange="this.form.submit()" class="text-xs rounded-xl border border-slate-200 py-1.5 focus:border-emerald-500 focus:ring-emerald-500 bg-white">
-                                <option value="">Semua Wilayah</option>
+                    <!-- 2. Multi-Wilayah Filter Dropdown -->
+                    @if ($accessibleRegions->count() > 1)
+                        <div class="flex items-center space-x-1.5 shrink-0">
+                            <label for="region_filter" class="text-xs font-semibold text-slate-600 shrink-0">Wilayah:</label>
+                            <select id="region_filter" name="region_id" onchange="this.form.submit()"
+                                    class="text-xs font-semibold border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs py-2 pl-3.5 pr-8 cursor-pointer">
+                                <option value="">Semua Wilayah ({{ $accessibleRegions->count() }})</option>
                                 @foreach ($accessibleRegions as $reg)
-                                    <option value="{{ $reg->id }}" @selected((int) $selectedRegionId === $reg->id)>{{ $reg->name }}</option>
+                                    <option value="{{ $reg->id }}" @selected((int) $selectedRegionId === $reg->id)>
+                                        {{ $reg->name }}
+                                    </option>
                                 @endforeach
                             </select>
-                        @endif
-                    </form>
-                </div>
+                        </div>
+                    @endif
+
+                    <!-- 3. Status Chat Filter Dropdown -->
+                    <div class="flex items-center space-x-1.5 shrink-0">
+                        <label for="status_filter" class="text-xs font-semibold text-slate-600 shrink-0">Status:</label>
+                        <select id="status_filter" name="status" onchange="this.form.submit()"
+                                class="text-xs font-semibold border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs py-2 pl-3.5 pr-8 cursor-pointer">
+                            <option value="semua" {{ $currentStatus === 'semua' ? 'selected' : '' }}>Semua Status</option>
+                            <option value="menunggu" {{ $currentStatus === 'menunggu' ? 'selected' : '' }}>Menunggu Respon</option>
+                            <option value="berlangsung" {{ $currentStatus === 'berlangsung' ? 'selected' : '' }}>Sedang Berlangsung</option>
+                            <option value="selesai" {{ $currentStatus === 'selesai' ? 'selected' : '' }}>Selesai</option>
+                        </select>
+                    </div>
+
+                    <!-- 4. Reset Button -->
+                    @if ($search !== '' || (request('role') && request('role') !== 'semua') || $selectedRegionId || ($currentStatus !== 'semua' && request('status')))
+                        <a href="{{ route('admin.support-chats.index', (request('role') && request('role') !== 'semua') ? ['role' => request('role')] : []) }}" 
+                           title="Reset Filter"
+                           class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </a>
+                    @endif
+                </form>
             </div>
 
             <!-- Table Antrean Chat -->

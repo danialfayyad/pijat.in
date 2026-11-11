@@ -64,7 +64,6 @@
                     <span class="w-2 h-2 rounded-full bg-slate-400"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($totalCount) }}</div>
-                <div class="text-[11px] text-slate-400">Semua jenis aduan</div>
             </div>
 
             <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-1">
@@ -73,7 +72,6 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-emerald-700">{{ number_format($activeCount) }}</div>
-                <div class="text-[11px] text-emerald-600 font-medium">Dapat dipilih pelapor</div>
             </div>
 
             <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-1">
@@ -82,7 +80,6 @@
                     <span class="w-2 h-2 rounded-full bg-slate-400"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-600">{{ number_format($inactiveCount) }}</div>
-                <div class="text-[11px] text-slate-400">Diarsipkan / tidak muncul</div>
             </div>
         </div>
 

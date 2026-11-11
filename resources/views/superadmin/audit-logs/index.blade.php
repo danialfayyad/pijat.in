@@ -145,10 +145,7 @@
         <!-- Logs Table Card -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
             <div class="p-5 border-b border-slate-100 flex items-center justify-between">
-                <div>
-                    <h3 class="font-bold text-slate-800 text-base">Riwayat Rekam Jejak Audit</h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Merekam setiap mutasi data sensitif, parameter, dan status sistem.</p>
-                </div>
+                <h3 class="font-bold text-slate-800 text-base">Riwayat Rekam Jejak Audit</h3>
                 <span class="text-xs font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-xl">
                     {{ $logs->total() }} Catatan
                 </span>

@@ -29,6 +29,8 @@ class Order extends Model
         'service_name',
         'duration_minutes',
         'total_price',
+        'discount_amount',
+        'voucher_id',
         'commission_percent',
         'recipient_type',
         'recipient_name',
@@ -62,6 +64,7 @@ class Order extends Model
             'order_type' => OrderType::class,
             'duration_minutes' => 'integer',
             'total_price' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'commission_percent' => 'decimal:2',
             'scheduled_start_time' => 'datetime',
             'service_started_at' => 'datetime',
@@ -136,6 +139,14 @@ class Order extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class, 'service_id');
+    }
+
+    /**
+     * @return BelongsTo<Voucher, $this>
+     */
+    public function voucher(): BelongsTo
+    {
+        return $this->belongsTo(Voucher::class, 'voucher_id');
     }
 
     /**

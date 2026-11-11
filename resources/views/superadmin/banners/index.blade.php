@@ -34,6 +34,9 @@
              handleActionPresetChange() {
                  if (this.actionPreset === 'custom') {
                      this.bannerData.action_url = this.customUrl;
+                 } else if (!this.actionPreset) {
+                     this.bannerData.action_url = '';
+                     this.bannerData.action_text = '';
                  } else {
                      this.bannerData.action_url = this.actionPreset;
                      const preset = this.actionPresets[this.actionPreset];
@@ -132,7 +135,6 @@
                     <span class="w-2 h-2 rounded-full bg-slate-400"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($totalCount) }}</div>
-                <div class="text-[11px] text-slate-400">Semua banner terdaftar</div>
             </div>
 
             <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-1">
@@ -141,7 +143,6 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-emerald-700">{{ number_format($activeCount) }}</div>
-                <div class="text-[11px] text-emerald-600 font-medium">Tampil di beranda customer</div>
             </div>
 
             <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-1">
@@ -150,7 +151,6 @@
                     <span class="w-2 h-2 rounded-full bg-slate-400"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-600">{{ number_format($inactiveCount) }}</div>
-                <div class="text-[11px] text-slate-400">Diarsipkan / tidak muncul</div>
             </div>
         </div>
 
@@ -207,11 +207,15 @@
                     <div class="flex items-center space-x-1.5 shrink-0">
                         <label class="text-xs font-semibold text-slate-600 shrink-0">Status:</label>
                         <div class="bg-slate-100/90 p-0.5 rounded-xl inline-flex items-center gap-0.5 shrink-0 border border-slate-200/80">
-                            <a href="{{ route('superadmin.banners.index', array_merge(request()->except('status', 'page'), ['status' => request('status') === 'active' ? '' : 'active'])) }}"
+                            <a href="{{ route('superadmin.banners.index', array_merge(request()->except('status', 'page'), ['status' => ''])) }}"
+                               class="px-3 py-1.5 rounded-lg text-xs font-semibold transition {{ !request('status') ? 'bg-white text-slate-800 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-800' }}">
+                                Semua
+                            </a>
+                            <a href="{{ route('superadmin.banners.index', array_merge(request()->except('status', 'page'), ['status' => 'active'])) }}"
                                class="px-3 py-1.5 rounded-lg text-xs font-semibold transition {{ request('status') === 'active' ? 'bg-white text-emerald-800 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-800' }}">
                                 Aktif
                             </a>
-                            <a href="{{ route('superadmin.banners.index', array_merge(request()->except('status', 'page'), ['status' => request('status') === 'inactive' ? '' : 'inactive'])) }}"
+                            <a href="{{ route('superadmin.banners.index', array_merge(request()->except('status', 'page'), ['status' => 'inactive'])) }}"
                                class="px-3 py-1.5 rounded-lg text-xs font-semibold transition {{ request('status') === 'inactive' ? 'bg-white text-slate-800 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-800' }}">
                                 Nonaktif
                             </a>
@@ -402,9 +406,17 @@
                                            class="w-full text-xs rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Kode Voucher (Opsional)</label>
-                                    <input type="text" name="promo_code" x-model="bannerData.promo_code" placeholder="Contoh: HEMAT25"
-                                           class="w-full text-xs font-mono uppercase rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500">
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Kode Voucher Diskon</label>
+                                    <select name="promo_code" x-model="bannerData.promo_code"
+                                            class="w-full text-xs font-mono uppercase font-bold rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 bg-white">
+                                        <option value="">-- Tanpa Voucher --</option>
+                                        @foreach ($availableVouchers as $v)
+                                            <option value="{{ $v->code }}">
+                                                {{ $v->code }} &bull; {{ $v->name }} ({{ $v->formatted_discount }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-[10px] text-slate-400 mt-1">Pilih voucher dari daftar yang telah dibuat di menu Voucher.</p>
                                 </div>
                             </div>
 
@@ -478,10 +490,12 @@
                                     <p class="text-[11px] text-slate-400 mt-1">Halaman tujuan saat pelanggan mengklik banner.</p>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Label Tombol Aksi</label>
-                                    <input type="text" name="action_text" x-model="bannerData.action_text" placeholder="Contoh: Pesan Sekarang"
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                        Label Tombol Aksi <span class="text-slate-400 font-normal lowercase">(opsional)</span>
+                                    </label>
+                                    <input type="text" name="action_text" x-model="bannerData.action_text" placeholder="Kosongkan jika banner langsung diklik"
                                            class="w-full text-xs rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500">
-                                    <p class="text-[11px] text-slate-400 mt-1">Teks pada tombol (misal: "Lihat Katalog", "Pesan Sekarang").</p>
+                                    <p class="text-[11px] text-slate-400 mt-1">Kosongkan jika ingin seluruh banner bisa langsung diklik tanpa tombol tambahan.</p>
                                 </div>
                             </div>
 
@@ -504,11 +518,13 @@
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Mulai Tayang (Opsional)</label>
                                     <input type="datetime-local" name="starts_at" x-model="bannerData.starts_at"
+                                           min="{{ now()->format('Y-m-d\TH:i') }}"
                                            class="w-full text-xs rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Selesai Tayang (Opsional)</label>
                                     <input type="datetime-local" name="ends_at" x-model="bannerData.ends_at"
+                                           min="{{ now()->format('Y-m-d\TH:i') }}"
                                            class="w-full text-xs rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500">
                                 </div>
                             </div>

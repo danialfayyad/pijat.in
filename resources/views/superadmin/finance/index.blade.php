@@ -16,7 +16,6 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">Rp {{ number_format($totalCustomerBalance, 0, ',', '.') }}</div>
-                <div class="text-[11px] text-slate-400">Dompet pelanggan</div>
             </div>
 
             <!-- Total Saldo Mitra Tersedia -->
@@ -26,7 +25,6 @@
                     <span class="w-2 h-2 rounded-full bg-sky-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">Rp {{ number_format($totalPartnerBalance, 0, ',', '.') }}</div>
-                <div class="text-[11px] text-sky-600 font-medium">Siap dicairkan</div>
             </div>
 
             <!-- Total Komisi Platform -->
@@ -50,7 +48,6 @@
                     <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-900">Rp {{ number_format($totalFloatingLiability, 0, ',', '.') }}</div>
-                <div class="text-[11px] text-amber-600 font-medium">Pelanggan + Mitra</div>
             </div>
         </div>
 

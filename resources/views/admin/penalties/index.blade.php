@@ -24,7 +24,6 @@
                     <span class="w-2 h-2 rounded-full bg-slate-400"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($counts['semua']) }}</div>
-                <div class="text-[11px] text-slate-400">Akun dengan akumulasi poin / sanksi</div>
             </div>
 
             <!-- Peringatan (30-59) -->
@@ -34,7 +33,6 @@
                     <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($counts['peringatan']) }}</div>
-                <div class="text-[11px] text-amber-600 font-medium">Mendapat notifikasi waspada</div>
             </div>
 
             <!-- Suspend Sementara (60-149) -->
@@ -44,7 +42,6 @@
                     <span class="w-2 h-2 rounded-full bg-orange-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($counts['tersuspend']) }}</div>
-                <div class="text-[11px] text-orange-600 font-medium">Dibekukan 3 atau 7 hari kerja</div>
             </div>
 
             <!-- Banned Permanen (150+) -->
@@ -54,40 +51,33 @@
                     <span class="w-2 h-2 rounded-full bg-rose-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($counts['banned']) }}</div>
-                <div class="text-[11px] text-slate-400">Akses layanan dicabut permanen</div>
             </div>
         </div>
 
-        <!-- Filter Status Tabs (Di Luar Tabel, Sesuai Standar Sistem) -->
-        <div class="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-none">
-            <!-- Tab Semua -->
-            <a href="{{ route('admin.penalties.index', array_merge(request()->except('status', 'page'), ['status' => 'semua'])) }}"
-               class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition whitespace-nowrap {{ $currentTab === 'semua' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/90' }}">
-                Semua
+        <!-- Role Filter Tabs (Di Luar Tabel, Sesuai Standar Ukuran Sistem) -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-none">
+            <!-- Tab Semua Peran -->
+            <a href="{{ route('admin.penalties.index', array_merge(request()->except('role', 'page'), ['role' => ''])) }}"
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ !request('role') ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+                Semua Peran
             </a>
 
-            <!-- Tab Peringatan -->
-            <a href="{{ route('admin.penalties.index', array_merge(request()->except('status', 'page'), ['status' => 'peringatan'])) }}"
-               class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition whitespace-nowrap {{ $currentTab === 'peringatan' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/90' }}">
-                Peringatan
+            <!-- Tab Pelanggan -->
+            <a href="{{ route('admin.penalties.index', array_merge(request()->except('role', 'page'), ['role' => 'pelanggan'])) }}"
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ request('role') === 'pelanggan' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+                Pelanggan
             </a>
 
-            <!-- Tab Tersuspend -->
-            <a href="{{ route('admin.penalties.index', array_merge(request()->except('status', 'page'), ['status' => 'tersuspend'])) }}"
-               class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition whitespace-nowrap {{ $currentTab === 'tersuspend' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/90' }}">
-                Tersuspend
-            </a>
-
-            <!-- Tab Diblokir -->
-            <a href="{{ route('admin.penalties.index', array_merge(request()->except('status', 'page'), ['status' => 'banned'])) }}"
-               class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition whitespace-nowrap {{ $currentTab === 'banned' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/90' }}">
-                Diblokir
+            <!-- Tab Mitra -->
+            <a href="{{ route('admin.penalties.index', array_merge(request()->except('role', 'page'), ['role' => 'mitra'])) }}"
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ request('role') === 'mitra' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+                Mitra
             </a>
         </div>
 
         <!-- Master Table Card -->
         <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
-            <!-- Header Controls: Judul di Atas, Filter di Bawah Teks (Sesuai Referensi Laporan Aduan) -->
+            <!-- Header Controls: Judul di Atas, Filter di Bawah Teks -->
             <div class="p-5 border-b border-slate-100 space-y-3.5">
                 <h3 class="font-bold text-slate-800 text-base">
                     Daftar Pengguna Bersanksi
@@ -95,7 +85,9 @@
 
                 <!-- Filters & Search Form (Di Bawah Teks Judul) -->
                 <form method="GET" action="{{ route('admin.penalties.index') }}" class="flex flex-wrap items-center gap-3">
-                    <input type="hidden" name="status" value="{{ $currentTab }}">
+                    @if (request('role'))
+                        <input type="hidden" name="role" value="{{ request('role') }}">
+                    @endif
 
                     <!-- 1. Search Input (Posisi Pertama) -->
                     <div class="relative w-56 sm:w-64">
@@ -127,25 +119,21 @@
                         </div>
                     @endif
 
-                    <!-- 3. Peran Filter (Segmented Tab Sesuai Desain) -->
-                    <div class="bg-slate-100/90 p-1 rounded-2xl inline-flex items-center gap-1 shrink-0">
-                        <a href="{{ route('admin.penalties.index', array_merge(request()->except('role', 'page'), ['role' => ''])) }}"
-                           class="px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition {{ !request('role') ? 'bg-white text-slate-800 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-800' }}">
-                            Semua
-                        </a>
-                        <a href="{{ route('admin.penalties.index', array_merge(request()->except('role', 'page'), ['role' => 'pelanggan'])) }}"
-                           class="px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition {{ request('role') === 'pelanggan' ? 'bg-white text-slate-800 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-800' }}">
-                            Pelanggan
-                        </a>
-                        <a href="{{ route('admin.penalties.index', array_merge(request()->except('role', 'page'), ['role' => 'mitra'])) }}"
-                           class="px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition {{ request('role') === 'mitra' ? 'bg-white text-slate-800 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-800' }}">
-                            Mitra
-                        </a>
+                    <!-- 3. Status Sanksi Filter Dropdown (Posisi Ketiga) -->
+                    <div class="flex items-center space-x-1.5 shrink-0">
+                        <label for="status_filter" class="text-xs font-semibold text-slate-600 shrink-0">Status:</label>
+                        <select id="status_filter" name="status" onchange="this.form.submit()"
+                                class="text-xs font-semibold border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs py-2 pl-3.5 pr-8 cursor-pointer">
+                            <option value="semua" {{ $currentTab === 'semua' ? 'selected' : '' }}>Semua Status</option>
+                            <option value="peringatan" {{ $currentTab === 'peringatan' ? 'selected' : '' }}>Peringatan (30–59)</option>
+                            <option value="tersuspend" {{ $currentTab === 'tersuspend' ? 'selected' : '' }}>Tersuspend (60–149)</option>
+                            <option value="banned" {{ $currentTab === 'banned' ? 'selected' : '' }}>Diblokir (150+)</option>
+                        </select>
                     </div>
 
                     <!-- 4. Reset Button -->
-                    @if (request('search') || request('role') || request('region_id'))
-                        <a href="{{ route('admin.penalties.index', ['status' => $currentTab]) }}" 
+                    @if (request('search') || request('role') || request('region_id') || ($currentTab !== 'semua' && request('status')))
+                        <a href="{{ route('admin.penalties.index', request('role') ? ['role' => request('role')] : []) }}" 
                            title="Reset Filter"
                            class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>

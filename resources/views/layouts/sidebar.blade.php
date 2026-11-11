@@ -25,9 +25,18 @@
     <!-- Navigation Menu -->
     <nav id="sidebar-nav" class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         @if (Auth::user()->isSuperadmin())
-            <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
-                Menu Super Admin
+            <!-- Grup 1: Operasional Platform -->
+            <div class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                Operasional Platform
             </div>
+
+            <a href="{{ route('superadmin.dashboard') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.dashboard') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.dashboard') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                Dashboard Platform
+            </a>
             
             <a href="{{ route('superadmin.regions.index') }}" 
                class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.regions.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
@@ -45,20 +54,25 @@
                 Penugasan Admin
             </a>
 
-            <a href="{{ route('superadmin.complaint-categories.index') }}" 
-               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.complaint-categories.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.complaint-categories.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-                Kategori Aduan
-            </a>
-
             <a href="{{ route('admin.orders.index') }}" 
                class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.orders.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.orders.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
-                Pesanan Wilayah
+                Monitoring Pesanan
+            </a>
+
+            <!-- Grup 2: Bisnis & Finansial -->
+            <div class="px-3 pt-4 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                Bisnis & Finansial
+            </div>
+
+            <a href="{{ route('superadmin.finance.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.finance.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.finance.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Keuangan Nasional
             </a>
 
             <a href="{{ route('admin.catalog.index') }}" 
@@ -69,25 +83,63 @@
                 Katalog Layanan
             </a>
 
-            <a href="{{ route('superadmin.finance.index') }}" 
-               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.finance.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.finance.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <a href="{{ route('superadmin.vouchers.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.vouchers.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.vouchers.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                 </svg>
-                Keuangan Nasional
+                Voucher Diskon
             </a>
 
-            <div class="px-3 pt-4 pb-2 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
-                Tata Kelola & Sistem
+            <a href="{{ route('superadmin.banks.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.banks.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.banks.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                Master Rekening Bank
+            </a>
+
+            <!-- Grup 3: Konten & Bantuan -->
+            <div class="px-3 pt-4 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                Konten & Bantuan
             </div>
 
-            <a href="{{ route('admin.notifications.index') }}" 
-               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.notifications.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.notifications.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            <a href="{{ route('superadmin.banners.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.banners.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.banners.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                Notifikasi & Antrean
+                Banner Promosi
             </a>
+
+            <a href="{{ route('superadmin.complaint-categories.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.complaint-categories.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.complaint-categories.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                Kategori Aduan
+            </a>
+
+            <a href="{{ route('superadmin.faqs.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.faqs.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.faqs.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Manajemen FAQ
+            </a>
+
+            <a href="{{ route('superadmin.legal-documents.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.legal-documents.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.legal-documents.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                </svg>
+                Dokumen Legal & SOP
+            </a>
+
+            <!-- Grup 4: Tata Kelola & Sistem -->
+            <div class="px-3 pt-4 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                Tata Kelola & Sistem
+            </div>
 
             <a href="{{ route('superadmin.parameters.index') }}" 
                class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.parameters.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
@@ -106,57 +158,12 @@
                 Identitas Aplikasi
             </a>
 
-            <a href="{{ route('superadmin.banners.index') }}" 
-               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.banners.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.banners.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                Banner Promosi
-            </a>
-
-            <a href="{{ route('superadmin.banks.index') }}" 
-               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.banks.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.banks.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                </svg>
-                Master Rekening Bank
-            </a>
-
             <a href="{{ route('superadmin.audit-logs.index') }}" 
                class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.audit-logs.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.audit-logs.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 Log Audit Terpusat
-            </a>
-
-            <a href="{{ route('superadmin.legal-documents.index') }}" 
-               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.legal-documents.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.legal-documents.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-                </svg>
-                Dokumen Legal & SOP
-            </a>
-
-            <a href="{{ route('superadmin.faqs.index') }}" 
-               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.faqs.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('superadmin.faqs.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Manajemen FAQ
-            </a>
-
-        @elseif (Auth::user()->isAdmin())
-            <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
-                Menu Operasional
-            </div>
-
-            <a href="{{ route('admin.dashboard') }}" 
-               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.dashboard') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.dashboard') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-                Dashboard Wilayah
             </a>
 
             <a href="{{ route('admin.notifications.index') }}" 
@@ -167,6 +174,20 @@
                 Notifikasi & Antrean
             </a>
 
+        @elseif (Auth::user()->isAdmin())
+            <!-- Grup 1: Operasional Harian -->
+            <div class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                Operasional Harian
+            </div>
+
+            <a href="{{ route('admin.dashboard') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.dashboard') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.dashboard') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                Dashboard Wilayah
+            </a>
+
             <a href="{{ route('admin.orders.index') }}" 
                class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.orders.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.orders.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -175,20 +196,33 @@
                 Pesanan Wilayah
             </a>
 
-            <a href="{{ route('admin.complaints.index') }}" 
-               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.complaints.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.complaints.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            <a href="{{ route('admin.notifications.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.notifications.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.notifications.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
-                Laporan Aduan
+                Notifikasi & Antrean
             </a>
 
-            <a href="{{ route('admin.support-chats.index') }}" 
-               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.support-chats.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.support-chats.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+            <!-- Grup 2: Mitra & Pengguna -->
+            <div class="px-3 pt-4 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                Mitra & Pengguna
+            </div>
+
+            <a href="{{ route('admin.mitra.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.mitra.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.mitra.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
-                Live Chat Bantuan
+                Verifikasi Mitra
+            </a>
+
+            <a href="{{ route('admin.users.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.users.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.users.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                Manajemen Pengguna
             </a>
 
             <a href="{{ route('admin.penalties.index') }}" 
@@ -207,21 +241,31 @@
                 Banding Sanksi
             </a>
 
-            <a href="{{ route('admin.mitra.index') }}" 
-               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.mitra.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.mitra.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            <!-- Grup 3: Pusat Bantuan & Komplain -->
+            <div class="px-3 pt-4 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                Pusat Bantuan & Komplain
+            </div>
+
+            <a href="{{ route('admin.support-chats.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.support-chats.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.support-chats.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
                 </svg>
-                Verifikasi Mitra
+                Live Chat Bantuan
             </a>
 
-            <a href="{{ route('admin.users.index') }}" 
-               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.users.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.users.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            <a href="{{ route('admin.complaints.index') }}" 
+               class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.complaints.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('admin.complaints.*') ? 'text-emerald-700' : 'text-emerald-200' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                 </svg>
-                Manajemen Pengguna
+                Laporan Aduan
             </a>
+
+            <!-- Grup 4: Keuangan & Katalog -->
+            <div class="px-3 pt-4 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                Keuangan & Katalog
+            </div>
 
             <a href="{{ route('admin.finance.index') }}" 
                class="flex items-center px-3.5 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.finance.*') ? 'bg-white text-emerald-900 shadow-md font-bold' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
@@ -274,9 +318,9 @@
                     </a>
                 @endif
 
-                <form method="POST" action="{{ route('logout') }}">
+                <form id="logout-form-desktop" method="POST" action="{{ route('logout') }}" onsubmit="event.preventDefault(); window.confirmLogout(this);">
                     @csrf
-                    <button type="submit" title="Keluar / Logout" class="p-2 text-emerald-200 hover:text-white hover:bg-white/15 rounded-lg transition">
+                    <button type="submit" title="Keluar / Logout" class="p-2 text-emerald-200 hover:text-white hover:bg-white/15 rounded-lg transition cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>

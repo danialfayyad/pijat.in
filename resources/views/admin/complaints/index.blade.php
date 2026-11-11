@@ -28,7 +28,6 @@
                     <span class="w-2 h-2 rounded-full bg-slate-400"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($totalCount) }}</div>
-                <div class="text-[11px] text-slate-400">Semua riwayat aduan</div>
             </div>
 
             <!-- Aduan Baru -->
@@ -38,7 +37,6 @@
                     <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($pendingCount) }}</div>
-                <div class="text-[11px] text-amber-600 font-medium">Menunggu respon</div>
             </div>
 
             <!-- Sedang Diproses -->
@@ -48,7 +46,6 @@
                     <span class="w-2 h-2 rounded-full bg-sky-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($inProcessCount) }}</div>
-                <div class="text-[11px] text-sky-600 font-medium">Tahap investigasi</div>
             </div>
 
             <!-- Selesai Ditangani -->
@@ -58,7 +55,6 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($resolvedCount) }}</div>
-                <div class="text-[11px] text-emerald-600 font-medium">Putusan selesai</div>
             </div>
 
             <!-- Ditolak / Diabaikan -->
@@ -68,7 +64,6 @@
                     <span class="w-2 h-2 rounded-full bg-slate-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($rejectedCount) }}</div>
-                <div class="text-[11px] text-slate-400">Tidak berdasar</div>
             </div>
         </div>
 
