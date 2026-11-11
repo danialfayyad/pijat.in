@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Superadmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
+use App\Models\Voucher;
 use App\Services\ImageCompressionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,13 +59,15 @@ class BannerController extends Controller
         $activeCount = Banner::where('is_active', true)->count();
         $inactiveCount = Banner::where('is_active', false)->count();
         $actionPresets = Banner::ACTION_PRESETS;
+        $availableVouchers = Voucher::orderBy('code')->get();
 
         return view('superadmin.banners.index', compact(
             'banners',
             'totalCount',
             'activeCount',
             'inactiveCount',
-            'actionPresets'
+            'actionPresets',
+            'availableVouchers'
         ));
     }
 

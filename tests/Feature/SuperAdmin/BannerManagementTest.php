@@ -150,3 +150,22 @@ test('customer dashboard displays active banners', function () {
     $response->assertSee('Promo relaksasi akhir pekan');
     $response->assertDontSee('Banner Rahasia Nonaktif');
 });
+
+test('customer dashboard allows banner without action text to be directly clickable without button', function () {
+    $customer = User::factory()->create(['role' => Role::Pelanggan]);
+
+    Banner::factory()->create([
+        'title' => 'Banner Tanpa Tombol',
+        'subtitle' => 'Pencet di mana saja untuk ke katalog',
+        'type' => 'template',
+        'action_url' => '/pelanggan/catalog',
+        'action_text' => null,
+        'is_active' => true,
+    ]);
+
+    $response = $this->actingAs($customer)->get(route('pelanggan.dashboard'));
+
+    $response->assertOk();
+    $response->assertSee('href="/pelanggan/catalog"', false);
+    $response->assertDontSee('Gunakan Promo');
+});

@@ -79,7 +79,14 @@ Pijat.in is presented as a massage and wellness marketplace. The public landing 
   - Model & Database (`services.images` JSON column): Stores array of image paths for each service. Accessors `first_image_url` and `image_urls` resolve public storage assets with fallback.
   - Admin Catalog Management (`/admin/catalog`): Multi-image upload on create modal with instant client-side preview; existing photo gallery management on edit modal with selective removal and incremental additions (up to 5 photos, max 2MB each). Auto-deletes files on service deletion.
   - Customer Presentation (`/katalog` & `/katalog/{slug}`): Thumbnails with multi-photo count indicators on catalog listing; interactive hero gallery and thumbnail selector on customer service detail view.
-- All 341 unit & feature tests in Pest passing (1,617 assertions) with Pint style formatting compliant.
+- Superadmin National Platform Executive Dashboard (`/superadmin/dashboard`):
+  - Controller: `App\Http\Controllers\SuperAdmin\DashboardController` (`superadmin.dashboard`).
+  - Macro KPIs: Total GMV, platform commission, completed/active order count, verified online therapist supply & customer ecosystem, operating regions coverage.
+  - Strategic Analytics: 12-month national order trend (Chart.js line chart) and Top 5 active regions benchmark (horizontal bar chart).
+  - Financial Liquidity & Liabilities: Floating balance liabilities (partner & customer wallet balances), 24-hour held escrow balance, and pending withdrawal payout queue.
+  - Governance & Risk Alerts: Orphaned/unassigned operating regions alerts with direct admin assignment CTA, pending national complaints count, and pending partner verification queue.
+  - Audit Trail Feed: 5 most recent centralized audit log entries with direct detail viewer navigation.
+- All unit & feature tests in Pest passing with Pint style formatting compliant.
 
 ## Role model and authentication map
 

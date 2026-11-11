@@ -70,7 +70,6 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">Rp {{ number_format($totalInflow, 0, ',', '.') }}</div>
-                <div class="text-[11px] text-emerald-600 font-medium">Top-up & komisi layanan</div>
             </div>
 
             <!-- Total Kas Keluar -->
@@ -80,7 +79,6 @@
                     <span class="w-2 h-2 rounded-full bg-slate-400"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">Rp {{ number_format($totalOutflow, 0, ',', '.') }}</div>
-                <div class="text-[11px] text-slate-400">Pencairan & refund</div>
             </div>
 
             <!-- Pencairan Disetujui -->
@@ -90,7 +88,6 @@
                     <span class="w-2 h-2 rounded-full bg-sky-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">Rp {{ number_format($totalApprovedDisbursement, 0, ',', '.') }}</div>
-                <div class="text-[11px] text-sky-600 font-medium">Dana sukses dicairkan</div>
             </div>
 
             <!-- Antrean Penarikan -->
@@ -102,7 +99,6 @@
                 <div class="text-2xl font-bold text-slate-800">
                     {{ number_format($pendingWithdrawalCount) }} <span class="text-sm font-semibold text-slate-500">Permohonan</span>
                 </div>
-                <div class="text-[11px] text-amber-600 font-medium">Menunggu verifikasi admin</div>
             </div>
         </div>
 

@@ -281,8 +281,11 @@
                                         'rose' => 'bg-gradient-to-r from-rose-800 via-pink-800 to-rose-950',
                                         default => 'bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900',
                                     };
+                                    $cardTag = $banner->action_url ? 'a' : 'div';
                                 @endphp
-                                <div class="relative overflow-hidden rounded-3xl {{ $bgClasses }} p-4 sm:p-5 text-white shadow-md">
+                                <{{ $cardTag }} 
+                                    @if ($banner->action_url) href="{{ $banner->action_url }}" @endif
+                                    class="block relative overflow-hidden rounded-3xl {{ $bgClasses }} p-4 sm:p-5 text-white shadow-md group {{ $banner->action_url ? 'cursor-pointer hover:shadow-lg transition duration-300' : '' }}">
                                     <!-- Hiasan Watermark Bintang / Daun -->
                                     <div class="absolute -right-4 -bottom-6 opacity-15 pointer-events-none">
                                         <svg class="w-36 h-36" fill="currentColor" viewBox="0 0 24 24">
@@ -318,15 +321,14 @@
                                                 <div></div>
                                             @endif
 
-                                            @if ($banner->action_url)
-                                                <a href="{{ $banner->action_url }}" 
-                                                   class="py-1.5 px-3.5 rounded-full bg-white text-emerald-900 text-xs font-black shadow-xs hover:bg-emerald-50 active:scale-95 transition cursor-pointer">
-                                                    {{ $banner->action_text ?: 'Gunakan Promo' }} &rarr;
-                                                </a>
+                                            @if (!empty($banner->action_text))
+                                                <span class="py-1.5 px-3.5 rounded-full bg-white text-emerald-900 text-xs font-black shadow-xs group-hover:bg-emerald-50 active:scale-95 transition">
+                                                    {{ $banner->action_text }} &rarr;
+                                                </span>
                                             @endif
                                         </div>
                                     </div>
-                                </div>
+                                </{{ $cardTag }}>
                             @endif
                         </div>
                     @endforeach

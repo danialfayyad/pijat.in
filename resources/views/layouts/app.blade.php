@@ -29,7 +29,7 @@
             [x-cloak] { display: none !important; }
         </style>
     </head>
-    <body class="font-sans antialiased bg-slate-50 text-slate-800" x-data="{ sidebarOpen: false }">
+    <body class="font-sans antialiased bg-slate-50 text-slate-800" x-data="desktopNotificationCenter()">
         <div class="h-screen flex overflow-hidden bg-slate-50">
             <!-- Left Sidebar (Desktop) -->
             @include('layouts.sidebar')
@@ -75,84 +75,163 @@
                     </div>
 
                     <!-- Mobile Navigation Links -->
-                    <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                    <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                         @if (Auth::user()->isSuperadmin())
+                            <!-- Grup 1: Operasional Platform -->
+                            <div class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                                Operasional Platform
+                            </div>
+
+                            <a href="{{ route('superadmin.dashboard') }}" 
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.dashboard') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Dashboard Platform
+                            </a>
                             <a href="{{ route('superadmin.regions.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.regions.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.regions.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Master Wilayah
                             </a>
                             <a href="{{ route('superadmin.admins.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.admins.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.admins.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Penugasan Admin
                             </a>
-                            <a href="{{ route('superadmin.complaint-categories.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.complaint-categories.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                                Kategori Aduan
-                            </a>
                             <a href="{{ route('admin.orders.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.orders.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                                Pesanan Wilayah
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.orders.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Monitoring Pesanan
+                            </a>
+
+                            <!-- Grup 2: Bisnis & Finansial -->
+                            <div class="px-3 pt-3.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                                Bisnis & Finansial
+                            </div>
+
+                            <a href="{{ route('superadmin.finance.index') }}" 
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.finance.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Keuangan Nasional
                             </a>
                             <a href="{{ route('admin.catalog.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.catalog.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.catalog.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Katalog Layanan
                             </a>
+                            <a href="{{ route('superadmin.vouchers.index') }}" 
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.vouchers.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Voucher Diskon
+                            </a>
+                            <a href="{{ route('superadmin.banks.index') }}" 
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.banks.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Master Rekening Bank
+                            </a>
+
+                            <!-- Grup 3: Konten & Bantuan -->
+                            <div class="px-3 pt-3.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                                Konten & Bantuan
+                            </div>
+
+                            <a href="{{ route('superadmin.banners.index') }}" 
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.banners.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Banner Promosi
+                            </a>
+                            <a href="{{ route('superadmin.complaint-categories.index') }}" 
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.complaint-categories.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Kategori Aduan
+                            </a>
+                            <a href="{{ route('superadmin.faqs.index') }}" 
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.faqs.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Manajemen FAQ
+                            </a>
+                            <a href="{{ route('superadmin.legal-documents.index') }}" 
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.legal-documents.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Dokumen Legal & SOP
+                            </a>
+
+                            <!-- Grup 4: Tata Kelola & Sistem -->
+                            <div class="px-3 pt-3.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                                Tata Kelola & Sistem
+                            </div>
+
                             <a href="{{ route('superadmin.parameters.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.parameters.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.parameters.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Parameter Sistem
                             </a>
                             <a href="{{ route('superadmin.branding.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.branding.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.branding.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Identitas Aplikasi
                             </a>
-                            <a href="{{ route('superadmin.banners.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.banners.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                                Banner Promosi
-                            </a>
-                            <a href="{{ route('superadmin.banks.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.banks.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                                Master Rekening Bank
-                            </a>
                             <a href="{{ route('superadmin.audit-logs.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.audit-logs.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.audit-logs.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Log Audit Terpusat
                             </a>
-                            <a href="{{ route('superadmin.legal-documents.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('superadmin.legal-documents.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                                Dokumen Legal & SOP
+                            <a href="{{ route('admin.notifications.index') }}" 
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.notifications.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Notifikasi & Antrean
                             </a>
                         @elseif (Auth::user()->isAdmin())
+                            <!-- Grup 1: Operasional Harian -->
+                            <div class="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                                Operasional Harian
+                            </div>
+
                             <a href="{{ route('admin.dashboard') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.dashboard') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.dashboard') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Dashboard Wilayah
                             </a>
                             <a href="{{ route('admin.orders.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.orders.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.orders.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Pesanan Wilayah
                             </a>
-                            <a href="{{ route('admin.complaints.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.complaints.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                                Laporan Aduan
+                            <a href="{{ route('admin.notifications.index') }}" 
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.notifications.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Notifikasi & Antrean
                             </a>
-                            <a href="{{ route('admin.penalties.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.penalties.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                                Poin & Sanksi
-                            </a>
-                            <a href="{{ route('admin.appeals.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.appeals.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
-                                Banding Sanksi
-                            </a>
+
+                            <!-- Grup 2: Mitra & Pengguna -->
+                            <div class="px-3 pt-3.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                                Mitra & Pengguna
+                            </div>
+
                             <a href="{{ route('admin.mitra.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.mitra.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.mitra.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Verifikasi Mitra
                             </a>
                             <a href="{{ route('admin.users.index') }}" 
-                               class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.users.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.users.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                 Manajemen Pengguna
                             </a>
+                            <a href="{{ route('admin.penalties.index') }}" 
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.penalties.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Poin & Sanksi
+                            </a>
+                            <a href="{{ route('admin.appeals.index') }}" 
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.appeals.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Banding Sanksi
+                            </a>
+
+                            <!-- Grup 3: Pusat Bantuan & Komplain -->
+                            <div class="px-3 pt-3.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                                Pusat Bantuan & Komplain
+                            </div>
+
+                            <a href="{{ route('admin.support-chats.index') }}" 
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.support-chats.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Live Chat Bantuan
+                            </a>
+                            <a href="{{ route('admin.complaints.index') }}" 
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.complaints.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Laporan Aduan
+                            </a>
+
+                            <!-- Grup 4: Keuangan & Katalog -->
+                            <div class="px-3 pt-3.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-emerald-100/80">
+                                Keuangan & Katalog
+                            </div>
+
+                            <a href="{{ route('admin.finance.index') }}" 
+                               class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.finance.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                Keuangan Wilayah
+                            </a>
+
                             @if (Auth::user()->canAccessMenu('KATALOG'))
                                 <a href="{{ route('admin.catalog.index') }}" 
-                                   class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.catalog.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
+                                   class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition {{ request()->routeIs('admin.catalog.*') ? 'bg-white text-emerald-900 font-bold shadow-md' : 'text-white/90 hover:bg-white/15 hover:text-white' }}">
                                     Katalog Layanan
                                 </a>
                             @endif
@@ -171,9 +250,9 @@
                                 <p class="text-sm font-semibold text-white">{{ Auth::user()->name }}</p>
                                 <p class="text-xs text-emerald-400/80">{{ Auth::user()->email }}</p>
                             </div>
-                            <form method="POST" action="{{ route('logout') }}">
+                            <form id="logout-form-mobile" method="POST" action="{{ route('logout') }}" onsubmit="event.preventDefault(); window.confirmLogout(this);">
                                 @csrf
-                                <button type="submit" class="p-2 text-rose-300 hover:text-white">Keluar</button>
+                                <button type="submit" class="p-2 text-rose-300 hover:text-white text-xs font-semibold cursor-pointer">Keluar</button>
                             </form>
                         </div>
                         @if (Auth::user()->isAdmin() || Auth::user()->isSuperadmin())
@@ -204,39 +283,8 @@
                     </div>
 
                     <!-- Right: Quick Actions & Notifications (ADM-14, Web Push & Desktop Toast) -->
-                    <div class="flex items-center space-x-2 sm:space-x-3" x-data="desktopNotificationCenter()">
+                    <div class="flex items-center space-x-2 sm:space-x-3">
                         @if (Auth::user()->isAdmin() || Auth::user()->isSuperadmin())
-                            <!-- Tombol 1: Aktifkan Notifikasi (Jika belum granted) -->
-                            <button type="button"
-                                    x-show="permissionStatus === 'default' && isSupported"
-                                    x-cloak
-                                    @click="requestDesktopPermission()"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-xs cursor-pointer animate-pulse"
-                                    title="Klik untuk mengizinkan pop-up notifikasi di layar laptop Anda">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                </svg>
-                                <span>Aktifkan Notif Laptop</span>
-                            </button>
-
-                            <!-- Tombol 2: Tes Notifikasi Laptop (Jika sudah granted) -->
-                            <button type="button"
-                                    x-show="permissionStatus === 'granted'"
-                                    x-cloak
-                                    @click="testDesktopNotification()"
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 transition shadow-2xs cursor-pointer"
-                                    title="Klik untuk menguji pop-up banner notifikasi langsung di sudut layar laptop Anda">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                <span>Tes Notif Laptop</span>
-                            </button>
-
-                            <!-- Indikator 3: Jika permission diblokir di browser -->
-                            <span x-show="permissionStatus === 'denied'"
-                                  x-cloak
-                                  title="Izin notifikasi diblokir di browser. Klik ikon gembok 🔒 di samping URL untuk mengizinkan."
-                                  class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200/80 rounded-xl cursor-help">
-                                <span>🔒 Notif Diblokir</span>
-                            </span>
 
                             <a href="{{ route('admin.notifications.index') }}" 
                                class="relative p-2 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition"
@@ -272,6 +320,142 @@
             </div>
         </div>
 
+        @if (Auth::user()->isAdmin() || Auth::user()->isSuperadmin())
+            <!-- Modal Wajib Izin Notifikasi Operasional Backoffice (SYS-06, ADM-14) -->
+            <div x-show="isSupported && permissionStatus !== 'granted'"
+                 x-cloak
+                 class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 sm:p-6"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="notification-modal-title">
+                
+                <!-- Backdrop Gelap (Tidak dapat ditutup klik luar karena izin wajib diaktifkan) -->
+                <div class="fixed inset-0 bg-slate-900/75 backdrop-blur-xs transition-opacity"
+                     x-show="isSupported && permissionStatus !== 'granted'"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0">
+                </div>
+
+                <!-- Card Modal -->
+                <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden text-center z-10 transition-all p-6 sm:p-7"
+                     x-show="isSupported && permissionStatus !== 'granted'"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0 scale-95 translate-y-3"
+                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 scale-95 translate-y-3">
+                    
+                    <!-- Garis Aksen Hijau Zamrud di Atas -->
+                    <div class="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 absolute top-0 left-0"></div>
+
+                    <!-- KONTEN 1: Saat status masih 'default' (Belum diminta izin) -->
+                    <div x-show="permissionStatus === 'default'">
+                        <!-- Icon Bel Notifikasi Bergetar Halus -->
+                        <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4 ring-8 ring-emerald-50/70 shadow-xs">
+                            <svg class="w-8 h-8 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                        </div>
+
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider mb-2">
+                            Izin Wajib Operasional
+                        </span>
+
+                        <h3 id="notification-modal-title" class="text-lg sm:text-xl font-bold text-slate-800">
+                            Aktifkan Notifikasi Operasional
+                        </h3>
+
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                            Sebagai pengelola backoffice Pijat.In, izin notifikasi laptop <strong>wajib diaktifkan</strong> agar Anda dapat segera merespons antrean layanan secara real-time.
+                        </p>
+
+                        <!-- Poin Informasi Nilai Operasional -->
+                        <div class="bg-slate-50/90 rounded-2xl p-4 my-5 text-left border border-slate-100 space-y-2.5 text-xs text-slate-600">
+                            <div class="flex items-start gap-2.5">
+                                <span class="w-5 h-5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">✓</span>
+                                <div><strong class="text-slate-800">Pesanan Masuk Wilayah:</strong> Peringatan instan saat ada pesanan baru di area Anda.</div>
+                            </div>
+                            <div class="flex items-start gap-2.5">
+                                <span class="w-5 h-5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">✓</span>
+                                <div><strong class="text-slate-800">Laporan Aduan & Sanksi:</strong> Penanganan cepat untuk menjaga kepuasan pelanggan.</div>
+                            </div>
+                            <div class="flex items-start gap-2.5">
+                                <span class="w-5 h-5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">✓</span>
+                                <div><strong class="text-slate-800">Nada Peringatan Audio:</strong> Panggilan otomatis berbunyi meski browser berada di latar belakang.</div>
+                            </div>
+                        </div>
+
+                        <!-- Tombol Pemicu Izin Browser -->
+                        <button type="button" 
+                                @click="requestDesktopPermission()" 
+                                class="w-full py-3 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition shadow-xs hover:shadow flex items-center justify-center gap-2 cursor-pointer">
+                            <span>Izinkan Notifikasi Sekarang</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                            </svg>
+                        </button>
+
+                        <p class="text-[11px] text-slate-400 mt-3">
+                            Klik tombol di atas, lalu pilih <strong>Allow (Izinkan)</strong> pada jendela pop-up browser Anda.
+                        </p>
+                    </div>
+
+                    <!-- KONTEN 2: Saat status 'denied' (Izin diblokir di peramban) -->
+                    <div x-show="permissionStatus === 'denied'">
+                        <!-- Icon Gembok / Peringatan -->
+                        <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-4 ring-8 ring-amber-50/70 shadow-xs">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                        </div>
+
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wider mb-2">
+                            Izin Diblokir
+                        </span>
+
+                        <h3 class="text-lg sm:text-xl font-bold text-slate-800">
+                            Izin Notifikasi Diblokir di Browser
+                        </h3>
+
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                            Browser Anda saat ini memblokir notifikasi untuk situs ini. Karena notifikasi bersifat <strong>wajib bagi Admin</strong>, silakan aktifkan kembali dengan langkah berikut:
+                        </p>
+
+                        <!-- Langkah Panduan Membuka Blokir -->
+                        <div class="bg-amber-50/70 rounded-2xl p-4 my-5 text-left border border-amber-200/80 space-y-2 text-xs text-amber-900">
+                            <div class="flex items-start gap-2">
+                                <span class="font-bold text-amber-800 shrink-0">1.</span>
+                                <span>Klik ikon <strong>Setelan Situs / Gembok 🔒</strong> di samping kiri kolom URL browser Anda.</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="font-bold text-amber-800 shrink-0">2.</span>
+                                <span>Cari opsi <strong>Notifikasi (Notifications)</strong> lalu ubah dari <em>Block</em> menjadi <strong>Izinkan (Allow)</strong>.</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="font-bold text-amber-800 shrink-0">3.</span>
+                                <span>Klik tombol <strong>Muat Ulang Halaman</strong> di bawah untuk menerapkan perubahan.</span>
+                            </div>
+                        </div>
+
+                        <!-- Tombol Reload Halaman -->
+                        <button type="button" 
+                                @click="window.location.reload()" 
+                                class="w-full py-3 px-5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-sm transition shadow-xs hover:shadow flex items-center justify-center gap-2 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            <span>Saya Sudah Mengizinkan, Muat Ulang Halaman</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Global Interactive Confirmation Modal Component -->
         <x-confirm-dialog />
 
@@ -279,6 +463,7 @@
         <script>
             function desktopNotificationCenter() {
                 return {
+                    sidebarOpen: false,
                     isSupported: ('Notification' in window),
                     permissionStatus: ('Notification' in window) ? Notification.permission : 'denied',
                     unreadCount: {{ Auth::user()->systemNotifications()->whereNull('read_at')->count() }},
@@ -292,6 +477,13 @@
                                     this.swRegistration = reg;
                                 })
                                 .catch(err => console.debug('Service Worker info:', err));
+                        }
+
+                        if ('Notification' in window) {
+                            this.permissionStatus = Notification.permission;
+                            if (this.permissionStatus === 'granted') {
+                                this.subscribePushManager();
+                            }
                         }
 
                         // Poll every 10 seconds for new unread notifications
@@ -332,8 +524,6 @@
                             if (perm === 'granted') {
                                 this.testDesktopNotification();
                                 this.subscribePushManager();
-                            } else if (perm === 'denied') {
-                                alert('Izin notifikasi diblokir di browser. Klik ikon gembok 🔒 di samping address bar (URL) lalu ubah Notification menjadi Allow.');
                             }
                         } catch (e) {
                             console.error('Gagal meminta izin notifikasi:', e);
@@ -345,7 +535,7 @@
                         this.triggerDesktopAlert({
                             id: Date.now(),
                             title: 'Pijat.In - Notifikasi Laptop Aktif!',
-                            body: 'Tes berhasil! Banner notifikasi dan nada panggil di layar laptop Anda siap memantau antrean tugas masuk.',
+                            body: 'Izin berhasil diberikan! Peringatan antrean tugas operasional kini aktif di laptop Anda.',
                             action_url: '{{ route("admin.notifications.index") }}'
                         });
                     },

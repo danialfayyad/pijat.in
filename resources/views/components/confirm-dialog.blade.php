@@ -33,7 +33,7 @@
             <!-- Centered Circular Icon with Ring Accent -->
             <div class="mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center shadow-2xs transition"
                  :class="{
-                     'bg-rose-100 text-rose-600 ring-8 ring-rose-50': type === 'danger',
+                     'bg-rose-100 text-rose-600 ring-8 ring-rose-50': type === 'danger' || type === 'logout',
                      'bg-amber-100 text-amber-600 ring-8 ring-amber-50': type === 'warning',
                      'bg-emerald-100 text-emerald-600 ring-8 ring-emerald-50': type === 'success' || type === 'info'
                  }">
@@ -42,6 +42,13 @@
                 <template x-if="type === 'danger'">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </template>
+
+                <!-- Logout Icon -->
+                <template x-if="type === 'logout'">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
                 </template>
 
@@ -78,7 +85,7 @@
                         @click="confirm()" 
                         class="w-full py-2.5 px-3 text-xs font-semibold text-white rounded-xl shadow-xs transition cursor-pointer"
                         :class="{
-                            'bg-rose-600 hover:bg-rose-700': type === 'danger',
+                            'bg-rose-600 hover:bg-rose-700': type === 'danger' || type === 'logout',
                             'bg-amber-600 hover:bg-amber-700': type === 'warning',
                             'bg-emerald-600 hover:bg-emerald-700': type === 'success' || type === 'info'
                         }">
@@ -135,5 +142,30 @@
     // Global Helper
     window.confirmAction = function(options) {
         window.dispatchEvent(new CustomEvent('confirm-action', { detail: options }));
+    };
+
+    // Global Logout Confirmation Helper
+    window.confirmLogout = function(form) {
+        if (typeof window.confirmAction === 'function') {
+            window.confirmAction({
+                title: 'Konfirmasi Keluar',
+                message: 'Apakah Anda yakin ingin keluar dari sesi akun backoffice ini?',
+                type: 'logout',
+                confirmText: 'Ya, Keluar',
+                cancelText: 'Batal',
+                form: form,
+                onConfirm: function() {
+                    if (form) {
+                        form.submit();
+                    }
+                }
+            });
+        } else {
+            if (confirm('Apakah Anda yakin ingin keluar dari sesi akun backoffice ini?')) {
+                if (form) {
+                    form.submit();
+                }
+            }
+        }
     };
 </script>

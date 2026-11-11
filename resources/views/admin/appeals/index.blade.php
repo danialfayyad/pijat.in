@@ -33,7 +33,6 @@
                     <span class="w-2 h-2 rounded-full bg-slate-400"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($counts['semua']) }}</div>
-                <div class="text-[11px] text-slate-400">Semua riwayat pengajuan</div>
             </div>
 
             <!-- Menunggu Peninjauan -->
@@ -43,7 +42,6 @@
                     <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($counts['menunggu']) }}</div>
-                <div class="text-[11px] text-amber-600 font-medium">Perlu verifikasi admin</div>
             </div>
 
             <!-- Disetujui -->
@@ -53,7 +51,6 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($counts['disetujui']) }}</div>
-                <div class="text-[11px] text-emerald-600 font-medium">Poin sanksi dipulihkan</div>
             </div>
 
             <!-- Ditolak -->
@@ -63,35 +60,27 @@
                     <span class="w-2 h-2 rounded-full bg-rose-500"></span>
                 </div>
                 <div class="text-2xl font-bold text-slate-800">{{ number_format($counts['ditolak']) }}</div>
-                <div class="text-[11px] text-slate-400">Sanksi poin dipertahankan</div>
             </div>
         </div>
 
-        <!-- Filter Status Tabs (Meniru standar tab sistem) -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            <!-- Tab Semua -->
-            <a href="{{ route('admin.appeals.index', array_merge(request()->except('status', 'page'), ['status' => 'semua'])) }}"
-               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $currentTab === 'semua' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
-                Semua
+        <!-- Role Filter Tabs (Di Luar Tabel, Sesuai Standar Sistem) -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-none">
+            <!-- Tab Semua Peran -->
+            <a href="{{ route('admin.appeals.index', array_merge(request()->except('role', 'page'), ['role' => ''])) }}"
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ !request('role') ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+                Semua Peran
             </a>
 
-            <!-- Tab Menunggu -->
-            <a href="{{ route('admin.appeals.index', array_merge(request()->except('status', 'page'), ['status' => 'menunggu'])) }}"
-               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-2 {{ $currentTab === 'menunggu' ? 'bg-amber-500 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
-                <span class="w-2 h-2 rounded-full {{ $currentTab === 'menunggu' ? 'bg-white' : 'bg-amber-500' }}"></span>
-                <span>Menunggu Tinjauan</span>
+            <!-- Tab Pelanggan -->
+            <a href="{{ route('admin.appeals.index', array_merge(request()->except('role', 'page'), ['role' => 'pelanggan'])) }}"
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ request('role') === 'pelanggan' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+                Pelanggan
             </a>
 
-            <!-- Tab Disetujui -->
-            <a href="{{ route('admin.appeals.index', array_merge(request()->except('status', 'page'), ['status' => 'disetujui'])) }}"
-               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $currentTab === 'disetujui' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
-                Disetujui
-            </a>
-
-            <!-- Tab Ditolak -->
-            <a href="{{ route('admin.appeals.index', array_merge(request()->except('status', 'page'), ['status' => 'ditolak'])) }}"
-               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $currentTab === 'ditolak' ? 'bg-rose-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
-                Ditolak
+            <!-- Tab Mitra -->
+            <a href="{{ route('admin.appeals.index', array_merge(request()->except('role', 'page'), ['role' => 'mitra'])) }}"
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ request('role') === 'mitra' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+                Mitra
             </a>
         </div>
 
@@ -105,7 +94,9 @@
 
                 <!-- Filters & Search Form -->
                 <form method="GET" action="{{ route('admin.appeals.index') }}" class="flex flex-wrap items-center gap-3">
-                    <input type="hidden" name="status" value="{{ $currentTab }}">
+                    @if (request('role'))
+                        <input type="hidden" name="role" value="{{ request('role') }}">
+                    @endif
 
                     <!-- 1. Search Input -->
                     <div class="relative w-56 sm:w-64">
@@ -137,20 +128,21 @@
                         </div>
                     @endif
 
-                    <!-- 3. Peran Filter -->
+                    <!-- 3. Status Banding Filter Dropdown -->
                     <div class="flex items-center space-x-1.5 shrink-0">
-                        <label for="role_filter" class="text-xs font-semibold text-slate-600 shrink-0">Peran:</label>
-                        <select id="role_filter" name="role" onchange="this.form.submit()"
+                        <label for="status_filter" class="text-xs font-semibold text-slate-600 shrink-0">Status:</label>
+                        <select id="status_filter" name="status" onchange="this.form.submit()"
                                 class="text-xs font-semibold border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-xs py-2 pl-3.5 pr-8 cursor-pointer">
-                            <option value="">Semua Peran</option>
-                            <option value="mitra" {{ request('role') === 'mitra' ? 'selected' : '' }}>Mitra</option>
-                            <option value="pelanggan" {{ request('role') === 'pelanggan' ? 'selected' : '' }}>Pelanggan</option>
+                            <option value="semua" {{ $currentTab === 'semua' ? 'selected' : '' }}>Semua Status</option>
+                            <option value="menunggu" {{ $currentTab === 'menunggu' ? 'selected' : '' }}>Menunggu Tinjauan</option>
+                            <option value="disetujui" {{ $currentTab === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
+                            <option value="ditolak" {{ $currentTab === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
                         </select>
                     </div>
 
                     <!-- 4. Reset Button -->
-                    @if (request('search') || request('role') || request('region_id'))
-                        <a href="{{ route('admin.appeals.index', ['status' => $currentTab]) }}" 
+                    @if (request('search') || request('role') || request('region_id') || ($currentTab !== 'semua' && request('status')))
+                        <a href="{{ route('admin.appeals.index', request('role') ? ['role' => request('role')] : []) }}" 
                            title="Reset Filter"
                            class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
