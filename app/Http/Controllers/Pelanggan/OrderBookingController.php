@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Pelanggan;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Http\Controllers\Controller;
+use App\Models\Bank;
 use App\Models\Order;
 use App\Models\OrderRating;
 use App\Models\OrderStatusHistory;
@@ -291,9 +292,13 @@ class OrderBookingController extends Controller
 
         $maxScheduleDate = $nowInRegion->copy()->addDays(7);
         $todayDate = $nowInRegion->format('Y-m-d');
+        $wallet = $user->getOrCreateWallet();
+        $activeBanks = Bank::bank()->active()->orderBy('sort_order')->orderBy('name')->get();
 
         return view('pelanggan.orders.create', compact(
             'user',
+            'wallet',
+            'activeBanks',
             'package',
             'siblingPackages',
             'addresses',
@@ -327,6 +332,7 @@ class OrderBookingController extends Controller
             'scheduled_time' => ['nullable', 'date_format:H:i'],
             'medical_notes' => ['nullable', 'string', 'max:1000'],
             'risk_agreement' => ['required', 'accepted'],
+            'payment_method' => ['nullable', 'string', 'max:50'],
         ], [
             'risk_agreement.accepted' => 'Anda wajib menyetujui syarat & ketentuan risiko layanan sebelum memesan.',
             'risk_agreement.required' => 'Anda wajib menyetujui syarat & ketentuan risiko layanan sebelum memesan.',
@@ -335,16 +341,12 @@ class OrderBookingController extends Controller
         try {
             $order = $this->bookingService->createOrder($request->user(), $validated);
 
-            // CUS-09 (Opsi 1): Jika saldo kurang (status MenungguPembayaran), langsung arahkan ke invoice tagihan Xendit / QRIS
+            // CUS-09 (In-App Payment): Jika saldo kurang (status MenungguPembayaran), langsung arahkan ke invoice in-app
             if ($order->status === OrderStatus::MenungguPembayaran) {
                 $pendingInvoice = $order->latestPendingTopupInvoice();
                 if ($pendingInvoice) {
-                    if (! empty($pendingInvoice->payment_url)) {
-                        return redirect()->away($pendingInvoice->payment_url);
-                    }
-
                     return redirect()->route('pelanggan.wallet.invoice', $pendingInvoice->invoice_number)
-                        ->with('status', 'Pesanan berhasil dibuat! Silakan selesaikan pembayaran tagihan via QRIS / Xendit dalam 15 menit.');
+                        ->with('status', 'Pesanan berhasil dibuat! Silakan selesaikan pembayaran tagihan via QRIS / Virtual Account dalam 15 menit.');
                 }
             }
 

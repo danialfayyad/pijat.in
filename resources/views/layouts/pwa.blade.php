@@ -670,15 +670,15 @@
                 triggerAlert(notif) {
                     this.playChime();
 
-                    // Native Browser / Desktop Notification Toast (if allowed)
+                    // 1. Native OS / Desktop Notification (Windows & Android) with High-Res Icon
                     if ('Notification' in window && Notification.permission === 'granted') {
                         try {
                             if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
                                 navigator.serviceWorker.ready.then((reg) => {
                                     reg.showNotification(notif.title || 'Pijat.In', {
                                         body: notif.body || 'Pemberitahuan baru diterima.',
-                                        icon: '/favicon.ico',
-                                        badge: '/favicon.ico',
+                                        icon: '/icons/icon-192x192.png',
+                                        badge: '/icons/badge-72x72.png',
                                         tag: 'pijatin_notif_' + notif.id,
                                         renotify: true,
                                         data: { action_url: notif.action_url || '/' }
@@ -687,7 +687,7 @@
                             } else {
                                 const n = new Notification(notif.title || 'Pijat.In', {
                                     body: notif.body || 'Pemberitahuan baru diterima.',
-                                    icon: '/favicon.ico'
+                                    icon: '/icons/icon-192x192.png'
                                 });
                                 n.onclick = () => {
                                     window.focus();
@@ -699,26 +699,10 @@
                         }
                     }
 
-                    // In-App Toast Alert via SweetAlert2
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: notif.priority === 'high' ? 'warning' : 'info',
-                            title: notif.title,
-                            text: notif.body,
-                            showConfirmButton: false,
-                            timer: 5000,
-                            timerProgressBar: true,
-                            didOpen: (toast) => {
-                                toast.style.cursor = 'pointer';
-                                toast.addEventListener('click', () => {
-                                    if (notif.action_url) window.location.href = notif.action_url;
-                                });
-                            }
-                        });
-                    }
+                    // 2. Modern In-App Floating Notification Banner (Replacing legacy SweetAlert2 toast)
+                    window.dispatchEvent(new CustomEvent('pwa-toast-notification', { detail: notif }));
 
+                    // 3. Dispatch generic event for listeners
                     window.dispatchEvent(new CustomEvent('pwa-new-notification', { detail: notif }));
                 },
 
@@ -753,6 +737,70 @@
 
             window.PwaLiveNotifications.start();
         </script>
+
+        <!-- MODERN IN-APP FLOATING NOTIFICATION BANNER (PWA TOAST) -->
+        <div x-data="{
+                show: false,
+                notif: { title: '', body: '', action_url: '' },
+                timeout: null,
+                trigger(detail) {
+                    this.notif = detail;
+                    this.show = true;
+                    if (this.timeout) clearTimeout(this.timeout);
+                    this.timeout = setTimeout(() => { this.show = false; }, 6500);
+                },
+                close() {
+                    this.show = false;
+                    if (this.timeout) clearTimeout(this.timeout);
+                },
+                openAction() {
+                    if (this.notif.action_url) {
+                        window.location.href = this.notif.action_url;
+                    }
+                }
+             }"
+             @pwa-toast-notification.window="trigger($event.detail)"
+             class="fixed top-3 inset-x-0 max-w-md mx-auto px-3.5 z-[99999] pointer-events-none"
+             style="display: none;"
+             x-show="show"
+             x-transition:enter="transform transition ease-out duration-300"
+             x-transition:enter-start="-translate-y-10 opacity-0 scale-95"
+             x-transition:enter-end="translate-y-0 opacity-100 scale-100"
+             x-transition:leave="transform transition ease-in duration-200"
+             x-transition:leave-start="translate-y-0 opacity-100 scale-100"
+             x-transition:leave-end="-translate-y-8 opacity-0 scale-95">
+
+            <div @click="openAction()"
+                 class="pointer-events-auto bg-white/95 backdrop-blur-md rounded-2xl p-3 border border-slate-200/90 shadow-xl flex items-start space-x-3 cursor-pointer hover:bg-white transition active:scale-[0.98]">
+                <!-- Icon Hijau Emerald -->
+                <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                </div>
+
+                <!-- Konten Notifikasi -->
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">Pijat.In</span>
+                        <span class="text-[10px] text-slate-400 font-medium">Baru saja</span>
+                    </div>
+                    <h4 class="text-xs font-bold text-slate-900 leading-snug truncate mt-0.5" x-text="notif.title"></h4>
+                    <p class="text-[11px] text-slate-600 line-clamp-2 mt-0.5 leading-relaxed" x-text="notif.body"></p>
+                </div>
+
+                <!-- Tombol Tutup -->
+                <button type="button" 
+                        @click.stop="close()"
+                        class="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition shrink-0 cursor-pointer"
+                        aria-label="Tutup notifikasi">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
         <x-notification-drawer />
     @endauth
 </body>

@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             ComplaintSeeder::class,
             PenaltySeeder::class,
             PartnerVerificationDummySeeder::class,
+            BankSeeder::class,
             ParameterSeeder::class,
             LegalDocumentSeeder::class,
             FinanceSeeder::class,

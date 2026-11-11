@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pelanggan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Bank;
 use App\Models\Parameter;
 use App\Models\TopupInvoice;
 use App\Models\WithdrawalRequest;
@@ -67,11 +68,6 @@ class WalletController extends Controller
                 amount: (float) $validated['amount'],
                 paymentMethod: $validated['payment_method'] ?? 'XENDIT'
             );
-
-            // Redirect directly to Xendit Hosted Checkout if available
-            if (! empty($invoice->payment_url)) {
-                return redirect()->away($invoice->payment_url);
-            }
 
             return redirect()->route('pelanggan.wallet.invoice', $invoice->invoice_number)
                 ->with('status', 'Tagihan isi saldo berhasil dibuat. Silakan selesaikan pembayaran sebelum batas waktu.');
@@ -205,7 +201,11 @@ class WalletController extends Controller
         $fee = (float) Parameter::get('withdrawal_fee_amount', 0);
 
         $validated = $request->validate([
-            'bank_name' => ['required', 'string', 'max:100'],
+            'bank_name' => ['required', 'string', 'max:100', function ($attribute, $value, $fail) {
+                if (! Bank::isAllowed($value)) {
+                    $fail('Bank yang dipilih tidak tersedia atau tidak diizinkan oleh sistem.');
+                }
+            }],
             'account_number' => ['required', 'string', 'max:50'],
             'account_holder_name' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', "min:{$minAmount}", "max:{$maxAmount}"],

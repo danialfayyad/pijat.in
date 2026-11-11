@@ -37,6 +37,13 @@ class BankController extends Controller
             }
         }
 
+        if ($request->filled('category')) {
+            $category = $request->input('category');
+            if (in_array($category, ['bank', 'ewallet', 'qris'])) {
+                $query->where('category', $category);
+            }
+        }
+
         $banks = $query->orderBy('sort_order', 'asc')
             ->orderBy('name', 'asc')
             ->paginate(10)
@@ -62,6 +69,7 @@ class BankController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'code' => ['required', 'string', 'max:50', 'alpha_dash', 'unique:banks,code'],
+            'category' => ['nullable', 'string', 'in:bank,ewallet,qris'],
             'account_number' => ['nullable', 'string', 'max:50'],
             'account_holder_name' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string', 'max:500'],
@@ -80,6 +88,7 @@ class BankController extends Controller
         Bank::create([
             'name' => $name,
             'code' => $code,
+            'category' => $validated['category'] ?? 'bank',
             'account_number' => ! empty($validated['account_number']) ? trim($validated['account_number']) : null,
             'account_holder_name' => ! empty($validated['account_holder_name']) ? trim($validated['account_holder_name']) : null,
             'notes' => ! empty($validated['notes']) ? trim($validated['notes']) : null,
@@ -88,7 +97,7 @@ class BankController extends Controller
         ]);
 
         return redirect()->route('superadmin.banks.index')
-            ->with('status', "Bank '{$name}' ({$code}) berhasil ditambahkan ke daftar saluran pencairan.");
+            ->with('status', "Saluran '{$name}' ({$code}) berhasil ditambahkan ke daftar pembayaran.");
     }
 
     /**
@@ -99,6 +108,7 @@ class BankController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'code' => ['required', 'string', 'max:50', 'alpha_dash', Rule::unique('banks', 'code')->ignore($bank->id)],
+            'category' => ['nullable', 'string', 'in:bank,ewallet,qris'],
             'account_number' => ['nullable', 'string', 'max:50'],
             'account_holder_name' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string', 'max:500'],
@@ -117,6 +127,7 @@ class BankController extends Controller
         $bank->update([
             'name' => $name,
             'code' => $code,
+            'category' => $validated['category'] ?? $bank->category ?? 'bank',
             'account_number' => ! empty($validated['account_number']) ? trim($validated['account_number']) : null,
             'account_holder_name' => ! empty($validated['account_holder_name']) ? trim($validated['account_holder_name']) : null,
             'notes' => ! empty($validated['notes']) ? trim($validated['notes']) : null,
@@ -125,7 +136,7 @@ class BankController extends Controller
         ]);
 
         return redirect()->route('superadmin.banks.index')
-            ->with('status', "Data bank '{$name}' ({$code}) berhasil diperbarui.");
+            ->with('status', "Data saluran '{$name}' ({$code}) berhasil diperbarui.");
     }
 
     /**

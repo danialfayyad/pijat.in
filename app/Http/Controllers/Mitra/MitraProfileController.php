@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Mitra;
 
 use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Bank;
 use App\Models\PartnerServicePreference;
 use App\Models\Region;
 use App\Models\Service;
@@ -77,7 +78,11 @@ class MitraProfileController extends Controller
     public function updateBank(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'bank_name' => ['required', 'string', 'max:100'],
+            'bank_name' => ['required', 'string', 'max:100', function ($attribute, $value, $fail) {
+                if (! Bank::isAllowed($value)) {
+                    $fail('Bank yang dipilih tidak tersedia atau tidak diizinkan oleh sistem.');
+                }
+            }],
             'account_number' => ['required', 'string', 'max:50'],
             'account_holder_name' => ['required', 'string', 'max:150'],
         ]);
