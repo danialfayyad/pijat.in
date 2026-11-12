@@ -116,7 +116,7 @@
                         </a>
 
                         <a href="{{ route('profile.delete') }}" class="min-h-[48px] px-4 py-3 sm:py-3.5 flex items-center justify-between hover:bg-rose-50/50 transition group cursor-pointer">
-                            <span class="text-xs sm:text-[13px] font-bold text-slate-800 group-hover:text-rose-600 transition">Hapus Akun</span>
+                            <span class="text-xs sm:text-[13px] font-bold text-slate-800 group-hover:text-rose-600 transition">Ajukan Penghapusan Akun</span>
                             <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-500 shrink-0 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </a>
                     </div>

@@ -1,5 +1,5 @@
-<x-pwa-layout title="Tagihan Pembayaran - Pijat.In" :hideHeader="true">
-    <div class="-mx-4 -mt-3 -mb-8 flex flex-col min-h-screen"
+<x-pwa-layout title="Tagihan Pembayaran - Pijat.In" :hideHeader="true" :fullBleed="true">
+    <div class="flex-1 flex flex-col h-full min-h-0 overflow-hidden bg-white"
          x-data="{
             expiresAt: new Date('{{ $invoice->expires_at->toIso8601String() }}').getTime(),
             timeLeft: '',
@@ -52,46 +52,48 @@
             }
         </style>
 
-        <!-- 1. TOP BAR NAVIGASI MENGAMBANG DI ATAS HERO -->
-        <div class="fixed top-0 left-0 right-0 max-w-md mx-auto z-20 px-5 pt-4 pb-2 flex items-center justify-between pointer-events-none">
-            <a href="{{ $invoice->order ? route('pelanggan.orders.show', $invoice->order) : route('pelanggan.wallet.index') }}" 
-               class="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/25 active:scale-95 transition cursor-pointer pointer-events-auto shadow-sm"
-               title="Kembali"
-               aria-label="Kembali">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                </svg>
-            </a>
-
-            <span class="text-xs font-black text-white uppercase tracking-widest drop-shadow-xs">
-                @if ($invoice->isPaid())
-                    Status Pembayaran
-                @elseif ($invoice->isExpired())
-                    Tagihan Kedaluwarsa
-                @else
-                    Tagihan Pembayaran
-                @endif
-            </span>
-
-            <a href="{{ route('pelanggan.help.index') }}" 
-               class="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/25 active:scale-95 transition cursor-pointer pointer-events-auto shadow-sm"
-               title="Pusat Bantuan"
-               aria-label="Pusat Bantuan">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </a>
-        </div>
-
-        <!-- 2. FIXED GREEN HERO CONTAINER (EMERALD LIVIN' STYLE) -->
-        <div class="fixed inset-0 max-w-md mx-auto z-0 bg-gradient-to-b from-[#059669] via-[#047857] to-[#064e3b] text-white pt-28 pb-8 px-5 overflow-hidden">
+        <!-- 1. GREEN HERO HEADER (NON-FIXED) -->
+        <div class="relative bg-gradient-to-b from-[#059669] via-[#047857] to-[#064e3b] text-white px-5 pt-4 pb-10 overflow-hidden shrink-0">
             <!-- Fluid Wave Kurva Ombak Background -->
             <div class="absolute inset-0 pointer-events-none opacity-20">
-                <svg class="w-full h-full" viewBox="0 0 400 600" fill="none" preserveAspectRatio="none">
-                    <path d="M-20 60 C80 120 180 0 300 80 C360 120 420 100 450 140 L450 600 L-20 600 Z" fill="white" opacity="0.3"/>
-                    <path d="M-20 120 C100 200 220 80 340 180 C380 210 420 190 450 220 L450 600 L-20 600 Z" fill="white" opacity="0.4"/>
+                <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" preserveAspectRatio="none">
+                    <path d="M-20 40 C80 100 180 0 300 60 C360 90 420 70 450 110 L450 400 L-20 400 Z" fill="white" opacity="0.3"/>
+                    <path d="M-20 100 C100 170 220 60 340 150 C380 180 420 160 450 190 L450 400 L-20 400 Z" fill="white" opacity="0.4"/>
                 </svg>
             </div>
+
+            <!-- Top Bar Navigasi -->
+            <div class="relative z-10 flex items-center justify-between">
+                <a href="{{ $invoice->order ? route('pelanggan.orders.show', $invoice->order) : route('pelanggan.wallet.index') }}" 
+                   class="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/25 active:scale-95 transition cursor-pointer shadow-sm"
+                   title="Kembali"
+                   aria-label="Kembali">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </a>
+
+                <span class="text-xs font-bold text-white uppercase tracking-widest drop-shadow-xs">
+                    @if ($invoice->isPaid())
+                        Status Pembayaran
+                    @elseif ($invoice->isExpired())
+                        Tagihan Kedaluwarsa
+                    @else
+                        Tagihan Pembayaran
+                    @endif
+                </span>
+
+                <a href="{{ route('pelanggan.help.index') }}" 
+                   class="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/25 active:scale-95 transition cursor-pointer shadow-sm"
+                   title="Pusat Bantuan"
+                   aria-label="Pusat Bantuan">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </a>
+            </div>
+
+            <div class="pt-5">
 
             @if ($invoice->isPaid())
                 <!-- STATE: SUDAH BAYAR / LUNAS DENGAN ANIMASI CENTANG -->
@@ -186,13 +188,11 @@
                     </p>
                 </div>
             @endif
+            </div>
         </div>
 
-        <!-- Spacer Tinggi Hero (Tepat dan rapi agar jarak ke container putih proporsional) -->
-        <div class="{{ $invoice->isPaid() ? 'h-[385px]' : 'h-[275px]' }} shrink-0 pointer-events-none"></div>
-
-        <!-- 3. OVERLAPPING WHITE BOTTOM SHEET (LEMBAR STRUK & AKSI PEMBAYARAN) -->
-        <div class="relative z-10 bg-white rounded-t-[32px] px-5 pt-4 pb-12 shadow-2xl flex-1 flex flex-col justify-between space-y-4 min-h-[calc(100vh-{{ $invoice->isPaid() ? '385px' : '275px' }})]">
+        <!-- 2. FIXED WHITE CONTENT AREA (TIDAK SLIDE OVER HERO) -->
+        <div class="relative z-10 -mt-5 bg-white rounded-t-3xl px-5 pt-5 pb-6 flex-1 min-h-0 overflow-y-auto flex flex-col justify-between space-y-4">
 
             <!-- Status Alert Messages -->
             @if (session('status'))

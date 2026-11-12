@@ -52,6 +52,8 @@ Route::middleware(['auth', 'role:admin,superadmin', 'admin.region'])->prefix('ad
     Route::get('/users/partners/{user}', [UserManagementController::class, 'showPartner'])->name('users.partners.show');
     Route::get('/users/customers/{user}', [UserManagementController::class, 'showCustomer'])->name('users.customers.show');
     Route::post('/users/{user}/status', [UserManagementController::class, 'updateStatus'])->name('users.update-status');
+    Route::post('/users/deletion-requests/{deletionRequest}/approve', [UserManagementController::class, 'approveDeletionRequest'])->name('users.deletion-requests.approve');
+    Route::post('/users/deletion-requests/{deletionRequest}/reject', [UserManagementController::class, 'rejectDeletionRequest'])->name('users.deletion-requests.reject');
 
     // Regional Finance & Withdrawal Management (ADM-11)
     Route::get('/finance', [AdminFinanceController::class, 'index'])->name('finance.index');

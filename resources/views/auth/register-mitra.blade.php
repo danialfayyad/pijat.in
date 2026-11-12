@@ -1,78 +1,167 @@
 <x-guest-layout>
-    <div class="mb-4 text-center">
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
-            Pendaftaran Mitra Terapis
-        </span>
-        <h2 class="text-xl font-bold text-slate-900 mt-2">Bergabung Bersama Pijat.In</h2>
-        <p class="text-xs text-slate-500 mt-0.5">Daftarkan data dasar Anda untuk memulai proses kemitraan.</p>
-    </div>
-
-    <form class="register-form" method="POST" action="{{ route('mitra.register') }}" x-data="{ showPassword: false, showConfirmation: false }">
+    <form method="POST" action="{{ route('mitra.register') }}" x-data="{ showPassword: false, showConfirmation: false }" class="space-y-5 sm:space-y-6">
         @csrf
 
-        <div class="register-field-group register-name-group">
-            <label class="register-label" for="name">Nama Lengkap Sesuai KTP<span>*</span></label>
-            <input class="register-input" id="name" name="name" type="text" value="{{ old('name') }}" required autofocus autocomplete="name" placeholder="Contoh: Budi Santoso">
-            <x-input-error :messages="$errors->get('name')" class="register-error" />
+        <!-- Nama Lengkap KTP -->
+        <div>
+            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-2" for="name">
+                Nama Lengkap Sesuai KTP <span class="text-rose-500">*</span>
+            </label>
+            <input id="name" 
+                   type="text" 
+                   name="name" 
+                   value="{{ old('name') }}" 
+                   required 
+                   autofocus 
+                   autocomplete="name"
+                   placeholder="Contoh: Budi Santoso"
+                   class="w-full h-12 px-4 rounded-xl border border-slate-300 text-sm sm:text-base text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition bg-white @error('name') border-rose-400 focus:ring-rose-500 @enderror">
+            @error('name')
+                <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
+            @enderror
         </div>
 
-        <fieldset class="register-gender-group">
-            <legend class="register-label">Jenis Kelamin<span>*</span></legend>
-            <div class="register-gender-options">
-                <label><input name="gender" type="radio" value="laki-laki" @checked(old('gender') === 'laki-laki') required><span>Laki-laki</span></label>
-                <label><input name="gender" type="radio" value="perempuan" @checked(old('gender') === 'perempuan') required><span>Perempuan</span></label>
+        <!-- Jenis Kelamin -->
+        <div>
+            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-2">
+                Jenis Kelamin <span class="text-rose-500">*</span>
+            </label>
+            <div class="grid grid-cols-2 gap-3">
+                <label class="flex items-center justify-center gap-2.5 p-3 rounded-xl border border-slate-300 cursor-pointer transition hover:bg-slate-50 has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/50 has-[:checked]:text-emerald-900">
+                    <input type="radio" name="gender" value="laki-laki" @checked(old('gender') === 'laki-laki') required class="text-emerald-600 focus:ring-emerald-500 w-4 h-4 border-slate-300">
+                    <span class="text-xs sm:text-sm font-medium">Laki-laki</span>
+                </label>
+                <label class="flex items-center justify-center gap-2.5 p-3 rounded-xl border border-slate-300 cursor-pointer transition hover:bg-slate-50 has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/50 has-[:checked]:text-emerald-900">
+                    <input type="radio" name="gender" value="perempuan" @checked(old('gender') === 'perempuan') required class="text-emerald-600 focus:ring-emerald-500 w-4 h-4 border-slate-300">
+                    <span class="text-xs sm:text-sm font-medium">Perempuan</span>
+                </label>
             </div>
-            <x-input-error :messages="$errors->get('gender')" class="register-error" />
-        </fieldset>
-
-        <div class="register-field-group">
-            <label class="register-label" for="email">Email Aktif<span>*</span></label>
-            <input class="register-input" id="email" name="email" type="email" value="{{ old('email') }}" required autocomplete="email" placeholder="nama@email.com">
-            <x-input-error :messages="$errors->get('email')" class="register-error" />
+            @error('gender')
+                <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
+            @enderror
         </div>
 
-        <div class="register-field-group">
-            <label class="register-label" for="phone">Nomor WhatsApp / HP<span>*</span></label>
-            <input class="register-input" id="phone" name="phone" type="tel" inputmode="tel" value="{{ old('phone') }}" required autocomplete="tel" placeholder="08xxxxxxxxxx">
-            <x-input-error :messages="$errors->get('phone')" class="register-error" />
+        <!-- Email -->
+        <div>
+            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-2" for="email">
+                Email Aktif <span class="text-rose-500">*</span>
+            </label>
+            <input id="email" 
+                   type="email" 
+                   name="email" 
+                   value="{{ old('email') }}" 
+                   required 
+                   autocomplete="email"
+                   placeholder="nama@email.com"
+                   class="w-full h-12 px-4 rounded-xl border border-slate-300 text-sm sm:text-base text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition bg-white @error('email') border-rose-400 focus:ring-rose-500 @enderror">
+            @error('email')
+                <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
+            @enderror
         </div>
 
-        <div class="register-field-group">
-            <label class="register-label" for="password">Kata Sandi<span>*</span></label>
-            <div class="register-password-wrap">
-                <input class="register-input" id="password" name="password" type="password" required autocomplete="new-password" x-bind:type="showPassword ? 'text' : 'password'">
-                <button class="register-password-toggle" type="button" x-on:click="showPassword = ! showPassword" x-bind:aria-label="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'">
-                    <svg x-show="! showPassword" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.8 10.8 0 0 1 12 5c5.2 0 8.7 4.2 9.5 6-.3.8-1.2 2.1-2.7 3.4M6.2 6.2C3.9 7.5 2.8 9.7 2.5 11c.8 1.8 4.3 6 9.5 6 1 0 1.9-.2 2.7-.5" /></svg>
-                    <svg x-show="showPassword" x-cloak viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+        <!-- Nomor Telepon / HP -->
+        <div>
+            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-2" for="phone">
+                Nomor WhatsApp / HP <span class="text-rose-500">*</span>
+            </label>
+            <input id="phone" 
+                   type="tel" 
+                   inputmode="tel" 
+                   name="phone" 
+                   value="{{ old('phone') }}" 
+                   required 
+                   autocomplete="tel"
+                   placeholder="081234567890"
+                   class="w-full h-12 px-4 rounded-xl border border-slate-300 text-sm sm:text-base text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition bg-white @error('phone') border-rose-400 focus:ring-rose-500 @enderror">
+            @error('phone')
+                <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <!-- Kata Sandi -->
+        <div>
+            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-2" for="password">
+                Kata Sandi <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative">
+                <input id="password" 
+                       name="password" 
+                       type="password" 
+                       required 
+                       autocomplete="new-password" 
+                       placeholder="Minimal 8 karakter"
+                       x-bind:type="showPassword ? 'text' : 'password'"
+                       class="w-full h-12 pl-4 pr-12 rounded-xl border border-slate-300 text-sm sm:text-base text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition bg-white @error('password') border-rose-400 focus:ring-rose-500 @enderror">
+                <button type="button" 
+                        @click="showPassword = !showPassword" 
+                        :aria-label="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
+                        class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition">
+                    <svg x-show="!showPassword" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <svg x-show="showPassword" x-cloak class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                    </svg>
                 </button>
             </div>
-            <x-input-error :messages="$errors->get('password')" class="register-error" />
+            @error('password')
+                <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
+            @enderror
         </div>
 
-        <div class="register-field-group register-confirm-group">
-            <label class="register-label" for="password_confirmation">Konfirmasi Kata Sandi<span>*</span></label>
-            <div class="register-password-wrap">
-                <input class="register-input" id="password_confirmation" name="password_confirmation" type="password" required autocomplete="new-password" x-bind:type="showConfirmation ? 'text' : 'password'">
-                <button class="register-password-toggle" type="button" x-on:click="showConfirmation = ! showConfirmation" x-bind:aria-label="showConfirmation ? 'Sembunyikan konfirmasi kata sandi' : 'Tampilkan konfirmasi kata sandi'">
-                    <svg x-show="! showConfirmation" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.8 10.8 0 0 1 12 5c5.2 0 8.7 4.2 9.5 6-.3.8-1.2 2.1-2.7 3.4M6.2 6.2C3.9 7.5 2.8 9.7 2.5 11c.8 1.8 4.3 6 9.5 6 1 0 1.9-.2 2.7-.5" /></svg>
-                    <svg x-show="showConfirmation" x-cloak viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+        <!-- Konfirmasi Kata Sandi -->
+        <div>
+            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-2" for="password_confirmation">
+                Konfirmasi Kata Sandi <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative">
+                <input id="password_confirmation" 
+                       name="password_confirmation" 
+                       type="password" 
+                       required 
+                       autocomplete="new-password" 
+                       placeholder="Ulangi kata sandi"
+                       x-bind:type="showConfirmation ? 'text' : 'password'"
+                       class="w-full h-12 pl-4 pr-12 rounded-xl border border-slate-300 text-sm sm:text-base text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition bg-white @error('password_confirmation') border-rose-400 focus:ring-rose-500 @enderror">
+                <button type="button" 
+                        @click="showConfirmation = !showConfirmation" 
+                        :aria-label="showConfirmation ? 'Sembunyikan konfirmasi kata sandi' : 'Tampilkan konfirmasi kata sandi'"
+                        class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition">
+                    <svg x-show="!showConfirmation" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <svg x-show="showConfirmation" x-cloak class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                    </svg>
                 </button>
             </div>
-            <x-input-error :messages="$errors->get('password_confirmation')" class="register-error" />
+            @error('password_confirmation')
+                <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
+            @enderror
         </div>
 
-        <div class="register-submit-wrap mt-6">
-            <button class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center space-x-2" type="submit">
-                <span>Daftar Sebagai Mitra</span>
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                </svg>
-            </button>
-        </div>
-
-        <div class="text-center mt-4 text-xs text-slate-500">
-            Sudah punya akun mitra? 
-            <a href="{{ route('login') }}" class="font-bold text-emerald-600 hover:underline">Masuk di sini</a>
-        </div>
+        <!-- Submit Button -->
+        <button type="submit" 
+                class="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold text-sm sm:text-base shadow-xs transition cursor-pointer flex items-center justify-center">
+            Daftar Sebagai Mitra
+        </button>
     </form>
+
+    <!-- Sign-in Link -->
+    <div class="mt-8 pt-6 border-t border-slate-100 space-y-2 text-center text-xs sm:text-sm text-slate-600">
+        <div>
+            Sudah punya akun mitra? 
+            <a href="{{ route('login') }}" class="font-semibold text-emerald-700 hover:text-emerald-800 hover:underline transition ml-1">
+                Masuk di sini
+            </a>
+        </div>
+        <div>
+            Ingin memesan layanan pijat? 
+            <a href="{{ route('register') }}" class="font-semibold text-emerald-700 hover:text-emerald-800 hover:underline transition ml-1">
+                Daftar Pelanggan
+            </a>
+        </div>
+    </div>
 </x-guest-layout>

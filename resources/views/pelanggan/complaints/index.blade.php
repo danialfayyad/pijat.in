@@ -1,54 +1,74 @@
 <x-pwa-layout title="Riwayat Aduan Layanan - Pijat.In" headerTitle="Aduan Saya" :backUrl="route('pelanggan.dashboard')">
-    <div class="py-2 space-y-4">
-        <div class="flex items-center justify-between">
-            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Daftar Tiket Aduan</h2>
-            <span class="text-xs font-bold text-emerald-800">{{ $complaints->total() }} Tiket</span>
+    @php
+        $currentStatus = $status ?? 'semua';
+        $tabs = [
+            ['key' => 'semua', 'label' => 'Semua'],
+            ['key' => 'menunggu', 'label' => 'Aduan Baru'],
+            ['key' => 'diproses', 'label' => 'Diproses'],
+            ['key' => 'selesai', 'label' => 'Selesai'],
+            ['key' => 'ditolak', 'label' => 'Ditolak'],
+        ];
+    @endphp
+
+    <div class="py-1 space-y-3">
+        <!-- Tab Filter Status -->
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            @foreach ($tabs as $tab)
+                @php
+                    $isActive = $currentStatus === $tab['key'];
+                    $url = $tab['key'] === 'semua'
+                        ? route('pelanggan.complaints.index')
+                        : route('pelanggan.complaints.index', ['status' => $tab['key']]);
+                @endphp
+                <a href="{{ $url }}"
+                   class="px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition shrink-0 {{ $isActive ? 'bg-[#064e3b] text-white shadow-xs' : 'bg-white text-slate-600 border border-slate-200/80 hover:border-emerald-300' }}">
+                    {{ $tab['label'] }}
+                </a>
+            @endforeach
         </div>
 
         @if ($complaints->isEmpty())
-            <div class="bg-white rounded-2xl p-8 border border-slate-200/90 shadow-xs text-center space-y-3">
-                <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                </div>
-                <div>
-                    <h3 class="text-sm font-extrabold text-slate-900">Belum Ada Aduan</h3>
-                    <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
-                        Anda belum pernah mengajukan aduan layanan. Jika mengalami kendala saat pesanan selesai, Anda dapat mengajukan aduan dalam 24 jam.
-                    </p>
-                </div>
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs text-center space-y-1.5">
+                <p class="text-sm font-semibold text-slate-900">Belum ada aduan</p>
+                <p class="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+                    {{ $currentStatus === 'semua' ? 'Aduan yang Anda kirim dari pesanan selesai akan muncul di sini.' : 'Belum ada aduan dengan status ini.' }}
+                </p>
             </div>
         @else
-            <div class="space-y-3">
-                @foreach ($complaints as $c)
-                    <a href="{{ route('pelanggan.complaints.show', $c) }}" 
-                       class="block bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs hover:border-emerald-300 transition space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-extrabold text-slate-900 font-mono">{{ $c->complaint_code }}</span>
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold {{ $c->status->badgeClasses() }}">
-                                {{ $c->status->label() }}
-                            </span>
-                        </div>
+            @foreach ($complaints as $c)
+                @php
+                    $statusTextClass = match ($c->status) {
+                        \App\Enums\ComplaintStatus::Menunggu => 'text-amber-700',
+                        \App\Enums\ComplaintStatus::Diproses => 'text-sky-700',
+                        \App\Enums\ComplaintStatus::Selesai => 'text-emerald-700',
+                        \App\Enums\ComplaintStatus::Ditolak => 'text-slate-500',
+                    };
+                @endphp
+                <a href="{{ route('pelanggan.complaints.show', $c) }}"
+                   class="w-full h-[116px] flex flex-col justify-between bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:border-emerald-300 transition">
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="text-xs font-medium text-slate-500 truncate">{{ $c->category_label }}</span>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold shrink-0 {{ $statusTextClass }}">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $c->status->dotClass() }}"></span>
+                            <span>{{ $c->status->label() }}</span>
+                        </span>
+                    </div>
 
-                        <div>
-                            <h4 class="text-xs font-bold text-slate-900 line-clamp-1">{{ $c->title }}</h4>
-                            <p class="text-[11px] text-slate-500 mt-0.5">Pesanan: {{ $c->order?->order_code ?? '-' }} • {{ $c->created_at->diffForHumans() }}</p>
-                        </div>
+                    <h3 class="text-sm font-semibold text-slate-900 leading-snug line-clamp-2">
+                        {{ $c->title }}
+                    </h3>
 
-                        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                            <span class="text-slate-400 font-medium">{{ $c->category_label }}</span>
-                            <span class="font-bold text-emerald-700 flex items-center space-x-0.5">
-                                <span>Rincian</span>
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                            </span>
-                        </div>
-                    </a>
-                @endforeach
+                    <p class="text-[11px] text-slate-400">
+                        {{ $c->created_at->translatedFormat('d M Y, H:i') }}
+                    </p>
+                </a>
+            @endforeach
 
-                <div class="pt-2">
+            @if ($complaints->hasPages())
+                <div class="pt-1">
                     {{ $complaints->links() }}
                 </div>
-            </div>
+            @endif
         @endif
     </div>
 </x-pwa-layout>
-

@@ -45,7 +45,7 @@ test('customer can view active services and starting prices on dashboard', funct
 
     $response->assertOk()
         ->assertSee('Full Body Massage')
-        ->assertSee('Pijatan menyeluruh')
+        ->assertSee('60 / 90 / 120 Menit')
         ->assertSee('Refleksi Kaki')
         ->assertSee('Rp 100.000')
         ->assertSee('Rp 80.000')

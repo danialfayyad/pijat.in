@@ -1,4 +1,4 @@
-<x-pwa-layout title="Detail Tiket Aduan - Pijat.In" headerTitle="Status Aduan" :backUrl="route('pelanggan.complaints.index')">
+<x-pwa-layout title="Detail Tiket Aduan - Pijat.In" headerTitle="Status Aduan" :backUrl="request('from') === 'order' ? route('pelanggan.orders.show', $complaint->order_id) : route('pelanggan.complaints.index')">
     <div class="py-2 space-y-4">
         <!-- Status Card -->
         <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs space-y-3">

@@ -1,9 +1,9 @@
-<x-pwa-layout title="Isi Saldo - Pijat.In" :hideHeader="true">
+<x-pwa-layout title="Isi Saldo - Pijat.In" :hideHeader="true" :fullBleed="true">
     @php
         $wallet = $user->getOrCreateWallet();
     @endphp
 
-    <div class="-mx-4 -mt-3 -mb-8 flex flex-col min-h-screen"
+    <div class="flex-1 flex flex-col h-full min-h-0 overflow-hidden bg-white"
          x-data="{
             amount: {{ old('amount', 50000) }},
             presets: [50000, 100000, 200000, 500000],
@@ -15,59 +15,53 @@
             }
          }">
 
-        <!-- Fixed Top Bar Navigasi Mengambang -->
-        <div class="fixed top-0 left-0 right-0 max-w-md mx-auto z-20 px-5 pt-4 pb-2 flex items-center justify-between pointer-events-none">
-            <a href="{{ route('pelanggan.wallet.index') }}" 
-               class="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/25 active:scale-95 transition cursor-pointer pointer-events-auto"
-               title="Kembali ke Dompet"
-               aria-label="Kembali ke Dompet">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                </svg>
-            </a>
-
-            <span class="text-xs font-bold text-white uppercase tracking-widest drop-shadow-xs">
-                Isi Saldo Dompet
-            </span>
-
-            <a href="{{ route('pelanggan.help.index') }}" 
-               class="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/25 active:scale-95 transition cursor-pointer pointer-events-auto"
-               title="Bantuan Top-up"
-               aria-label="Pusat Bantuan">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </a>
-        </div>
-
-        <!-- 1. FIXED GREEN HERO CONTAINER (KONSISTEN DENGAN DOMPET LIVIN') -->
-        <div class="fixed inset-0 max-w-md mx-auto z-0 bg-gradient-to-b from-[#059669] via-[#047857] to-[#064e3b] text-white pt-16 pb-10 px-5 overflow-hidden">
+        <!-- 1. GREEN HERO HEADER (NON-FIXED, BALANCED) -->
+        <div class="relative bg-gradient-to-b from-[#059669] via-[#047857] to-[#064e3b] text-white px-5 pt-4 pb-8 overflow-hidden shrink-0">
             <!-- Fluid Wave Kurva Ombak Background -->
             <div class="absolute inset-0 pointer-events-none opacity-20">
-                <svg class="w-full h-full" viewBox="0 0 400 600" fill="none" preserveAspectRatio="none">
-                    <path d="M-20 60 C80 120 180 0 300 80 C360 120 420 100 450 140 L450 600 L-20 600 Z" fill="white" opacity="0.3"/>
-                    <path d="M-20 120 C100 200 220 80 340 180 C380 210 420 190 450 220 L450 600 L-20 600 Z" fill="white" opacity="0.4"/>
+                <svg class="w-full h-full" viewBox="0 0 400 300" fill="none" preserveAspectRatio="none">
+                    <path d="M-20 40 C80 100 180 0 300 60 C360 90 420 70 450 110 L450 300 L-20 300 Z" fill="white" opacity="0.3"/>
+                    <path d="M-20 100 C100 170 220 60 340 150 C380 180 420 160 450 190 L450 300 L-20 300 Z" fill="white" opacity="0.4"/>
                 </svg>
             </div>
 
-            <!-- Info Saldo di Tengah (Clean & Minimalist, Tanpa Kartu Rekening) -->
-            <div class="relative z-10 flex flex-col items-center text-center pt-2 sm:pt-4">
+            <!-- Top Bar Navigasi -->
+            <div class="relative z-10 flex items-center justify-between">
+                <a href="{{ route('pelanggan.wallet.index') }}" 
+                   class="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/25 active:scale-95 transition cursor-pointer"
+                   title="Kembali ke Dompet"
+                   aria-label="Kembali ke Dompet">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </a>
 
-                <!-- Label Saldo Dompet Saat Ini -->
-                <div>
-                    <h2 class="text-xs font-black text-emerald-100 uppercase tracking-widest drop-shadow-xs">
-                        Saldo Dompet Saat Ini
-                    </h2>
-                </div>
+                <span class="text-xs font-bold text-white uppercase tracking-widest drop-shadow-xs">
+                    Isi Saldo Dompet
+                </span>
 
-                <!-- Nominal Saldo Besar -->
+                <a href="{{ route('pelanggan.help.index') }}" 
+                   class="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/25 active:scale-95 transition cursor-pointer"
+                   title="Bantuan Top-up"
+                   aria-label="Pusat Bantuan">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </a>
+            </div>
+
+            <!-- Info Saldo di Tengah -->
+            <div class="relative z-10 flex flex-col items-center text-center py-4">
+                <h2 class="text-xs font-bold text-emerald-100 uppercase tracking-widest drop-shadow-xs">
+                    Saldo Dompet Saat Ini
+                </h2>
+
                 <div class="mt-2">
-                    <div class="text-3xl sm:text-4xl font-black text-white tracking-tight font-mono drop-shadow-sm">
+                    <div class="text-3xl sm:text-4xl font-bold text-white tracking-tight font-mono drop-shadow-sm">
                         {{ $wallet->formatted_balance }}
                     </div>
                 </div>
 
-                <!-- Info Minimal Top-up Badge -->
                 <div class="mt-2.5 inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] text-emerald-100">
                     <span>Minimal Pengisian:</span>
                     <strong class="text-white font-mono">Rp 10.000</strong>
@@ -75,13 +69,8 @@
             </div>
         </div>
 
-        <!-- Spacer Tinggi Kartu Hijau -->
-        <div class="h-[230px] shrink-0 pointer-events-none"></div>
-
-        <!-- 2. OVERLAPPING WHITE BOTTOM SHEET (FORMULIR ISI SALDO) -->
-        <div class="relative z-10 bg-white rounded-t-[32px] px-5 pt-3 pb-24 shadow-2xl flex-1 space-y-4">
-            <!-- Sheet Drag Handle Bar -->
-            <div class="w-10 h-1 bg-slate-300 rounded-full mx-auto"></div>
+        <!-- 2. FIXED WHITE CONTENT AREA (TIDAK SLIDE OVER HERO) -->
+        <div class="relative z-10 -mt-4 bg-white rounded-t-3xl px-5 pt-5 pb-6 flex-1 min-h-0 overflow-y-auto space-y-4">
 
             @if (! $user->primaryAddress)
                 <!-- Enforce DEC-02: Missing Primary Address Warning Card -->

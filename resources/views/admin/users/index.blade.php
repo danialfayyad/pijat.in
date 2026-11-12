@@ -72,6 +72,16 @@
                class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap {{ $activeTab === 'customers' ? 'bg-emerald-700 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
                 Pelanggan / Customer
             </a>
+
+            <a href="{{ route('admin.users.index', ['tab' => 'deletion_requests', 'region_id' => $selectedRegionId]) }}"
+               class="px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap inline-flex items-center gap-2 {{ $activeTab === 'deletion_requests' ? 'bg-emerald-700 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80 shadow-2xs' }}">
+                <span>Pengajuan Hapus Akun</span>
+                @if (($pendingDeletionCount ?? 0) > 0)
+                    <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold {{ $activeTab === 'deletion_requests' ? 'bg-white text-emerald-800' : 'bg-rose-100 text-rose-700' }}">
+                        {{ $pendingDeletionCount }}
+                    </span>
+                @endif
+            </a>
         </div>
 
         <!-- Master Table Card (Consistent Layout) -->
@@ -80,10 +90,10 @@
             <div class="p-5 border-b border-slate-100 space-y-3.5">
                 <div class="flex items-center justify-between">
                     <h3 class="font-bold text-slate-800 text-base">
-                        {{ $activeTab === 'partners' ? 'Daftar Mitra Terapis' : 'Daftar Pelanggan' }}
+                        {{ $activeTab === 'partners' ? 'Daftar Mitra Terapis' : ($activeTab === 'deletion_requests' ? 'Pengajuan Penghapusan Akun' : 'Daftar Pelanggan') }}
                     </h3>
                     <span class="text-xs text-slate-400 font-medium">
-                        {{ number_format($users->total()) }} akun terdata
+                        {{ number_format($users->total()) }} {{ $activeTab === 'deletion_requests' ? 'pengajuan' : 'akun terdata' }}
                     </span>
                 </div>
 
@@ -145,7 +155,98 @@
             </div>
 
             <!-- Table -->
-            <div class="overflow-x-auto">
+            @if ($activeTab === 'deletion_requests')
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                            <tr>
+                                <th class="px-5 py-3">Pengguna</th>
+                                <th class="px-5 py-3">Kontak</th>
+                                <th class="px-5 py-3">Alasan Pengajuan</th>
+                                <th class="px-5 py-3">Tanggal</th>
+                                <th class="px-5 py-3">Status</th>
+                                <th class="px-5 py-3 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse ($deletionRequests as $req)
+                                <tr class="hover:bg-slate-50/60 transition">
+                                    <td class="px-5 py-3.5 font-semibold text-slate-800">
+                                        <div>{{ $req->user?->name ?? '-' }}</div>
+                                        <div class="text-[11px] text-slate-400 font-normal">{{ $req->user?->role?->label() ?? '-' }}</div>
+                                    </td>
+                                    <td class="px-5 py-3.5">
+                                        <div class="font-mono text-slate-700 text-xs">{{ $req->user?->phone ?? '-' }}</div>
+                                        <div class="text-[11px] text-slate-400">{{ $req->user?->email ?? '-' }}</div>
+                                    </td>
+                                    <td class="px-5 py-3.5 max-w-xs">
+                                        <p class="text-xs text-slate-600 leading-relaxed">{{ $req->reason ?: '-' }}</p>
+                                        @if ($req->rejection_reason)
+                                            <p class="text-[11px] text-rose-600 mt-1">Alasan tolak: {{ $req->rejection_reason }}</p>
+                                        @endif
+                                    </td>
+                                    <td class="px-5 py-3.5 whitespace-nowrap text-slate-500">
+                                        {{ $req->created_at?->translatedFormat('d M Y, H:i') }}
+                                    </td>
+                                    <td class="px-5 py-3.5 whitespace-nowrap">
+                                        @if ($req->status === \App\Models\AccountDeletionRequest::STATUS_PENDING)
+                                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                <span>Menunggu</span>
+                                            </span>
+                                        @elseif ($req->status === \App\Models\AccountDeletionRequest::STATUS_APPROVED)
+                                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                <span>Disetujui</span>
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-700">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                                <span>Ditolak</span>
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-5 py-3.5 text-right whitespace-nowrap">
+                                        @if ($req->status === \App\Models\AccountDeletionRequest::STATUS_PENDING)
+                                            <div class="inline-flex items-center gap-2" x-data="{ showReject: false }">
+                                                <form method="POST" action="{{ route('admin.users.deletion-requests.approve', $req) }}" onsubmit="return confirm('Setujui penghapusan akun {{ addslashes($req->user?->name ?? '') }} secara permanen?')">
+                                                    @csrf
+                                                    <button type="submit" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition cursor-pointer">
+                                                        Setujui &amp; Hapus
+                                                    </button>
+                                                </form>
+                                                <button type="button" @click="showReject = !showReject" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer">
+                                                    Tolak
+                                                </button>
+                                                <div x-show="showReject" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 text-left">
+                                                    <form method="POST" action="{{ route('admin.users.deletion-requests.reject', $req) }}" @click.away="showReject = false" class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-3 shadow-xl border border-slate-200">
+                                                        @csrf
+                                                        <h4 class="text-sm font-bold text-slate-900">Tolak Pengajuan Hapus Akun</h4>
+                                                        <textarea name="rejection_reason" rows="3" required placeholder="Masukkan alasan penolakan..." class="w-full text-xs rounded-xl border border-slate-200 p-3"></textarea>
+                                                        <div class="flex justify-end gap-2">
+                                                            <button type="button" @click="showReject = false" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold cursor-pointer">Batal</button>
+                                                            <button type="submit" class="px-3.5 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold cursor-pointer">Kirim Penolakan</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <span class="text-[11px] text-slate-400">Selesai diproses</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-5 py-10 text-center text-slate-400 text-xs">
+                                        Belum ada pengajuan penghapusan akun.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs text-slate-600">
                     <thead class="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
                         <tr>
@@ -278,6 +379,7 @@
                     </tbody>
                 </table>
             </div>
+            @endif
 
             <!-- Pagination -->
             @if ($users->hasPages())

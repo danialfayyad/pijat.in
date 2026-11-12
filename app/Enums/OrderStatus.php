@@ -44,6 +44,21 @@ enum OrderStatus: string
         };
     }
 
+    public function textColorClass(): string
+    {
+        return match ($this) {
+            self::MenungguPembayaran => 'text-amber-600',
+            self::MencariMitra => 'text-blue-600',
+            self::Dijadwalkan => 'text-indigo-600',
+            self::MenujuLokasi => 'text-purple-600',
+            self::Tiba => 'text-cyan-600',
+            self::SedangBerlangsung => 'text-amber-600',
+            self::Selesai => 'text-emerald-600',
+            self::Dibatalkan => 'text-rose-600',
+            self::Kedaluwarsa => 'text-slate-500',
+        };
+    }
+
     public function dotClass(): string
     {
         return match ($this) {

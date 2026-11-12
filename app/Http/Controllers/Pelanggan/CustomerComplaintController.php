@@ -25,13 +25,18 @@ class CustomerComplaintController extends Controller
      */
     public function index(Request $request): View
     {
+        $selectedStatus = ComplaintStatus::tryFrom((string) $request->query('status', ''));
+        $status = $selectedStatus?->value ?? 'semua';
+
         $complaints = Complaint::where('complainant_id', $request->user()->id)
             ->where('complainant_role', 'pelanggan')
+            ->when($selectedStatus, fn ($query) => $query->where('status', $selectedStatus))
             ->with(['order', 'complaintCategory'])
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('pelanggan.complaints.index', compact('complaints'));
+        return view('pelanggan.complaints.index', compact('complaints', 'status'));
     }
 
     /**

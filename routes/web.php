@@ -4,10 +4,22 @@ use App\Enums\Role;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PushSubscriptionController;
+use App\Models\Faq;
+use App\Models\Service;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    $services = Service::query()
+        ->where('is_active', true)
+        ->with('packages')
+        ->get();
+
+    $faqs = Faq::query()
+        ->active()
+        ->orderBy('order_index')
+        ->get();
+
+    return view('welcome', compact('services', 'faqs'));
 });
 
 Route::get('/dashboard', function () {
