@@ -32,10 +32,52 @@ class WalletController extends Controller
     {
         $user = $request->user()->load('primaryAddress.region');
         $wallet = $user->getOrCreateWallet();
-        $transactions = $wallet->transactions()->with('region')->latest()->paginate(15);
+
+        $selectedMonth = $request->string('month', 'semua')->toString();
+        $selectedType = $request->string('type', 'semua')->toString();
+
+        $transactionsQuery = $wallet->transactions()->with('region')->latest();
+
+        if (preg_match('/^(\d{4})-(\d{2})$/', $selectedMonth, $matches) === 1) {
+            $transactionsQuery
+                ->whereYear('created_at', (int) $matches[1])
+                ->whereMonth('created_at', (int) $matches[2]);
+        } else {
+            $selectedMonth = 'semua';
+        }
+
+        match ($selectedType) {
+            'masuk' => $transactionsQuery->where('type', 'credit'),
+            'keluar' => $transactionsQuery->where('type', 'debit'),
+            'penarikan' => $transactionsQuery->where('reference_type', 'customer_withdrawal'),
+            default => $selectedType = 'semua',
+        };
+
+        $transactions = $transactionsQuery->paginate(15)->withQueryString();
+
+        $monthOptions = collect([
+            ['value' => 'semua', 'label' => 'Semua'],
+        ]);
+
+        for ($i = 0; $i < 6; $i++) {
+            $date = now()->startOfMonth()->subMonths($i);
+            $monthOptions->push([
+                'value' => $date->format('Y-m'),
+                'label' => $date->translatedFormat('M Y'),
+            ]);
+        }
+
         $withdrawalRequests = WithdrawalRequest::where('user_id', $user->id)->latest()->take(5)->get();
 
-        return view('pelanggan.wallet.index', compact('user', 'wallet', 'transactions', 'withdrawalRequests'));
+        return view('pelanggan.wallet.index', compact(
+            'user',
+            'wallet',
+            'transactions',
+            'withdrawalRequests',
+            'monthOptions',
+            'selectedMonth',
+            'selectedType'
+        ));
     }
 
     /**

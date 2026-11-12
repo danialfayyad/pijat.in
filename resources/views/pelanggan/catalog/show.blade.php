@@ -15,40 +15,34 @@
             }
          }">
 
-        <!-- 1. FIXED TOP HERO IMAGE / SLIDER (TIDAK IKUT BERGERAK SAAT DI-SCROLL) -->
-        <div class="fixed top-0 left-0 right-0 max-w-md mx-auto h-72 sm:h-80 z-0 overflow-hidden pointer-events-none">
+        <!-- 1. HERO IMAGE / SLIDER -->
+        <div class="relative w-full h-64 sm:h-72 overflow-hidden bg-slate-900">
             <template x-if="photos.length > 0">
                 <img :src="photos[activePhotoIdx]" 
                      alt="{{ $service->name }}" 
                      class="w-full h-full object-cover transition-all duration-300">
             </template>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/30"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-black/25 pointer-events-none"></div>
 
-            <!-- Indicator Foto jika lebih dari 1 foto (dari CRUD Layanan) -->
-            <div class="absolute bottom-10 right-4 z-10 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[11px] font-bold"
-                 x-show="photos.length > 1">
-                <span x-text="activePhotoIdx + 1"></span>/<span x-text="photos.length"></span>
-            </div>
-        </div>
-
-        <!-- Floating Top Bar Actions: Back Button (Fixed di atas) -->
-        <div class="fixed top-4 left-0 right-0 max-w-md mx-auto px-4 flex items-center justify-between z-30 pointer-events-none">
             <!-- Back Button -->
             <a href="{{ route('pelanggan.catalog.index') }}" 
-               class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/20 flex items-center justify-center hover:bg-black/60 active:scale-95 transition shadow-lg cursor-pointer pointer-events-auto"
+               class="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/20 flex items-center justify-center hover:bg-black/60 active:scale-95 transition shadow-sm cursor-pointer"
                title="Kembali ke Katalog"
                aria-label="Kembali ke Katalog">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                 </svg>
             </a>
+
+            <!-- Indicator Foto jika lebih dari 1 foto (dari CRUD Layanan) -->
+            <div class="absolute bottom-7 right-4 z-10 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold"
+                 x-show="photos.length > 1">
+                <span x-text="activePhotoIdx + 1"></span>/<span x-text="photos.length"></span>
+            </div>
         </div>
 
-        <!-- Spacer agar Hero Image tampak di awal -->
-        <div class="h-64 sm:h-72 shrink-0"></div>
-
-        <!-- 2. OVERLAPPING WHITE BOTTOM SHEET BODY (SLIDES OVER FIXED HERO IMAGE & FULL KE BAWAH) -->
-        <div class="relative z-10 bg-white rounded-t-[32px] px-5 pt-6 pb-36 shadow-xl space-y-5 min-h-screen flex-1">
+        <!-- 2. WHITE CONTENT BODY (MENYATU DI BAWAH HERO IMAGE, TIDAK SLIDE OVER) -->
+        <div class="relative z-10 -mt-4 bg-white rounded-t-3xl px-5 pt-6 pb-28 space-y-5 flex-1">
             
             <!-- Judul Layanan & Harga Real dari Database -->
             <div class="space-y-2">

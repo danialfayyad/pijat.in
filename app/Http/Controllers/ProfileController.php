@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\AccountDeletionRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -42,12 +41,16 @@ class ProfileController extends Controller
     }
 
     /**
-     * Show account deletion confirmation page.
+     * Show account deletion request page.
      */
     public function editDeleteAccount(Request $request): View
     {
+        $user = $request->user();
+
         return view('profile.delete', [
-            'user' => $request->user(),
+            'user' => $user,
+            'blockers' => $user->accountDeletionBlockers(ignorePendingRequest: true),
+            'latestDeletionRequest' => $user->accountDeletionRequests()->latest()->first(),
         ]);
     }
 
@@ -68,23 +71,30 @@ class ProfileController extends Controller
     }
 
     /**
-     * Delete the user's account.
+     * Submit an account deletion request for admin approval.
      */
     public function destroy(Request $request): RedirectResponse
     {
-        $request->validateWithBag('userDeletion', [
+        $validated = $request->validateWithBag('userDeletion', [
             'password' => ['required', 'current_password'],
+            'reason' => ['nullable', 'string', 'max:500'],
         ]);
 
         $user = $request->user();
+        $blockers = $user->accountDeletionBlockers();
 
-        Auth::logout();
+        if ($blockers !== []) {
+            return redirect()->back(fallback: route('profile.delete'))
+                ->withErrors(['eligibility' => $blockers[0]], 'userDeletion');
+        }
 
-        $user->delete();
+        AccountDeletionRequest::create([
+            'user_id' => $user->id,
+            'reason' => isset($validated['reason']) ? trim($validated['reason']) : null,
+            'status' => AccountDeletionRequest::STATUS_PENDING,
+        ]);
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return Redirect::to('/');
+        return redirect()->back(fallback: route('profile.delete'))
+            ->with('status', 'deletion-requested');
     }
 }

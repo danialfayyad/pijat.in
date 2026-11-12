@@ -1,3 +1,4 @@
+
 <x-pwa-layout title="Tagihan Pembayaran - Pijat.In" :hideHeader="true">
     @php
         $activeBanks = \App\Models\Bank::active()->orderBy('sort_order')->orderBy('name')->get();
@@ -63,6 +64,141 @@
                 </svg>
                 <span>Kode QRIS berhasil disimpan ke galeri perangkat!</span>
             </div>
+
+
+            <!-- Top Bar Navigasi -->
+            <div class="relative z-10 flex items-center justify-between">
+                <a href="{{ $invoice->order ? route('pelanggan.orders.show', $invoice->order) : route('pelanggan.wallet.index') }}" 
+                   class="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/25 active:scale-95 transition cursor-pointer shadow-sm"
+                   title="Kembali"
+                   aria-label="Kembali">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </a>
+
+                <span class="text-xs font-bold text-white uppercase tracking-widest drop-shadow-xs">
+                    @if ($invoice->isPaid())
+                        Status Pembayaran
+                    @elseif ($invoice->isExpired())
+                        Tagihan Kedaluwarsa
+                    @else
+                        Tagihan Pembayaran
+                    @endif
+                </span>
+
+                <a href="{{ route('pelanggan.help.index') }}" 
+                   class="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/25 active:scale-95 transition cursor-pointer shadow-sm"
+                   title="Pusat Bantuan"
+                   aria-label="Pusat Bantuan">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </a>
+            </div>
+
+            <div class="pt-5">
+
+            @if ($invoice->isPaid())
+                <!-- STATE: SUDAH BAYAR / LUNAS DENGAN ANIMASI CENTANG -->
+                <div class="relative z-10 flex flex-col items-center text-center">
+                    
+                    <!-- Lingkaran Animasi Sukses Lebih Besar & Elegan -->
+                    <div class="relative flex items-center justify-center my-1.5">
+                        <!-- Pulsing Glow Ring -->
+                        <div class="absolute w-28 h-28 rounded-full bg-white/20 animate-pulse-ring pointer-events-none"></div>
+                        
+                        <!-- Checkmark Circle Badge -->
+                        <div class="relative w-22 h-22 rounded-full bg-white text-emerald-600 flex items-center justify-center shadow-2xl animate-pop-bounce ring-4 ring-white/30">
+                            <svg class="w-11 h-11 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path class="animate-draw-check" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Status Pill (Spasi diperlebar mt-4) -->
+                    <div class="mt-4">
+                        <span class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-xs font-black uppercase tracking-wider text-emerald-100 shadow-xs">
+                            <span class="w-2 h-2 rounded-full bg-emerald-300 animate-ping"></span>
+                            <span>Pembayaran Berhasil</span>
+                        </span>
+                    </div>
+
+                    <!-- Nominal Saldo Besar (Spasi diperlebar mt-3) -->
+                    <div class="mt-3 text-3xl sm:text-4xl font-black text-white tracking-tight font-mono">
+                        {{ $invoice->formatted_amount }}
+                    </div>
+
+                    <!-- Penjelasan Ringkas (Spasi diperlebar mt-2.5) -->
+                    <p class="text-xs text-emerald-100/90 mt-2.5 max-w-xs leading-relaxed">
+                        @if ($invoice->order)
+                            Pembayaran pesanan #{{ $invoice->order->order_code }} telah lunas dan sedang mencarikan mitra terapis.
+                        @else
+                            Saldo telah berhasil ditambahkan ke dompet Pijat.In Anda.
+                        @endif
+                    </p>
+                </div>
+
+            @elseif ($invoice->isExpired())
+                <!-- STATE: KEDALUWARSA -->
+                <div class="relative z-10 flex flex-col items-center text-center">
+                    <div class="w-20 h-20 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-2xl ring-4 ring-rose-300/30">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+
+                    <div class="mt-3">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-rose-900/40 backdrop-blur-md border border-rose-400/30 text-[11px] font-black uppercase tracking-wider text-rose-100 shadow-xs">
+                            Kedaluwarsa
+                        </span>
+                    </div>
+
+                    <div class="mt-2 text-2xl sm:text-3xl font-black text-white tracking-tight font-mono">
+                        {{ $invoice->formatted_amount }}
+                    </div>
+
+                    <p class="text-xs text-emerald-100/90 mt-1 max-w-xs leading-relaxed">
+                        Batas waktu pembayaran 15 menit telah habis. Silakan buat tagihan baru.
+                    </p>
+                </div>
+
+            @else
+                <!-- STATE: MENUNGGU PEMBAYARAN (PENDING) -->
+                <div class="relative z-10 flex flex-col items-center text-center">
+                    
+                    <!-- Countdown Timer Pill Mengambang -->
+                    <div class="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-xs text-white shadow-xs">
+                        <svg class="w-4 h-4 text-amber-300 animate-spin" style="animation-duration: 4s;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span class="font-medium text-emerald-100">Selesaikan Dalam:</span>
+                        <span class="font-black font-mono text-amber-300 text-sm" x-text="timeLeft">15:00</span>
+                    </div>
+
+                    <div class="mt-3">
+                        <h2 class="text-xs font-extrabold text-emerald-100 uppercase tracking-wider">
+                            Total Tagihan Anda
+                        </h2>
+                    </div>
+
+                    <!-- Nominal Besar -->
+                    <div class="mt-1 text-3xl sm:text-4xl font-black text-white tracking-tight font-mono">
+                        {{ $invoice->formatted_amount }}
+                    </div>
+
+                    <p class="text-[11px] text-emerald-100/90 font-mono mt-1">
+                        No. Tagihan: {{ $invoice->invoice_number }}
+                    </p>
+                </div>
+            @endif
+            </div>
+        </div>
+
+        <!-- 2. FIXED WHITE CONTENT AREA (TIDAK SLIDE OVER HERO) -->
+        <div class="relative z-10 -mt-5 bg-white rounded-t-3xl px-5 pt-5 pb-6 flex-1 min-h-0 overflow-y-auto flex flex-col justify-between space-y-4">
+
+            <!-- Status Alert Messages -->
 
             <!-- Flash Status Messages -->
             @if (session('status'))

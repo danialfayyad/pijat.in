@@ -134,6 +134,7 @@
                             </svg>
                         </a>
 
+
                         <!-- Hapus Akun -->
                         <a href="{{ route('profile.delete') }}" class="min-h-[50px] px-3.5 py-3 flex items-center justify-between hover:bg-rose-50/50 transition group cursor-pointer">
                             <div class="flex items-center space-x-3">
@@ -149,6 +150,7 @@
                             <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-500 shrink-0 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
+
                         </a>
                     </div>
                 </div>

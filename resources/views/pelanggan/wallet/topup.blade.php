@@ -1,4 +1,6 @@
-<x-pwa-layout title="Top Up Saldo - Pijat.In" :hideHeader="true">
+
+<x-pwa-layout title="Isi Saldo - Pijat.In" :hideHeader="true" :fullBleed="true">
+
     @php
         $wallet = $user->getOrCreateWallet();
         $activeBanks = \App\Models\Bank::bank()->active()->orderBy('sort_order')->orderBy('name')->get();
@@ -13,7 +15,9 @@
         $initialTitle = $qrisChannel ? 'Top Up via QRIS' : ($activeBanks->isNotEmpty() ? 'Top Up via VA ' . strtoupper($activeBanks->first()->code) : 'Top Up Saldo');
     @endphp
 
-    <div class="-mx-4 -mt-3 -mb-8 flex flex-col min-h-screen bg-white relative"
+
+    <div class="flex-1 flex flex-col h-full min-h-0 overflow-hidden bg-white"
+
          x-data="{
             step: 'select_method', // 'select_method' | 'input_amount'
             activeTab: '{{ $initialTab }}', // 'bank' | 'ewallet'

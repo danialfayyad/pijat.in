@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Enums\Role;
 use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
+use App\Models\AccountDeletionRequest;
 use App\Models\Blacklist;
 use App\Models\Region;
 use App\Models\User;
@@ -45,12 +46,70 @@ class UserManagementController extends Controller
             : $assignedRegions->pluck('id')->all();
 
         $activeTab = $request->input('tab', 'partners');
-        if (! in_array($activeTab, ['partners', 'customers'], true)) {
+        if (! in_array($activeTab, ['partners', 'customers', 'deletion_requests'], true)) {
             $activeTab = 'partners';
         }
 
         $statusFilter = $request->input('status', 'semua');
         $search = trim((string) $request->input('search', ''));
+
+        $pendingDeletionCount = AccountDeletionRequest::query()
+            ->where('status', AccountDeletionRequest::STATUS_PENDING)
+            ->whereHas('user', function ($query) use ($regionIds, $admin) {
+                if ($admin->isSuperadmin()) {
+                    return;
+                }
+                $query->where(function ($q) use ($regionIds) {
+                    $q->whereIn('region_id', $regionIds)
+                        ->orWhereNull('region_id')
+                        ->orWhereHas('primaryAddress', fn ($sub) => $sub->whereIn('region_id', $regionIds))
+                        ->orWhereHas('partnerProfile', fn ($sub) => $sub->whereIn('region_id', $regionIds));
+                });
+            })
+            ->count();
+
+        if ($activeTab === 'deletion_requests') {
+            $deletionQuery = AccountDeletionRequest::query()
+                ->with(['user.region', 'user.primaryAddress.region', 'user.partnerProfile.region', 'reviewer'])
+                ->whereHas('user', function ($query) use ($regionIds, $admin) {
+                    if ($admin->isSuperadmin()) {
+                        return;
+                    }
+                    $query->where(function ($q) use ($regionIds) {
+                        $q->whereIn('region_id', $regionIds)
+                            ->orWhereNull('region_id')
+                            ->orWhereHas('primaryAddress', fn ($sub) => $sub->whereIn('region_id', $regionIds))
+                            ->orWhereHas('partnerProfile', fn ($sub) => $sub->whereIn('region_id', $regionIds));
+                    });
+                });
+
+            if ($search !== '') {
+                $deletionQuery->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
+                });
+            }
+
+            $deletionRequests = $deletionQuery->latest()->paginate(10)->withQueryString();
+
+            return view('admin.users.index', [
+                'activeTab' => 'deletion_requests',
+                'users' => $deletionRequests,
+                'deletionRequests' => $deletionRequests,
+                'pendingDeletionCount' => $pendingDeletionCount,
+                'assignedRegions' => $assignedRegions,
+                'selectedRegionId' => $selectedRegionId,
+                'statusFilter' => $statusFilter,
+                'search' => $search,
+                'stats' => [
+                    'total' => AccountDeletionRequest::count(),
+                    'verified' => AccountDeletionRequest::where('status', AccountDeletionRequest::STATUS_APPROVED)->count(),
+                    'suspended' => AccountDeletionRequest::where('status', AccountDeletionRequest::STATUS_PENDING)->count(),
+                    'blocked' => AccountDeletionRequest::where('status', AccountDeletionRequest::STATUS_REJECTED)->count(),
+                ],
+            ]);
+        }
 
         if ($activeTab === 'partners') {
             // Base Mitra Query scoped to regions
@@ -90,6 +149,7 @@ class UserManagementController extends Controller
             return view('admin.users.index', [
                 'activeTab' => 'partners',
                 'users' => $users,
+                'pendingDeletionCount' => $pendingDeletionCount,
                 'assignedRegions' => $assignedRegions,
                 'selectedRegionId' => $selectedRegionId,
                 'statusFilter' => $statusFilter,
@@ -140,6 +200,7 @@ class UserManagementController extends Controller
         return view('admin.users.index', [
             'activeTab' => 'customers',
             'users' => $users,
+            'pendingDeletionCount' => $pendingDeletionCount,
             'assignedRegions' => $assignedRegions,
             'selectedRegionId' => $selectedRegionId,
             'statusFilter' => $statusFilter,
@@ -343,5 +404,69 @@ class UserManagementController extends Controller
         ]);
 
         return back()->with('success', "Akun {$user->name} telah diblokir permanen dan nomor HP/perangkat dimasukkan ke daftar hitam.");
+    }
+
+    /**
+     * Approve a user's account deletion request and permanently delete the account.
+     */
+    public function approveDeletionRequest(Request $request, AccountDeletionRequest $deletionRequest): RedirectResponse
+    {
+        if ($deletionRequest->status !== AccountDeletionRequest::STATUS_PENDING) {
+            return back()->withErrors(['deletion' => 'Pengajuan ini sudah diproses sebelumnya.']);
+        }
+
+        $user = $deletionRequest->user;
+        $userRegionId = $user->region_id ?? $user->primaryAddress?->region_id ?? $user->partnerProfile?->region_id;
+        if ($userRegionId && ! $request->user()->canAccessRegion((int) $userRegionId)) {
+            abort(403, 'Anda tidak memiliki hak akses terhadap wilayah pengguna ini.');
+        }
+
+        $blockers = $user->accountDeletionBlockers(ignorePendingRequest: true);
+        if ($blockers !== []) {
+            return back()->withErrors(['deletion' => 'Tidak dapat disetujui: '.$blockers[0]]);
+        }
+
+        $userName = $user->name;
+
+        DB::transaction(function () use ($deletionRequest, $request, $user) {
+            $deletionRequest->update([
+                'status' => AccountDeletionRequest::STATUS_APPROVED,
+                'reviewed_by' => $request->user()->id,
+                'reviewed_at' => now(),
+            ]);
+
+            $user->delete();
+        });
+
+        return back()->with('success', "Pengajuan penghapusan akun {$userName} disetujui dan akun telah dihapus permanen.");
+    }
+
+    /**
+     * Reject a user's account deletion request with an admin reason.
+     */
+    public function rejectDeletionRequest(Request $request, AccountDeletionRequest $deletionRequest): RedirectResponse
+    {
+        if ($deletionRequest->status !== AccountDeletionRequest::STATUS_PENDING) {
+            return back()->withErrors(['deletion' => 'Pengajuan ini sudah diproses sebelumnya.']);
+        }
+
+        $user = $deletionRequest->user;
+        $userRegionId = $user->region_id ?? $user->primaryAddress?->region_id ?? $user->partnerProfile?->region_id;
+        if ($userRegionId && ! $request->user()->canAccessRegion((int) $userRegionId)) {
+            abort(403, 'Anda tidak memiliki hak akses terhadap wilayah pengguna ini.');
+        }
+
+        $validated = $request->validate([
+            'rejection_reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $deletionRequest->update([
+            'status' => AccountDeletionRequest::STATUS_REJECTED,
+            'rejection_reason' => trim($validated['rejection_reason']),
+            'reviewed_by' => $request->user()->id,
+            'reviewed_at' => now(),
+        ]);
+
+        return back()->with('success', "Pengajuan penghapusan akun {$user->name} telah ditolak.");
     }
 }

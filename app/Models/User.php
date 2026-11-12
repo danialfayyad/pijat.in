@@ -442,4 +442,58 @@ class User extends Authenticatable
     {
         return $this->hasMany(SystemNotification::class);
     }
+
+    /**
+     * @return HasMany<AccountDeletionRequest, $this>
+     */
+    public function accountDeletionRequests(): HasMany
+    {
+        return $this->hasMany(AccountDeletionRequest::class);
+    }
+
+    public function pendingAccountDeletionRequest(): ?AccountDeletionRequest
+    {
+        return $this->accountDeletionRequests()
+            ->where('status', AccountDeletionRequest::STATUS_PENDING)
+            ->latest()
+            ->first();
+    }
+
+    /**
+     * Collect active account blockers that prevent account deletion.
+     *
+     * @return list<string>
+     */
+    public function accountDeletionBlockers(bool $ignorePendingRequest = false): array
+    {
+        $blockers = [];
+        $terminalStatuses = [
+            OrderStatus::Selesai,
+            OrderStatus::Dibatalkan,
+            OrderStatus::Kedaluwarsa,
+        ];
+
+        $hasActiveOrders = $this->ordersAsCustomer()->whereNotIn('status', $terminalStatuses)->exists()
+            || $this->ordersAsMitra()->whereNotIn('status', $terminalStatuses)->exists();
+
+        if ($hasActiveOrders) {
+            $blockers[] = 'Masih memiliki pesanan yang sedang berjalan atau belum selesai.';
+        }
+
+        $wallet = $this->wallet;
+        if ($wallet && ((int) $wallet->balance > 0 || (int) $wallet->held_balance > 0)) {
+            $totalBalance = (int) $wallet->balance + (int) $wallet->held_balance;
+            $blockers[] = 'Masih memiliki sisa saldo atau dana tertahan sebesar Rp '.number_format($totalBalance, 0, ',', '.').'.';
+        }
+
+        if ($this->withdrawalRequests()->where('status', WithdrawalRequest::STATUS_PENDING)->exists()) {
+            $blockers[] = 'Masih memiliki pengajuan penarikan saldo yang sedang diproses.';
+        }
+
+        if (! $ignorePendingRequest && $this->pendingAccountDeletionRequest() !== null) {
+            $blockers[] = 'Pengajuan penghapusan akun Anda sedang menunggu persetujuan admin.';
+        }
+
+        return $blockers;
+    }
 }
