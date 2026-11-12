@@ -134,15 +134,19 @@
                     </div>
 
                     <div>
-                        <label for="bank_name" class="text-xs font-bold text-slate-700 block mb-1.5">Nama Bank / E-Wallet</label>
-                        <input type="text"
-                               id="bank_name"
-                               name="bank_name"
-                               value="{{ old('bank_name') }}"
-                               placeholder="Contoh: BCA, Mandiri, BRI, BNI"
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition shadow-xs"
-                               {{ $hasPending ? 'disabled' : '' }}
-                               required>
+                        <label for="bank_name" class="text-xs font-bold text-slate-700 block mb-1.5">Nama Bank Tujuan</label>
+                        <select id="bank_name"
+                                name="bank_name"
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition shadow-xs cursor-pointer"
+                                {{ $hasPending ? 'disabled' : '' }}
+                                required>
+                            <option value="">-- Pilih Bank Tujuan Resmi --</option>
+                            @foreach (\App\Models\Bank::active()->orderBy('sort_order')->orderBy('name')->get() as $bank)
+                                <option value="{{ $bank->name }}" {{ old('bank_name') === $bank->name || old('bank_name') === $bank->code ? 'selected' : '' }}>
+                                    {{ $bank->name }} ({{ strtoupper($bank->code) }})
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div>

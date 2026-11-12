@@ -64,8 +64,8 @@ it('automatically pays order with wallet balance when sufficient and enters Menc
         'customer_address_id' => $this->address->id,
         'recipient_type' => 'myself',
         'order_type' => 'terjadwal',
-        'scheduled_date' => now($this->region->timezone)->addHours(4)->format('Y-m-d'),
-        'scheduled_time' => now($this->region->timezone)->addHours(4)->format('H:i'),
+        'scheduled_date' => now($this->region->timezone)->addDay()->format('Y-m-d'),
+        'scheduled_time' => '10:00',
         'risk_agreement' => true,
     ]);
 
@@ -89,8 +89,8 @@ it('creates order in MenungguPembayaran, generates deficit invoice, and redirect
         'customer_address_id' => $this->address->id,
         'recipient_type' => 'myself',
         'order_type' => 'terjadwal',
-        'scheduled_date' => now($this->region->timezone)->addHours(4)->format('Y-m-d'),
-        'scheduled_time' => now($this->region->timezone)->addHours(4)->format('H:i'),
+        'scheduled_date' => now($this->region->timezone)->addDay()->format('Y-m-d'),
+        'scheduled_time' => '10:00',
         'risk_agreement' => true,
     ]);
 
@@ -106,12 +106,8 @@ it('creates order in MenungguPembayaran, generates deficit invoice, and redirect
         ->and($invoice->user_id)->toBe($this->customer->id)
         ->and($invoice->region_id)->toBe($this->region->id);
 
-    // Opsi 1: Redirects directly to the Xendit checkout URL or invoice fallback
-    if ($invoice->payment_url) {
-        $response->assertRedirect($invoice->payment_url);
-    } else {
-        $response->assertRedirect(route('pelanggan.wallet.invoice', $invoice->invoice_number));
-    }
+    // In-App Payment Hub: Redirects directly to the in-app invoice page
+    $response->assertRedirect(route('pelanggan.wallet.invoice', $invoice->invoice_number));
 });
 
 it('allows customer to pay deficit invoice via simulatePay and atomically settles order into MencariMitra', function () {
@@ -123,8 +119,8 @@ it('allows customer to pay deficit invoice via simulatePay and atomically settle
         'customer_address_id' => $this->address->id,
         'recipient_type' => 'myself',
         'order_type' => 'terjadwal',
-        'scheduled_date' => now($this->region->timezone)->addHours(5)->format('Y-m-d'),
-        'scheduled_time' => now($this->region->timezone)->addHours(5)->format('H:i'),
+        'scheduled_date' => now($this->region->timezone)->addDay()->format('Y-m-d'),
+        'scheduled_time' => '10:00',
         'risk_agreement' => true,
     ]);
 
@@ -155,8 +151,8 @@ it('handles Xendit webhook settlement for order deficit invoice atomically and t
         'customer_address_id' => $this->address->id,
         'recipient_type' => 'myself',
         'order_type' => 'terjadwal',
-        'scheduled_date' => now($this->region->timezone)->addHours(4)->format('Y-m-d'),
-        'scheduled_time' => now($this->region->timezone)->addHours(4)->format('H:i'),
+        'scheduled_date' => now($this->region->timezone)->addDay()->format('Y-m-d'),
+        'scheduled_time' => '10:00',
         'risk_agreement' => true,
     ]);
 
@@ -189,8 +185,8 @@ it('automatically cancels unpaid order and expires deficit invoice after 15 minu
         'customer_address_id' => $this->address->id,
         'recipient_type' => 'myself',
         'order_type' => 'terjadwal',
-        'scheduled_date' => now($this->region->timezone)->addHours(4)->format('Y-m-d'),
-        'scheduled_time' => now($this->region->timezone)->addHours(4)->format('H:i'),
+        'scheduled_date' => now($this->region->timezone)->addDay()->format('Y-m-d'),
+        'scheduled_time' => '10:00',
         'risk_agreement' => true,
     ]);
 
@@ -222,8 +218,8 @@ it('displays deficit details and link on order show page when status is Menunggu
         'customer_address_id' => $this->address->id,
         'recipient_type' => 'myself',
         'order_type' => 'terjadwal',
-        'scheduled_date' => now($this->region->timezone)->addHours(4)->format('Y-m-d'),
-        'scheduled_time' => now($this->region->timezone)->addHours(4)->format('H:i'),
+        'scheduled_date' => now($this->region->timezone)->addDay()->format('Y-m-d'),
+        'scheduled_time' => '10:00',
         'risk_agreement' => true,
     ]);
 
@@ -246,8 +242,8 @@ it('allows customer to check and sync payment status directly from Xendit API (N
         'customer_address_id' => $this->address->id,
         'recipient_type' => 'myself',
         'order_type' => 'terjadwal',
-        'scheduled_date' => now($this->region->timezone)->addHours(4)->format('Y-m-d'),
-        'scheduled_time' => now($this->region->timezone)->addHours(4)->format('H:i'),
+        'scheduled_date' => now($this->region->timezone)->addDay()->format('Y-m-d'),
+        'scheduled_time' => '10:00',
         'risk_agreement' => true,
     ]);
 

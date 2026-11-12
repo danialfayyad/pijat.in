@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Mitra;
 
 use App\Http\Controllers\Controller;
+use App\Models\Bank;
 use App\Models\Region;
 use App\Services\PartnerOnboardingService;
 use DomainException;
@@ -61,7 +62,11 @@ class OnboardingController extends Controller
             'latitude' => ['required', 'numeric'],
             'longitude' => ['required', 'numeric'],
             'address_text' => ['required', 'string', 'max:500'],
-            'bank_name' => ['required', 'string', 'max:100'],
+            'bank_name' => ['required', 'string', 'max:100', function ($attribute, $value, $fail) {
+                if (! Bank::isAllowed($value)) {
+                    $fail('Bank yang dipilih tidak tersedia atau tidak diizinkan oleh sistem.');
+                }
+            }],
             'account_number' => ['required', 'string', 'max:50'],
             'account_holder_name' => ['required', 'string', 'max:150'],
             'phone' => ['nullable', 'string', 'max:25'],

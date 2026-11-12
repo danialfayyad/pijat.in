@@ -2,6 +2,8 @@
 
 use App\Enums\Role;
 use App\Models\Bank;
+use App\Models\CustomerAddress;
+use App\Models\Region;
 use App\Models\User;
 
 beforeEach(function () {
@@ -37,7 +39,7 @@ test('superadmin can view bank management page and see sidebar menu', function (
         ->get(route('superadmin.banks.index'));
 
     $response->assertOk()
-        ->assertSee('Master Rekening &amp; Bank Pencairan', false)
+        ->assertSee('Master Rekening &amp; Saluran Pembayaran', false)
         ->assertSee('Master Rekening Bank')
         ->assertSee('Bank Central Asia')
         ->assertSee('BCA');
@@ -128,6 +130,83 @@ test('superadmin can toggle active status of a bank', function () {
         ->post(route('superadmin.banks.toggle', $bank));
 
     expect($bank->fresh()->is_active)->toBeTrue();
+});
+
+test('superadmin can toggle QRIS and e-wallets active status', function () {
+    $qris = Bank::create([
+        'name' => 'QRIS Standar Nasional',
+        'code' => 'QRIS',
+        'category' => 'qris',
+        'is_active' => true,
+    ]);
+
+    $gopay = Bank::create([
+        'name' => 'GoPay',
+        'code' => 'GOPAY',
+        'category' => 'ewallet',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($this->superadmin)
+        ->post(route('superadmin.banks.toggle', $qris))
+        ->assertRedirect(route('superadmin.banks.index'));
+
+    expect($qris->fresh()->is_active)->toBeFalse();
+
+    $this->actingAs($this->superadmin)
+        ->post(route('superadmin.banks.toggle', $gopay))
+        ->assertRedirect(route('superadmin.banks.index'));
+
+    expect($gopay->fresh()->is_active)->toBeFalse();
+});
+
+test('customer top-up screen respects active status of QRIS and banks', function () {
+    $region = Region::where('status', 'aktif')->first() ?? Region::factory()->create();
+
+    $customer = User::factory()->create([
+        'role' => Role::Pelanggan,
+        'email_verified_at' => now(),
+    ]);
+
+    // Berikan alamat utama agar tidak dicegat missing primary address
+    CustomerAddress::create([
+        'user_id' => $customer->id,
+        'region_id' => $region->id,
+        'label' => 'Rumah',
+        'address_text' => 'Jl. Malioboro No. 10',
+        'latitude' => -7.79,
+        'longitude' => 110.36,
+        'coordinate' => ['lat' => -7.79, 'lng' => 110.36],
+        'is_primary' => true,
+    ]);
+
+    $qris = Bank::create([
+        'name' => 'QRIS Standar Nasional',
+        'code' => 'QRIS',
+        'category' => 'qris',
+        'is_active' => true,
+    ]);
+
+    $bca = Bank::create([
+        'name' => 'Bank Central Asia',
+        'code' => 'BCA',
+        'category' => 'bank',
+        'is_active' => true,
+    ]);
+
+    $response = $this->actingAs($customer)->get(route('pelanggan.wallet.topup'));
+    $response->assertOk()
+        ->assertSee('QRIS Standar Nasional')
+        ->assertSee('Bank Central Asia');
+
+    // Nonaktifkan QRIS dan BCA
+    $qris->update(['is_active' => false]);
+    $bca->update(['is_active' => false]);
+
+    $responseAfter = $this->actingAs($customer)->get(route('pelanggan.wallet.topup'));
+    $responseAfter->assertOk()
+        ->assertDontSee('QRIS Standar Nasional')
+        ->assertDontSee('Bank Central Asia');
 });
 
 test('superadmin can delete bank without withdrawal history', function () {

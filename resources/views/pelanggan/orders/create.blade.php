@@ -1,5 +1,7 @@
+
 <x-pwa-layout title="Konfirmasi Pesanan - Pijat.In" headerTitle="Konfirmasi Pesanan" :backUrl="route('pelanggan.catalog.show', $package->service->slug)" :hideDock="true">
     <div class="py-2 space-y-4 pb-28 pt-2"
+
          x-data="{
             selectedPackageId: {{ old('package_id', $package->id) }},
             selectedAddressId: {{ old('customer_address_id', $defaultAddress->id) }},
@@ -17,9 +19,23 @@
             scheduledTime: '{{ old('scheduled_time', $defaultScheduleTime) }}',
             showRiskModal: false,
             showInstantUnavailableModal: false,
+            walletBalance: {{ (float) ($wallet->balance ?? 0) }},
+            isSubmittingOrder: false,
             checkingInstant: false,
             instantChecked: false,
             instantAvailable: true,
+
+            get currentPrice() {
+                return this.currentPackage ? Number(this.currentPackage.price) : 0;
+            },
+
+            get deficitAmount() {
+                return Math.max(0, this.currentPrice - this.walletBalance);
+            },
+
+            get isBalanceInsufficient() {
+                return this.walletBalance < this.currentPrice;
+            },
 
             selectPackage(id) {
                 this.selectedPackageId = id;
@@ -139,9 +155,10 @@
             </div>
         @endif
 
-        <form action="{{ route('pelanggan.orders.store') }}" method="POST" class="space-y-4">
+        <form id="order-booking-form" action="{{ route('pelanggan.orders.store') }}" method="POST" class="space-y-4">
             @csrf
             <input type="hidden" name="package_id" :value="selectedPackageId">
+            <input type="hidden" name="payment_method" :value="selectedPaymentMethod">
 
             <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs divide-y divide-slate-100">
                 <!-- Bagian 1: Ringkasan Paket & Durasi (DEC-01 Flat Tariff) -->
@@ -555,6 +572,69 @@
                     <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                     </svg>
+
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 block font-medium leading-none">Saldo Dompet Anda</span>
+                            <span class="font-extrabold font-mono text-xs text-slate-800 mt-0.5 block" x-text="'Rp ' + walletBalance.toLocaleString('id-ID')"></span>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Menuju Halaman Top Up -->
+                    <a href="{{ route('pelanggan.wallet.topup') }}"
+                       class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full border border-emerald-600 bg-emerald-50/60 hover:bg-emerald-100/70 text-emerald-800 text-[11px] font-bold transition active:scale-95 shadow-2xs">
+                        <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span>Top Up</span>
+                    </a>
+                </div>
+
+                <!-- Alternatif 1: Minimalist Rose Banner (Ramping, Bersih & Elegan) -->
+                <div x-show="isBalanceInsufficient" 
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="py-2 px-3.5 rounded-full bg-rose-50/90 border border-rose-200/80 flex items-center justify-between text-xs text-rose-800 shadow-2xs">
+                    <div class="min-w-0">
+                        <span class="truncate">
+                            Saldo kurang <strong class="font-extrabold font-mono text-rose-950" x-text="'Rp ' + deficitAmount.toLocaleString('id-ID')"></strong>
+                        </span>
+                    </div>
+
+                    <a href="{{ route('pelanggan.wallet.topup') }}" 
+                       class="font-bold text-rose-800 hover:text-rose-950 shrink-0 inline-flex items-center space-x-0.5 ml-2 hover:underline transition">
+                        <span>Top Up Sekarang</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- Tombol Konfirmasi Pesanan: Disabled jika saldo kurang -->
+                <button type="submit" 
+                    :disabled="(orderType === 'terjadwal' && isTimeInvalid) || isSubmittingOrder || isBalanceInsufficient"
+                    class="w-full py-3.5 px-6 rounded-full font-black text-sm shadow-md transition flex items-center justify-center space-x-2 select-none"
+                    :class="isBalanceInsufficient 
+                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none' 
+                        : 'bg-[#064e3b] hover:bg-[#043d2e] text-white cursor-pointer active:scale-[0.99]'">
+                    <template x-if="!isSubmittingOrder">
+                        <span class="flex items-center space-x-2">
+                            <span x-text="isBalanceInsufficient ? 'Saldo Tidak Cukup' : 'Lanjutkan Konfirmasi Pesanan'"></span>
+                            <svg x-show="!isBalanceInsufficient" class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                            </svg>
+                        </span>
+                    </template>
+                    <template x-if="isSubmittingOrder">
+                        <span class="flex items-center space-x-2">
+                            <svg class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <span>Memproses Pesanan...</span>
+                        </span>
+                    </template>
                 </button>
             </div>
 

@@ -601,8 +601,8 @@
                         const title = notifData.title || 'Pijat.In - Tugas Masuk';
                         const options = {
                             body: notifData.body || 'Ada antrean operasional atau tugas baru yang memerlukan tindakan Anda.',
-                            icon: '/favicon.ico',
-                            badge: '/favicon.ico',
+                            icon: '/icons/icon-192x192.png',
+                            badge: '/icons/badge-72x72.png',
                             tag: 'pijatin_alert_' + (notifData.id || Date.now()),
                             renotify: true,
                             data: {
