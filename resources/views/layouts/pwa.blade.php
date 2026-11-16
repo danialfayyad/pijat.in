@@ -80,7 +80,8 @@
             -webkit-backdrop-filter: blur(4px) !important;
             z-index: 99999 !important;
         }
-        div:where(.swal2-container) div:where(.swal2-popup).swal-admin-theme {
+        div:where(.swal2-container) div:where(.swal2-popup).swal-admin-theme,
+        div:where(.swal2-container) div:where(.swal2-popup).swal-danger-theme {
             width: calc(100% - 2rem) !important;
             max-width: 380px !important;
             padding: 1.5rem !important;
@@ -90,7 +91,8 @@
             font-family: inherit !important;
             background: #ffffff !important;
         }
-        div:where(.swal2-container) .swal-admin-theme .swal2-icon {
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon,
+        div:where(.swal2-container) .swal-danger-theme .swal2-icon {
             width: 3.5rem !important;
             height: 3.5rem !important;
             margin: 0.25rem auto 1rem !important;
@@ -102,7 +104,8 @@
             position: relative !important;
             box-sizing: border-box !important;
         }
-        div:where(.swal2-container) .swal-admin-theme .swal2-icon .swal2-icon-content {
+        div:where(.swal2-container) .swal-admin-theme .swal2-icon .swal2-icon-content,
+        div:where(.swal2-container) .swal-danger-theme .swal2-icon .swal2-icon-content {
             font-size: 1.6rem !important;
             font-weight: 800 !important;
             display: flex !important;
@@ -121,6 +124,13 @@
             color: #d97706 !important;
             box-shadow: 0 0 0 8px #fffbeb !important;
         }
+        div:where(.swal2-container) .swal-danger-theme .swal2-icon,
+        div:where(.swal2-container) .swal-danger-theme .swal2-icon.swal2-warning,
+        div:where(.swal2-container) .swal-danger-theme .swal2-icon.swal2-error {
+            background-color: #fef2f2 !important;
+            color: #e11d48 !important;
+            box-shadow: 0 0 0 8px #fff1f2 !important;
+        }
         div:where(.swal2-container) .swal-admin-theme .swal2-icon.swal2-success {
             background-color: #ecfdf5 !important;
             color: #059669 !important;
@@ -131,7 +141,8 @@
             color: #e11d48 !important;
             box-shadow: 0 0 0 8px #fff1f2 !important;
         }
-        div:where(.swal2-container) .swal-admin-theme .swal2-title {
+        div:where(.swal2-container) .swal-admin-theme .swal2-title,
+        div:where(.swal2-container) .swal-danger-theme .swal2-title {
             font-size: 1.05rem !important;
             font-weight: 800 !important;
             color: #0f172a !important;
@@ -139,14 +150,16 @@
             padding: 0 !important;
             margin: 0 0 0.5rem 0 !important;
         }
-        div:where(.swal2-container) .swal-admin-theme .swal2-html-container {
+        div:where(.swal2-container) .swal-admin-theme .swal2-html-container,
+        div:where(.swal2-container) .swal-danger-theme .swal2-html-container {
             font-size: 0.8rem !important;
             color: #64748b !important;
             line-height: 1.5 !important;
             margin: 0 0 1.25rem 0 !important;
-            padding: 0 0.25rem !important;
+            padding: 0 !important;
         }
-        div:where(.swal2-container) .swal-admin-theme .swal2-actions {
+        div:where(.swal2-container) .swal-admin-theme .swal2-actions,
+        div:where(.swal2-container) .swal-danger-theme .swal2-actions {
             display: flex !important;
             flex-direction: row !important;
             gap: 0.625rem !important;
@@ -154,24 +167,55 @@
             width: 100% !important;
             padding: 0 !important;
         }
-        div:where(.swal2-container) .swal-admin-theme .swal2-confirm {
+        div:where(.swal2-container) .swal-admin-theme .swal2-confirm,
+        div:where(.swal2-container) .swal-danger-theme .swal2-confirm,
+        div:where(.swal2-container) .swal-admin-theme .swal2-cancel,
+        div:where(.swal2-container) .swal-danger-theme .swal2-cancel {
             margin: 0 !important;
             flex: 1 1 0% !important;
-            width: auto !important;
+            width: 50% !important;
             min-height: 42px !important;
             padding: 0.625rem 1rem !important;
             font-size: 0.75rem !important;
             font-weight: 700 !important;
             border-radius: 0.75rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-sizing: border-box !important;
+            transition: all 0.15s ease-in-out !important;
+            cursor: pointer !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-confirm {
             background-color: #059669 !important;
             color: #ffffff !important;
             box-shadow: 0 1px 2px 0 rgba(5, 150, 105, 0.2) !important;
-            transition: all 0.15s ease-in-out !important;
             border: none !important;
-            cursor: pointer !important;
         }
         div:where(.swal2-container) .swal-admin-theme .swal2-confirm:hover {
             background-color: #047857 !important;
+        }
+        div:where(.swal2-container) .swal-danger-theme .swal2-confirm {
+            background-color: #e11d48 !important;
+            color: #ffffff !important;
+            box-shadow: 0 1px 2px 0 rgba(225, 29, 72, 0.25) !important;
+            border: none !important;
+        }
+        div:where(.swal2-container) .swal-danger-theme .swal2-confirm:hover {
+            background-color: #be123c !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-cancel,
+        div:where(.swal2-container) .swal-danger-theme .swal2-cancel {
+            background-color: #f8fafc !important;
+            color: #475569 !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04) !important;
+        }
+        div:where(.swal2-container) .swal-admin-theme .swal2-cancel:hover,
+        div:where(.swal2-container) .swal-danger-theme .swal2-cancel:hover {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+            border-color: #cbd5e1 !important;
         }
     </style>
 
@@ -802,6 +846,9 @@
         </div>
 
         <x-notification-drawer />
+        <x-pwa-push-modal />
     @endauth
+
+    @stack('scripts')
 </body>
 </html>

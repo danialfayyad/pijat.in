@@ -18,6 +18,8 @@ class WithdrawalRequest extends Model
 
     public const STATUS_REJECTED = 'REJECTED';
 
+    public const STATUS_CANCELLED = 'CANCELLED';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -39,6 +41,8 @@ class WithdrawalRequest extends Model
         'rejection_reason',
         'proof_path',
         'transfer_reference',
+        'xendit_disbursement_id',
+        'disbursement_status',
         'processed_by',
         'processed_at',
     ];
@@ -135,6 +139,17 @@ class WithdrawalRequest extends Model
         return $query->where('status', self::STATUS_REJECTED);
     }
 
+    /**
+     * Scope query to cancelled status.
+     *
+     * @param  Builder<WithdrawalRequest>  $query
+     * @return Builder<WithdrawalRequest>
+     */
+    public function scopeCancelled(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_CANCELLED);
+    }
+
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;
@@ -148,6 +163,11 @@ class WithdrawalRequest extends Model
     public function isRejected(): bool
     {
         return $this->status === self::STATUS_REJECTED;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
     }
 
     /**

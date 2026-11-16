@@ -8,6 +8,7 @@ use App\Models\Region;
 use App\Models\Service;
 use App\Models\ServicePackage;
 use App\Models\User;
+use App\Services\WalletService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -405,4 +406,71 @@ test('pelanggan dapat membatalkan pesanan mencari mitra dan mendapat refund sald
     $response->assertRedirect(route('pelanggan.orders.index'));
     expect($order->fresh()->status)->toBe(OrderStatus::Dibatalkan);
     expect((float) $wallet->fresh()->balance)->toBe((float) $initialBalance + 150000);
+});
+
+test('idempotency: pengiriman ulang form dengan booking_token yang sama dialihkan ke pesanan yang ada tanpa menduplikasi pesanan', function () {
+    app(WalletService::class)->credit($this->customer, 100000, 'topup', 'TOPUP-001', 'Deposit', $this->region->id);
+
+    $validDate = Carbon::now('Asia/Jakarta')->addDays(1)->format('Y-m-d');
+    $token = (string) Str::uuid();
+
+    $payload = [
+        'package_id' => $this->package60->id,
+        'customer_address_id' => $this->address->id,
+        'recipient_type' => 'myself',
+        'order_type' => 'terjadwal',
+        'scheduled_date' => $validDate,
+        'scheduled_time' => '10:00',
+        'risk_agreement' => '1',
+        'booking_token' => $token,
+    ];
+
+    // Submit 1 (pertama kali pesan)
+    $response1 = $this->actingAs($this->customer)->post(route('pelanggan.orders.store'), $payload);
+    $firstOrder = Order::where('customer_id', $this->customer->id)->first();
+    $response1->assertRedirect(route('pelanggan.orders.show', $firstOrder));
+
+    expect(Order::where('customer_id', $this->customer->id)->count())->toBe(1);
+
+    // Submit 2 (simulasi tekan Back dan klik konfirmasi lagi dengan token yang sama)
+    $response2 = $this->actingAs($this->customer)->post(route('pelanggan.orders.store'), $payload);
+    $response2->assertRedirect(route('pelanggan.orders.show', $firstOrder));
+    $response2->assertSessionHas('info');
+
+    // Pastikan pesanan TIDAK bertambah menjadi 2 dan saldo tidak terpotong dua kali
+    expect(Order::where('customer_id', $this->customer->id)->count())->toBe(1);
+    expect((float) $this->customer->getOrCreateWallet()->fresh()->balance)->toBe(0.0);
+});
+
+test('conflict guard: menolak pembuatan pesanan terjadwal ganda untuk diri sendiri pada jadwal yang sama persis', function () {
+    $validDate = Carbon::now('Asia/Jakarta')->addDays(2)->format('Y-m-d');
+
+    // Pesanan pertama
+    $response1 = $this->actingAs($this->customer)->post(route('pelanggan.orders.store'), [
+        'package_id' => $this->package60->id,
+        'customer_address_id' => $this->address->id,
+        'recipient_type' => 'myself',
+        'order_type' => 'terjadwal',
+        'scheduled_date' => $validDate,
+        'scheduled_time' => '14:00',
+        'risk_agreement' => '1',
+        'booking_token' => (string) Str::uuid(),
+    ]);
+    $response1->assertRedirect();
+    expect(Order::where('customer_id', $this->customer->id)->count())->toBe(1);
+
+    // Pesanan kedua dengan tanggal & jam yang sama persis untuk diri sendiri
+    $response2 = $this->actingAs($this->customer)->post(route('pelanggan.orders.store'), [
+        'package_id' => $this->package60->id,
+        'customer_address_id' => $this->address->id,
+        'recipient_type' => 'myself',
+        'order_type' => 'terjadwal',
+        'scheduled_date' => $validDate,
+        'scheduled_time' => '14:00',
+        'risk_agreement' => '1',
+        'booking_token' => (string) Str::uuid(), // token beda pun tetap ditolak karena jadwal bentrok
+    ]);
+
+    $response2->assertSessionHasErrors(['scheduled_time']);
+    expect(Order::where('customer_id', $this->customer->id)->count())->toBe(1);
 });

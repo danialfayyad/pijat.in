@@ -39,13 +39,25 @@ class TopupService
             throw new DomainException('Nominal pengisian saldo minimal adalah Rp '.number_format(self::MINIMUM_TOPUP_AMOUNT, 0, ',', '.').'.');
         }
 
+        // Batalkan / kedaluwarsakan tagihan topup dompet sebelumnya yang masih PENDING
+        // agar timer countdown ter-reset penuh 15 menit untuk tagihan baru ini (gaya Tokopedia / Shopee)
+        TopupInvoice::where('user_id', $user->id)
+            ->whereNull('order_id')
+            ->where('status', 'PENDING')
+            ->update(['status' => 'EXPIRED']);
+
         $invoiceNumber = 'TOPUP-'.date('Ymd').'-'.strtoupper(Str::random(6));
 
         $paymentUrl = null;
         $xenditInvoiceId = null;
+        $qrisString = null;
+        $vaNumber = null;
+        $vaBankCode = null;
+        $availableBanks = null;
 
         $secretKey = config('services.xendit.secret_key');
         if (! empty($secretKey)) {
+            // Selalu buat Standard Xendit Invoice agar tercatat resmi di menu Transaksi & Tautan Pembayaran Xendit
             try {
                 $response = Http::withBasicAuth($secretKey, '')
                     ->timeout(10)
@@ -63,9 +75,72 @@ class TopupService
                     $xenditData = $response->json();
                     $xenditInvoiceId = $xenditData['id'] ?? null;
                     $paymentUrl = $xenditData['invoice_url'] ?? null;
+
+                    // Ambil daftar Virtual Account resmi yang otomatis dibuatkan oleh Xendit Invoice
+                    if (! empty($xenditData['available_banks']) && is_array($xenditData['available_banks'])) {
+                        $bankMap = [];
+                        foreach ($xenditData['available_banks'] as $ab) {
+                            $bCode = strtoupper((string) ($ab['bank_code'] ?? ''));
+                            $accNum = (string) ($ab['bank_account_number'] ?? '');
+                            if ($bCode !== '' && $accNum !== '') {
+                                $bankMap[$bCode] = $accNum;
+                            }
+                        }
+                        $availableBanks = $bankMap;
+
+                        // Jika metode pembayaran yang dipilih pelanggan adalah bank VA tertentu, set nomor VA-nya langsung
+                        $methodCode = strtoupper($paymentMethod);
+                        if (isset($bankMap[$methodCode])) {
+                            $vaNumber = $bankMap[$methodCode];
+                            $vaBankCode = $methodCode;
+                        }
+                    }
                 }
             } catch (\Throwable $e) {
                 Log::warning('Xendit invoice creation error: '.$e->getMessage());
+            }
+
+            // Coba ambil nomor VA atau QRIS resmi jika metode spesifik dipilih
+            $isVa = in_array(strtoupper($paymentMethod), ['BCA', 'MANDIRI', 'BRI', 'BNI', 'PERMATA', 'CIMB', 'BSI']);
+            if ($isVa && empty($vaNumber)) {
+                try {
+                    $vaResponse = Http::withBasicAuth($secretKey, '')
+                        ->timeout(10)
+                        ->post('https://api.xendit.co/callback_virtual_accounts', [
+                            'external_id' => $invoiceNumber,
+                            'bank_code' => strtoupper($paymentMethod),
+                            'name' => 'PIJATIN - '.substr($user->name, 0, 15),
+                            'expected_amount' => (int) $amount,
+                            'is_closed' => true,
+                            'expiration_date' => now()->addMinutes(self::INVOICE_EXPIRY_MINUTES)->toIso8601String(),
+                        ]);
+
+                    if ($vaResponse->successful()) {
+                        $vaData = $vaResponse->json();
+                        $vaNumber = $vaData['account_number'] ?? null;
+                        $vaBankCode = strtoupper($paymentMethod);
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Xendit VA creation error: '.$e->getMessage());
+                }
+            } elseif (! $isVa) {
+                try {
+                    $qrResponse = Http::withBasicAuth($secretKey, '')
+                        ->timeout(10)
+                        ->post('https://api.xendit.co/qr_codes', [
+                            'external_id' => $invoiceNumber,
+                            'type' => 'DYNAMIC',
+                            'amount' => (int) $amount,
+                            'callback_url' => route('api.webhooks.xendit.topup'),
+                        ]);
+
+                    if ($qrResponse->successful()) {
+                        $qrData = $qrResponse->json();
+                        $qrisString = $qrData['qr_string'] ?? null;
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Xendit QRIS creation error: '.$e->getMessage());
+                }
             }
         }
 
@@ -78,6 +153,10 @@ class TopupService
             'payment_method' => $paymentMethod,
             'xendit_invoice_id' => $xenditInvoiceId,
             'payment_url' => $paymentUrl,
+            'qris_string' => $qrisString,
+            'va_number' => $vaNumber,
+            'va_bank_code' => $vaBankCode,
+            'available_banks' => $availableBanks,
             'expires_at' => now()->addMinutes(self::INVOICE_EXPIRY_MINUTES),
         ]);
     }
@@ -210,6 +289,44 @@ class TopupService
             return false;
         }
 
+        // Cek jika ini adalah tes webhook dari Dashboard Xendit (tombol "Tes dan Simpan")
+        // Xendit biasanya mengirim external_id fiktif atau event 'test'
+        $externalId = $payload['external_id'] ?? $payload['invoice_number'] ?? $payload['qr_code']['external_id'] ?? null;
+        if (! $externalId || str_contains(strtolower((string) $externalId), 'test') || str_contains(strtolower((string) ($payload['event'] ?? '')), 'test')) {
+            // Berikan response sukses (200) agar verifikasi tes di dashboard Xendit berhasil
+            return true;
+        }
+
+        // 1. Tangani Format QR Code Callback (Xendit QR API: qr_code / event === 'qr.payment')
+        if (isset($payload['qr_code']) || (isset($payload['event']) && str_starts_with((string) $payload['event'], 'qr.'))) {
+            $qrData = $payload['qr_code'] ?? $payload['data'] ?? [];
+            $externalId = $qrData['external_id'] ?? null;
+            $status = strtoupper($qrData['status'] ?? ($payload['status'] ?? ''));
+
+            if ($externalId && ($status === 'COMPLETED' || $status === 'PAID')) {
+                $invoice = TopupInvoice::where('invoice_number', $externalId)->first();
+                if ($invoice) {
+                    $this->markPaid($invoice, $qrData['id'] ?? null);
+
+                    return true;
+                }
+            }
+        }
+
+        // 2. Tangani Format Virtual Account Callback (Xendit FVA API: payment_id / callback_virtual_account_id)
+        if (isset($payload['payment_id']) || isset($payload['callback_virtual_account_id'])) {
+            $externalId = $payload['external_id'] ?? null;
+            if ($externalId) {
+                $invoice = TopupInvoice::where('invoice_number', $externalId)->first();
+                if ($invoice) {
+                    $this->markPaid($invoice, $payload['payment_id'] ?? $payload['id'] ?? null);
+
+                    return true;
+                }
+            }
+        }
+
+        // 3. Tangani Format Invoice Callback Standar (Xendit Invoice API)
         $externalId = $payload['external_id'] ?? $payload['invoice_number'] ?? null;
         if (! $externalId) {
             return false;
@@ -217,11 +334,15 @@ class TopupService
 
         $invoice = TopupInvoice::where('invoice_number', $externalId)->first();
         if (! $invoice) {
-            return false;
+            // Jika invoice tidak ditemukan di database, tetap kembalikan true (200)
+            // agar payload test/invoice lain dari Xendit tidak menyebabkan status 400
+            Log::info("Xendit Webhook: Invoice {$externalId} not found in database, acknowledging 200 OK.");
+
+            return true;
         }
 
         $status = strtoupper($payload['status'] ?? '');
-        if ($status === 'PAID' || $status === 'SETTLED') {
+        if ($status === 'PAID' || $status === 'SETTLED' || $status === 'COMPLETED') {
             $this->markPaid($invoice, $payload['id'] ?? null);
 
             return true;

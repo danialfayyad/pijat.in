@@ -249,8 +249,6 @@ test('order details mask sensitive data when order is completed more than 24 hou
     $response = $this->actingAs($this->customer)->get(route('pelanggan.orders.show', $order));
 
     $response->assertOk();
-    $response->assertSee('Data Perjalanan dan Peta Diarsipkan');
-    $response->assertSee('Arsip Riwayat (Lebih dari 24 Jam)');
     $response->assertSee($order->masked_address);
     $response->assertDontSee('Jl. Kaliurang Gang Rahasia No. 10');
     $response->assertSee($order->masked_phone);

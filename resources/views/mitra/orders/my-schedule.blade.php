@@ -1,47 +1,50 @@
 <x-pwa-layout title="Jadwal Saya - Pijat.In" headerTitle="Jadwal Saya">
-    <div class="space-y-4 pb-6" x-data="{ activeTab: '{{ $defaultTab }}' }">
+    <div x-data="{ activeTab: '{{ $defaultTab }}' }">
 
-        @if (session('status'))
-            <div class="rounded-2xl bg-emerald-50 border border-emerald-200/80 p-3.5 text-xs text-emerald-900 font-semibold shadow-2xs flex items-center space-x-2.5">
-                <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-                <span>{{ session('status') }}</span>
+        <!-- Sticky Tab Navigasi: Berjalan, Terjadwal, Riwayat -->
+        <div class="sticky top-[56px] z-30 -mt-3 -mx-4 px-4 pt-2.5 pb-2.5 bg-slate-50/95 backdrop-blur-md border-b border-slate-200/60 shadow-2xs">
+            <div class="p-1 bg-slate-200/70 rounded-xl flex items-center space-x-1 text-xs select-none">
+                <!-- Tab 1: Berjalan -->
+                <button type="button" @click="activeTab = 'berjalan'"
+                        class="flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        :class="activeTab === 'berjalan' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800'">
+                    <span>Berjalan</span>
+                    @if ($runningOrders->count() > 0)
+                        <span class="text-[11px] font-bold text-emerald-700 font-mono">({{ $runningOrders->count() }})</span>
+                    @endif
+                </button>
+
+                <!-- Tab 2: Terjadwal -->
+                <button type="button" @click="activeTab = 'terjadwal'"
+                        class="flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        :class="activeTab === 'terjadwal' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800'">
+                    <span>Terjadwal</span>
+                    @if ($scheduledOrders->count() > 0)
+                        <span class="text-[11px] font-bold text-slate-700 font-mono">({{ $scheduledOrders->count() }})</span>
+                    @endif
+                </button>
+
+                <!-- Tab 3: History -->
+                <button type="button" @click="activeTab = 'history'"
+                        class="flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        :class="activeTab === 'history' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800'">
+                    <span>Riwayat</span>
+                    @if ($historyOrders->count() > 0)
+                        <span class="text-[11px] font-bold text-slate-700 font-mono">({{ $historyOrders->count() }})</span>
+                    @endif
+                </button>
             </div>
-        @endif
-
-        <!-- Tab Navigasi: Berjalan, Terjadwal, Riwayat -->
-        <div class="p-1 bg-slate-100 rounded-xl flex items-center space-x-1 text-xs select-none">
-            <!-- Tab 1: Berjalan -->
-            <button type="button" @click="activeTab = 'berjalan'"
-                    class="flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer"
-                    :class="activeTab === 'berjalan' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800'">
-                <span>Berjalan</span>
-                @if ($runningOrders->count() > 0)
-                    <span class="text-[11px] font-bold text-emerald-700 font-mono">({{ $runningOrders->count() }})</span>
-                @endif
-            </button>
-
-            <!-- Tab 2: Terjadwal -->
-            <button type="button" @click="activeTab = 'terjadwal'"
-                    class="flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer"
-                    :class="activeTab === 'terjadwal' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800'">
-                <span>Terjadwal</span>
-                @if ($scheduledOrders->count() > 0)
-                    <span class="text-[11px] font-bold text-slate-700 font-mono">({{ $scheduledOrders->count() }})</span>
-                @endif
-            </button>
-
-            <!-- Tab 3: History -->
-            <button type="button" @click="activeTab = 'history'"
-                    class="flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer"
-                    :class="activeTab === 'history' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800'">
-                <span>Riwayat</span>
-                @if ($historyOrders->count() > 0)
-                    <span class="text-[11px] font-bold text-slate-700 font-mono">({{ $historyOrders->count() }})</span>
-                @endif
-            </button>
         </div>
+
+        <div class="space-y-4 pt-3.5 pb-6">
+            @if (session('status'))
+                <div class="rounded-2xl bg-emerald-50 border border-emerald-200/80 p-3.5 text-xs text-emerald-900 font-semibold shadow-2xs flex items-center space-x-2.5">
+                    <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>{{ session('status') }}</span>
+                </div>
+            @endif
 
         <!-- ============================================== -->
         <!-- TAB 1: ORDERAN BERJALAN                        -->
@@ -296,6 +299,7 @@
                     <p class="text-[11px] text-slate-400">Pesanan yang telah selesai atau dibatalkan akan muncul di sini.</p>
                 </div>
             @endforelse
+        </div>
         </div>
 
     </div>

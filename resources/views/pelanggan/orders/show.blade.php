@@ -869,21 +869,6 @@
             <!-- MODE 2: EXPANDED / FULL-PAGE VIEW (Scrollable Rincian Lengkap & Pelacakan) -->
             <div @if ($showMap) x-show="isExpanded" @endif class="flex-1 overflow-y-auto px-4 pb-8 {{ $showMap ? 'pt-3' : 'pt-4' }} space-y-3.5 overscroll-contain">
 
-                @if ($isArchived)
-                    <!-- Notice Privasi Riwayat > 24 Jam -->
-                    <div class="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-xs text-slate-700 flex items-start space-x-2.5">
-                        <svg class="w-4 h-4 text-slate-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                        </svg>
-                        <div class="space-y-0.5">
-                            <p class="font-bold text-slate-900">Arsip Riwayat (Lebih dari 24 Jam)</p>
-                            <p class="text-[11px] text-slate-500 leading-relaxed">
-                                Data Perjalanan dan Peta Diarsipkan demi perlindungan privasi. Rincian tagihan dan bukti transaksi tetap tersedia.
-                            </p>
-                        </div>
-                    </div>
-                @endif
-
                 @if ($order->status === \App\Enums\OrderStatus::Dibatalkan)
                     <div class="bg-white rounded-2xl p-4 border border-rose-200/80 shadow-xs space-y-1.5">
                         <div class="flex items-center space-x-2">
@@ -973,7 +958,7 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </div>
                             <div>
-                                <h3 class="text-sm font-bold text-slate-900 leading-tight">Menunggu Pembayaran</h3>
+                                <h3 class="text-sm font-bold text-slate-900 leading-tight">Konfirmasi Pembayaran Pesanan</h3>
                                 <p class="text-xs text-slate-500 mt-0.5">Selesaikan pembayaran untuk mulai mencari terapis.</p>
                             </div>
                         </div>

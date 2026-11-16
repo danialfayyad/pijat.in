@@ -84,7 +84,7 @@ test('customer can simulate paying invoice and wallet balance is credited with l
     $response = $this->actingAs($this->customer)
         ->post(route('pelanggan.wallet.simulate-pay', $invoice->invoice_number));
 
-    $response->assertRedirect(route('pelanggan.wallet.index'))
+    $response->assertRedirect(route('pelanggan.wallet.invoice', $invoice->invoice_number))
         ->assertSessionHas('status');
 
     $invoice->refresh();
@@ -149,4 +149,68 @@ test('xendit webhook can mark invoice paid and credit wallet balance (SYS-05)', 
         ->and($invoice->xendit_invoice_id)->toBe('xendit_inv_123456789');
 
     expect(app(WalletService::class)->getBalance($this->customer))->toBe(150000.0);
+});
+
+test('changing payment method or generating new topup invoice expires previous pending invoices and resets countdown (SYS-05)', function () {
+    app(CustomerAddressService::class)->createAddress($this->customer, [
+        'label' => 'Rumah',
+        'address_text' => 'Jl. Braga No. 12',
+        'latitude' => -6.9175,
+        'longitude' => 107.6191,
+    ]);
+
+    $topupService = app(TopupService::class);
+
+    // Initial invoice with QRIS
+    $firstInvoice = $topupService->createInvoice($this->customer, 100000, 'QRIS');
+    expect($firstInvoice->status)->toBe('PENDING')
+        ->and($firstInvoice->payment_method)->toBe('QRIS');
+
+    // Customer changes payment method to BCA
+    $secondInvoice = $topupService->createInvoice($this->customer, 100000, 'BCA');
+
+    $firstInvoice->refresh();
+    expect($firstInvoice->status)->toBe('EXPIRED');
+
+    expect($secondInvoice->status)->toBe('PENDING')
+        ->and($secondInvoice->payment_method)->toBe('BCA')
+        ->and($secondInvoice->expires_at->greaterThan(now()->addMinutes(14)))->toBeTrue();
+});
+
+test('tapping topup with ongoing pending invoice redirects directly to ongoing invoice unless changing method (SYS-05)', function () {
+    app(CustomerAddressService::class)->createAddress($this->customer, [
+        'label' => 'Rumah',
+        'address_text' => 'Jl. Braga No. 12',
+        'latitude' => -6.9175,
+        'longitude' => 107.6191,
+    ]);
+
+    $invoice = app(TopupService::class)->createInvoice($this->customer, 100000, 'QRIS');
+
+    // User visits wallet index (clean UI)
+    $responseIndex = $this->actingAs($this->customer)
+        ->get(route('pelanggan.wallet.index'));
+    $responseIndex->assertOk();
+
+    // User taps "Top-up" button while having ongoing invoice -> redirects back to ongoing invoice!
+    $responseTopup = $this->actingAs($this->customer)
+        ->get(route('pelanggan.wallet.topup'));
+    $responseTopup->assertRedirect(route('pelanggan.wallet.invoice', $invoice->invoice_number))
+        ->assertSessionHas('info');
+
+    // When clicking "Ubah Metode Pembayaran" with change=1 -> allows opening topup page
+    $responseChange = $this->actingAs($this->customer)
+        ->get(route('pelanggan.wallet.topup', ['amount' => 100000, 'change' => 1]));
+    $responseChange->assertOk()
+        ->assertSee('Pilih Metode Pembayaran');
+
+    // Can cancel topup invoice
+    $cancelResponse = $this->actingAs($this->customer)
+        ->post(route('pelanggan.wallet.cancel', $invoice->invoice_number));
+
+    $cancelResponse->assertRedirect(route('pelanggan.wallet.index'))
+        ->assertSessionHas('status');
+
+    $invoice->refresh();
+    expect($invoice->status)->toBe('EXPIRED');
 });

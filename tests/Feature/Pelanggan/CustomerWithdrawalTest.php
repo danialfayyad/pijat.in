@@ -50,6 +50,30 @@ test('customer can view withdrawal form when primary address exists (CUS-17)', f
         ->assertSee('Ahmad Pelanggan');
 });
 
+test('customer sees pending withdrawal status and cancel button on withdraw page when pending exists', function () {
+    $wd = WithdrawalRequest::create([
+        'withdrawal_code' => 'WD-TEST-PENDING',
+        'user_id' => $this->customer->id,
+        'region_id' => $this->region->id,
+        'amount' => 100000.00,
+        'fee' => 0.00,
+        'net_amount' => 100000.00,
+        'bank_name' => 'BCA',
+        'account_number' => '0987654321',
+        'account_holder_name' => 'Ahmad Pelanggan',
+        'status' => WithdrawalRequest::STATUS_PENDING,
+    ]);
+
+    $response = $this->actingAs($this->customer)
+        ->get(route('pelanggan.wallet.withdraw'));
+
+    $response->assertOk()
+        ->assertSee('Menunggu Verifikasi Admin')
+        ->assertSee('WD-TEST-PENDING')
+        ->assertSee('Batalkan Pengajuan Penarikan')
+        ->assertDontSee('Nama Bank Tujuan');
+});
+
 test('customer cannot access withdrawal form without primary address (Solusi B.2)', function () {
     $this->address->delete();
 
@@ -114,4 +138,96 @@ test('customer cannot withdraw amount exceeding wallet balance (CUS-17)', functi
 
     $response->assertSessionHasErrors(['amount']);
     expect(WithdrawalRequest::count())->toBe(0);
+});
+
+test('customer can cancel their pending withdrawal and balance is refunded (CUS-17)', function () {
+    // Create a pending withdrawal where 100k was already debited
+    $this->wallet->update(['balance' => 150000.00]);
+
+    $wd = WithdrawalRequest::create([
+        'withdrawal_code' => WithdrawalRequest::generateCode(),
+        'user_id' => $this->customer->id,
+        'region_id' => $this->region->id,
+        'amount' => 100000.00,
+        'fee' => 0.00,
+        'net_amount' => 100000.00,
+        'bank_name' => 'BCA',
+        'account_number' => '0987654321',
+        'account_holder_name' => 'Ahmad Pelanggan',
+        'status' => WithdrawalRequest::STATUS_PENDING,
+    ]);
+
+    $response = $this->actingAs($this->customer)
+        ->post(route('pelanggan.wallet.withdraw.cancel', $wd));
+
+    $response->assertRedirect(route('pelanggan.wallet.index'))
+        ->assertSessionHas('status');
+
+    // Balance refunded from 150.000 back to 250.000
+    $this->wallet->refresh();
+    expect((float) $this->wallet->balance)->toBe(250000.00);
+
+    // Status updated to CANCELLED
+    $wd->refresh();
+    expect($wd->isCancelled())->toBeTrue()
+        ->and($wd->status)->toBe(WithdrawalRequest::STATUS_CANCELLED);
+
+    // Refund ledger transaction created
+    $refundTx = WalletTransaction::where('user_id', $this->customer->id)
+        ->where('reference_type', 'withdrawal_refund')
+        ->where('reference_id', (string) $wd->id)
+        ->first();
+
+    expect($refundTx)->not->toBeNull()
+        ->and((float) $refundTx->amount)->toBe(100000.00)
+        ->and($refundTx->type)->toBe('credit');
+});
+
+test('customer cannot cancel another users withdrawal request', function () {
+    $otherCustomer = User::factory()->customer()->create();
+
+    $wd = WithdrawalRequest::create([
+        'withdrawal_code' => WithdrawalRequest::generateCode(),
+        'user_id' => $otherCustomer->id,
+        'region_id' => $this->region->id,
+        'amount' => 50000.00,
+        'fee' => 0.00,
+        'net_amount' => 50000.00,
+        'bank_name' => 'Mandiri',
+        'account_number' => '1122334455',
+        'account_holder_name' => 'Other User',
+        'status' => WithdrawalRequest::STATUS_PENDING,
+    ]);
+
+    $response = $this->actingAs($this->customer)
+        ->post(route('pelanggan.wallet.withdraw.cancel', $wd));
+
+    $response->assertForbidden();
+
+    $wd->refresh();
+    expect($wd->isPending())->toBeTrue();
+});
+
+test('customer cannot cancel non-pending withdrawal request', function () {
+    $wd = WithdrawalRequest::create([
+        'withdrawal_code' => WithdrawalRequest::generateCode(),
+        'user_id' => $this->customer->id,
+        'region_id' => $this->region->id,
+        'amount' => 100000.00,
+        'fee' => 0.00,
+        'net_amount' => 100000.00,
+        'bank_name' => 'BCA',
+        'account_number' => '0987654321',
+        'account_holder_name' => 'Ahmad Pelanggan',
+        'status' => WithdrawalRequest::STATUS_APPROVED,
+    ]);
+
+    $response = $this->actingAs($this->customer)
+        ->post(route('pelanggan.wallet.withdraw.cancel', $wd));
+
+    $response->assertRedirect(route('pelanggan.wallet.index'))
+        ->assertSessionHas('error');
+
+    $wd->refresh();
+    expect($wd->isApproved())->toBeTrue();
 });

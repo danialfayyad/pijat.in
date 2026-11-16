@@ -54,6 +54,7 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('superadmin')->name('supe
 
     // Master Rekening & Saluran Bank Pencairan
     Route::get('/banks', [BankController::class, 'index'])->name('banks.index');
+    Route::post('/banks/sync-xendit', [BankController::class, 'syncXendit'])->name('banks.sync');
     Route::post('/banks', [BankController::class, 'store'])->name('banks.store');
     Route::put('/banks/{bank}', [BankController::class, 'update'])->name('banks.update');
     Route::post('/banks/{bank}/toggle', [BankController::class, 'toggle'])->name('banks.toggle');

@@ -7,6 +7,7 @@ use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use App\Models\WithdrawalRequest;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
@@ -163,4 +164,56 @@ test('admin can export regional cash ledger to CSV (ADM-11)', function () {
 
     $response->assertOk()
         ->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+});
+
+test('admin approval triggers Xendit disbursement when secret key is configured', function () {
+    config(['services.xendit.secret_key' => 'xnd_test_secret_123']);
+
+    Http::fake([
+        'https://api.xendit.co/disbursements' => Http::response([
+            'id' => 'disb_xendit_001',
+            'external_id' => $this->withdrawalA->withdrawal_code,
+            'status' => 'PENDING',
+        ], 200),
+    ]);
+
+    $response = $this->actingAs($this->adminA)
+        ->post(route('admin.finance.withdrawals.approve', $this->withdrawalA));
+
+    $response->assertRedirect();
+    $response->assertSessionHas('status');
+
+    $this->withdrawalA->refresh();
+    expect($this->withdrawalA->status)->toBe(WithdrawalRequest::STATUS_APPROVED)
+        ->and($this->withdrawalA->xendit_disbursement_id)->toBe('disb_xendit_001')
+        ->and($this->withdrawalA->disbursement_status)->toBe('PENDING')
+        ->and($this->withdrawalA->transfer_reference)->toBe('disb_xendit_001');
+});
+
+test('xendit disbursement failure webhook marks withdrawal rejected and refunds wallet', function () {
+    config(['services.xendit.webhook_token' => 'test_webhook_token']);
+
+    $this->withdrawalA->update([
+        'status' => WithdrawalRequest::STATUS_APPROVED,
+        'xendit_disbursement_id' => 'disb_xendit_fail_001',
+        'disbursement_status' => 'PENDING',
+    ]);
+
+    $response = $this->withHeaders([
+        'x-callback-token' => 'test_webhook_token',
+    ])->postJson(route('api.webhooks.xendit.disbursement'), [
+        'id' => 'disb_xendit_fail_001',
+        'external_id' => $this->withdrawalA->withdrawal_code,
+        'status' => 'FAILED',
+        'failure_code' => 'INVALID_DESTINATION',
+    ]);
+
+    $response->assertOk();
+
+    $this->withdrawalA->refresh();
+    $this->customerWallet->refresh();
+
+    expect($this->withdrawalA->status)->toBe(WithdrawalRequest::STATUS_REJECTED)
+        ->and($this->withdrawalA->disbursement_status)->toBe('FAILED')
+        ->and((float) $this->customerWallet->balance)->toBe(150000.00);
 });

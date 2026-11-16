@@ -1,6 +1,5 @@
-<x-pwa-layout title="Pesanan - Pijat.In" headerTitle="Pesanan" :headerSubtitle="false" :backUrl="route('pelanggan.dashboard')">
-    <div class="space-y-4 py-1"
-         x-data="{
+<x-pwa-layout title="Pesanan - Pijat.In" headerTitle="Pesanan" :headerSubtitle="false">
+    <div x-data="{
             tab: 'active',
             showCancelModal: false,
             cancelOrderId: null,
@@ -14,47 +13,50 @@
             }
          }">
 
-        @if (session('success'))
-            <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-xs font-medium flex items-center gap-2.5">
-                <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                <span>{{ session('success') }}</span>
+        <!-- Sticky Segmented Tab Filter (Berjalan & Riwayat) -->
+        <div class="sticky top-[56px] z-30 -mt-3 -mx-4 px-4 pt-2.5 pb-2.5 bg-slate-50/95 backdrop-blur-md border-b border-slate-200/60 shadow-2xs">
+            <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-200/70 rounded-xl">
+                <button type="button" @click="tab = 'active'"
+                        class="py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
+                        :class="tab === 'active' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-500 hover:text-slate-800'">
+                    <span>Berjalan</span>
+                    @if ($activeOrders->isNotEmpty())
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
+                            {{ $activeOrders->count() }}
+                        </span>
+                    @endif
+                </button>
+                <button type="button" @click="tab = 'history'"
+                        class="py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
+                        :class="tab === 'history' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-500 hover:text-slate-800'">
+                    <span>Riwayat</span>
+                    @if ($pastOrders->isNotEmpty())
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200/80 text-slate-600">
+                            {{ $pastOrders->count() }}
+                        </span>
+                    @endif
+                </button>
             </div>
-        @endif
-
-        @if (session('error'))
-            <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200/80 text-rose-900 text-xs font-medium flex items-center gap-2.5">
-                <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-                <span>{{ session('error') }}</span>
-            </div>
-        @endif
-
-        <!-- Segmented Tab Switcher -->
-        <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-200/60 rounded-xl">
-            <button type="button" @click="tab = 'active'"
-                    class="py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
-                    :class="tab === 'active' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-500 hover:text-slate-800'">
-                <span>Berjalan</span>
-                @if ($activeOrders->isNotEmpty())
-                    <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
-                        {{ $activeOrders->count() }}
-                    </span>
-                @endif
-            </button>
-            <button type="button" @click="tab = 'history'"
-                    class="py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
-                    :class="tab === 'history' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-500 hover:text-slate-800'">
-                <span>Riwayat</span>
-                @if ($pastOrders->isNotEmpty())
-                    <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200/80 text-slate-600">
-                        {{ $pastOrders->count() }}
-                    </span>
-                @endif
-            </button>
         </div>
+
+        <div class="space-y-4 pt-3.5 pb-6">
+            @if (session('success'))
+                <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-xs font-medium flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>{{ session('success') }}</span>
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200/80 text-rose-900 text-xs font-medium flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    <span>{{ session('error') }}</span>
+                </div>
+            @endif
 
         <!-- Tab 1: Pesanan Berjalan -->
         <div x-show="tab === 'active'" class="space-y-3">
@@ -161,6 +163,7 @@
                     <p class="text-xs text-slate-500">Belum ada riwayat pesanan.</p>
                 </div>
             @endforelse
+        </div>
         </div>
 
         <!-- Modal Dialog Konfirmasi Pembatalan -->

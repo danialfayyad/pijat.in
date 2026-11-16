@@ -118,9 +118,11 @@ class MitraFinanceController extends Controller
         $maxAmount = (float) Parameter::get('max_withdrawal_amount', 5000000);
         $fee = (float) Parameter::get('withdrawal_fee_amount', 0);
 
-        $hasPending = WithdrawalRequest::where('user_id', $user->id)
+        $pendingWithdrawal = WithdrawalRequest::where('user_id', $user->id)
             ->where('status', WithdrawalRequest::STATUS_PENDING)
-            ->exists();
+            ->latest()
+            ->first();
+        $hasPending = $pendingWithdrawal !== null;
 
         return view('mitra.finance.withdraw', compact(
             'wallet',
@@ -128,7 +130,8 @@ class MitraFinanceController extends Controller
             'minAmount',
             'maxAmount',
             'fee',
-            'hasPending'
+            'hasPending',
+            'pendingWithdrawal'
         ));
     }
 
@@ -239,5 +242,61 @@ class MitraFinanceController extends Controller
 
         return redirect()->route('mitra.finance.index')
             ->with('status', 'Permohonan penarikan dana berhasil diajukan dan sedang dalam antrean verifikasi admin wilayah.');
+    }
+
+    /**
+     * Cancel pending partner withdrawal and refund wallet balance immediately (MIT-16).
+     */
+    public function cancelWithdrawal(Request $request, WithdrawalRequest $withdrawal): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($withdrawal->user_id !== $user->id) {
+            abort(403, 'Anda tidak memiliki hak akses untuk membatalkan penarikan ini.');
+        }
+
+        return DB::transaction(function () use ($withdrawal, $user) {
+            $lockedWithdrawal = WithdrawalRequest::where('id', $withdrawal->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if (! $lockedWithdrawal->isPending()) {
+                return redirect()->route('mitra.finance.index')
+                    ->with('error', 'Permohonan penarikan dana ini tidak dapat dibatalkan karena sudah diproses atau dibatalkan sebelumnya.');
+            }
+
+            $lockedWithdrawal->update([
+                'status' => WithdrawalRequest::STATUS_CANCELLED,
+                'processed_at' => now(),
+            ]);
+
+            // Refund partner wallet balance atomically (SYS-05)
+            $this->walletService->credit(
+                $user,
+                (float) $lockedWithdrawal->amount,
+                'withdrawal_refund',
+                (string) $lockedWithdrawal->id,
+                "Pengembalian saldo: Pembatalan penarikan ({$lockedWithdrawal->withdrawal_code})",
+                $lockedWithdrawal->region_id
+            );
+
+            // Notify Partner
+            $this->notificationService->sendToUser(
+                $user,
+                'withdrawal_cancelled',
+                'Penarikan Saldo Dibatalkan',
+                "Pengajuan penarikan dana {$lockedWithdrawal->withdrawal_code} senilai Rp ".number_format($lockedWithdrawal->amount, 0, ',', '.').' berhasil dibatalkan dan saldo telah dikembalikan ke dompet Anda.',
+                [
+                    'withdrawal_id' => $lockedWithdrawal->id,
+                    'withdrawal_code' => $lockedWithdrawal->withdrawal_code,
+                    'amount' => (float) $lockedWithdrawal->amount,
+                    'action_url' => route('mitra.finance.index'),
+                ],
+                'normal'
+            );
+
+            return redirect()->route('mitra.finance.index')
+                ->with('status', "Pengajuan penarikan dana {$lockedWithdrawal->withdrawal_code} senilai Rp ".number_format($lockedWithdrawal->amount, 0, ',', '.').' berhasil dibatalkan dan saldo telah dikembalikan ke dompet Anda.');
+        });
     }
 }

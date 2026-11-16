@@ -4,7 +4,16 @@
     'sendUrl',
     'isOrderActive' => true,
     'otherPartyName' => 'Terapis / Pelanggan',
+    'positionClass' => null,
 ])
+
+@php
+    $isFinished = in_array($order->status, [\App\Enums\OrderStatus::Selesai, \App\Enums\OrderStatus::Dibatalkan])
+        || in_array($order->status?->value ?? '', ['selesai', 'dibatalkan'])
+        || ! $isOrderActive;
+
+    $fabPosition = $positionClass ?? ($isFinished ? 'right-4 bottom-4' : 'right-4 bottom-24');
+@endphp
 
 <div @open-order-chat.window="openChat()"
      x-data="{
@@ -112,21 +121,21 @@
         }
     }">
 
-    <!-- Floating Chat Trigger Button (Positioned gracefully above bottom sheet) -->
-    <div class="absolute right-4 bottom-24 z-30">
+    <!-- Floating Chat Trigger Button -->
+    <div class="absolute {{ $fabPosition }} z-30">
         <button type="button" @click="openChat()"
-                class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-xl hover:shadow-2xl active:scale-95 flex items-center justify-center transition border-2 border-white cursor-pointer relative"
-                title="Buka Chat Obrolan">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg active:scale-95 flex items-center justify-center transition cursor-pointer"
+                title="Buka Chat Obrolan"
+                aria-label="Buka Chat Obrolan">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
             </svg>
-            <span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full"></span>
         </button>
     </div>
 
     <!-- Slide-over / Modal Chat Sheet -->
     <div x-show="showChat" style="display: none;"
-         class="fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/60 backdrop-blur-xs transition-opacity"
+         class="fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/40 transition-opacity"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -135,7 +144,7 @@
          x-transition:leave-end="opacity-0">
 
         <div @click.away="closeChat()"
-             class="w-full max-w-md mx-auto bg-white rounded-t-3xl shadow-2xl flex flex-col h-[75vh] max-h-[600px] border-t border-slate-200 overflow-hidden"
+             class="w-full max-w-md mx-auto bg-white rounded-t-2xl shadow-xl flex flex-col h-[78vh] max-h-[620px] border-t border-slate-200/80 overflow-hidden"
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="translate-y-full"
              x-transition:enter-end="translate-y-0"
@@ -144,87 +153,77 @@
              x-transition:leave-end="translate-y-full">
 
             <!-- Chat Header -->
-            <div class="px-4 py-3 bg-gradient-to-r from-emerald-700 to-teal-700 text-white flex items-center justify-between shrink-0 shadow-xs">
-                <div class="flex items-center space-x-3">
-                    <div class="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
-                        </svg>
+            <div class="px-4 py-3 bg-white border-b border-slate-200/80 flex items-center justify-between gap-3 shrink-0">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-700 font-bold text-sm flex items-center justify-center shrink-0">
+                        {{ strtoupper(mb_substr($otherPartyName, 0, 1)) }}
                     </div>
-                    <div>
-                        <h3 class="text-sm font-extrabold leading-tight">Obrolan Pesanan</h3>
-                        <p class="text-[10px] text-emerald-100 font-medium flex items-center space-x-1">
-                            <span>🛡️ Privasi Aman • Nomor HP Terlindungi</span>
-                        </p>
+                    <div class="min-w-0">
+                        <h3 class="text-sm font-bold text-slate-900 leading-tight truncate">{{ $otherPartyName }}</h3>
+                        <p class="text-[11px] text-slate-500 leading-tight mt-0.5">Obrolan pesanan</p>
                     </div>
                 </div>
                 <button type="button" @click="closeChat()"
-                        class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition cursor-pointer text-white">
+                        aria-label="Tutup Obrolan"
+                        class="w-8 h-8 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition cursor-pointer shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
 
-            <!-- Notice Privasi -->
-            <div class="px-3.5 py-1.5 bg-emerald-50/90 border-b border-emerald-100/80 text-[10.5px] text-emerald-900 font-medium flex items-center justify-between">
-                <span>Hubungi {{ $otherPartyName }} terkait patokan alamat atau kedatangan.</span>
-                <span class="text-[9px] uppercase tracking-wider font-extrabold bg-emerald-200/80 text-emerald-900 px-1.5 py-0.5 rounded-sm">In-App Chat</span>
-            </div>
-
             <!-- Chat Message List Body -->
-            <div x-ref="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50 overscroll-contain">
+            <div x-ref="chatContainer" class="flex-1 overflow-y-auto px-4 py-3 space-y-2.5 bg-slate-50 overscroll-contain">
                 <template x-if="messages.length === 0">
-                    <div class="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400 space-y-2">
-                        <div class="w-12 h-12 rounded-full bg-slate-200/70 flex items-center justify-center text-slate-400">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                            </svg>
-                        </div>
-                        <p class="text-xs font-semibold text-slate-600">Belum ada percakapan</p>
-                        <p class="text-[11px] text-slate-400 max-w-[220px]">
-                            Mulai obrolan untuk memberi tahu patokan rumah atau instruksi kedatangan.
+                    <div class="h-full flex flex-col items-center justify-center text-center px-6 py-8">
+                        <p class="text-xs font-medium text-slate-500">Belum ada pesan</p>
+                        <p class="text-[11px] text-slate-400 mt-1 max-w-[220px]">
+                            Kirim pesan untuk koordinasi alamat atau kedatangan.
                         </p>
                     </div>
                 </template>
 
                 <template x-for="msg in messages" :key="msg.id">
                     <div class="flex flex-col" :class="msg.is_me ? 'items-end' : 'items-start'">
-                        <span class="text-[9.5px] font-bold text-slate-400 px-1 mb-0.5" x-text="msg.sender_name"></span>
-                        <div class="max-w-[78%] px-3.5 py-2 text-xs leading-relaxed shadow-xs"
-                             :class="msg.is_me ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-xs' : 'bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-xs'">
-                            <p class="whitespace-pre-wrap break-words" x-text="msg.message"></p>
+                        <template x-if="!msg.is_me">
+                            <span class="text-[11px] font-semibold text-slate-600 mb-1 px-1" x-text="msg.sender_name"></span>
+                        </template>
+                        <div class="max-w-[82%] px-3.5 py-2 text-sm leading-relaxed break-words"
+                             :class="msg.is_me ? 'bg-emerald-600 text-white rounded-2xl rounded-br-xs' : 'bg-white border border-slate-200/80 text-slate-800 rounded-2xl rounded-bl-xs'">
+                            <div class="whitespace-pre-wrap" x-text="msg.message"></div>
+                            <div class="text-[10px] mt-1 text-right"
+                                 :class="msg.is_me ? 'text-emerald-100' : 'text-slate-400'"
+                                 x-text="msg.time"></div>
                         </div>
-                        <span class="text-[9px] font-mono text-slate-400 px-1 mt-0.5" x-text="msg.time"></span>
                     </div>
                 </template>
             </div>
 
             <!-- Footer / Input Box -->
-            <div class="p-3 bg-white border-t border-slate-200 shrink-0">
-                @if ($isOrderActive)
-                    <form @submit.prevent="sendMessage()" class="flex items-center space-x-2">
+            @if ($isOrderActive)
+                <div class="bg-white border-t border-slate-200/80 px-3 py-2.5 shrink-0">
+                    <form @submit.prevent="sendMessage()" class="flex items-center gap-2">
                         <input type="text" x-model="newMessage"
-                               placeholder="Tulis pesan..."
+                               placeholder="Ketik pesan..."
                                maxlength="1000"
+                               autocomplete="off"
                                :disabled="isSending"
-                               class="flex-1 text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition outline-none">
+                               class="flex-1 text-sm bg-slate-100 focus:bg-white border border-slate-200/70 focus:border-emerald-500 rounded-full px-4 py-2.5 outline-none transition">
                         <button type="submit"
+                                aria-label="Kirim Pesan"
                                 :disabled="isSending || !newMessage.trim()"
-                                class="h-[38px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs shadow-xs transition flex items-center justify-center space-x-1 cursor-pointer">
-                            <span x-show="!isSending">Kirim</span>
-                            <span x-show="isSending">...</span>
-                            <svg x-show="!isSending" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                class="w-10 h-10 rounded-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition flex items-center justify-center shrink-0 active:scale-95 cursor-pointer">
+                            <svg class="w-4 h-4 translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                             </svg>
                         </button>
                     </form>
-                @else
-                    <div class="p-2.5 bg-slate-100 rounded-xl text-center text-xs text-slate-500 font-medium">
-                        🔒 Sesi obrolan telah ditutup karena pesanan telah selesai atau dibatalkan.
-                    </div>
-                @endif
-            </div>
+                </div>
+            @else
+                <div class="bg-slate-50 border-t border-slate-200/80 px-4 py-3 text-center text-xs text-slate-500 shrink-0">
+                    Sesi obrolan telah ditutup karena pesanan selesai atau dibatalkan.
+                </div>
+            @endif
 
         </div>
     </div>

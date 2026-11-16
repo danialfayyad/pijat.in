@@ -48,7 +48,9 @@ Route::middleware(['auth', 'role:pelanggan'])->prefix('pelanggan')->name('pelang
     Route::post('/wallet/topup', [WalletController::class, 'store'])->name('wallet.store');
     Route::get('/wallet/withdraw', [WalletController::class, 'withdraw'])->name('wallet.withdraw');
     Route::post('/wallet/withdraw', [WalletController::class, 'storeWithdrawal'])->name('wallet.withdraw.store');
+    Route::post('/wallet/withdraw/{withdrawal}/cancel', [WalletController::class, 'cancelWithdrawal'])->name('wallet.withdraw.cancel');
     Route::get('/wallet/invoices/{invoice}', [WalletController::class, 'invoice'])->name('wallet.invoice');
+    Route::post('/wallet/invoices/{invoice}/cancel', [WalletController::class, 'cancel'])->name('wallet.cancel');
     Route::post('/wallet/invoices/{invoice}/simulate-pay', [WalletController::class, 'simulatePay'])->name('wallet.simulate-pay');
     Route::post('/wallet/invoices/{invoice}/check-status', [WalletController::class, 'checkStatus'])->name('wallet.check-status');
 

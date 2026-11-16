@@ -33,7 +33,7 @@
         @endif
 
         <!-- Form Pengajuan -->
-        <form action="{{ route('pelanggan.penalties.appeal.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+        <form id="appeal-form" action="{{ route('pelanggan.penalties.appeal.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
 
             <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-4">
@@ -70,7 +70,8 @@
             </div>
 
             <div class="pt-2">
-                <button type="submit"
+                <button type="button"
+                    onclick="confirmSubmitAppeal('appeal-form')"
                     class="w-full min-h-[48px] py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center space-x-2 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                     <span>Kirim Berkas Banding ke Admin Wilayah</span>
@@ -78,5 +79,39 @@
             </div>
         </form>
     </div>
+
+    @push('scripts')
+        <script>
+            function confirmSubmitAppeal(formId) {
+                const form = typeof formId === 'string' ? document.getElementById(formId) : formId;
+                if (form && !form.reportValidity()) return;
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'question',
+                        iconHtml: '?',
+                        title: 'Ajukan Banding Sanksi?',
+                        text: 'Permohonan banding Anda akan ditinjau secara seksama oleh admin.',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batal',
+                        confirmButtonText: 'Ya, Ajukan Banding',
+                        reverseButtons: true,
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'swal-admin-theme',
+                            confirmButton: 'swal2-confirm',
+                            cancelButton: 'swal2-cancel',
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed && form) {
+                            form.submit();
+                        }
+                    });
+                } else if (confirm('Permohonan banding Anda akan ditinjau secara seksama oleh admin. Kirim permohonan banding?')) {
+                    if (form) form.submit();
+                }
+            }
+        </script>
+    @endpush
 </x-pwa-layout>
 
