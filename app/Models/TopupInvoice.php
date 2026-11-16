@@ -20,6 +20,10 @@ class TopupInvoice extends Model
         'payment_method',
         'xendit_invoice_id',
         'payment_url',
+        'qris_string',
+        'va_number',
+        'va_bank_code',
+        'available_banks',
         'paid_at',
         'expires_at',
     ];
@@ -31,6 +35,7 @@ class TopupInvoice extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'available_banks' => 'array',
             'paid_at' => 'datetime',
             'expires_at' => 'datetime',
         ];

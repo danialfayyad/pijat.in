@@ -1,5 +1,5 @@
 <x-pwa-layout title="Profil Mitra - Pijat.In" headerTitle="Akun & Kemitraan">
-    <div class="py-2 space-y-4">
+    <div class="pt-1 pb-1 space-y-4">
 
         <!-- Status Feedback -->
         @if (session('status'))
@@ -77,6 +77,17 @@
                     <span class="text-sm font-semibold text-slate-800 group-hover:text-emerald-700 transition">Keamanan Kata Sandi</span>
                     <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-500 shrink-0 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
+
+                <!-- Notifikasi Web Push & Radar -->
+                <button type="button" 
+                        onclick="window.dispatchEvent(new CustomEvent('open-pwa-push-modal'))"
+                        class="w-full px-4 py-3.5 flex items-center justify-between hover:bg-slate-50 transition group cursor-pointer text-left">
+                    <div>
+                        <span class="text-sm font-semibold text-slate-800 group-hover:text-emerald-700 transition block">Notifikasi Web Push & Radar</span>
+                        <span class="text-[10px] text-slate-400 block font-normal">Izin pemberitahuan pesanan instan</span>
+                    </div>
+                    <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-500 shrink-0 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
             </div>
         </div>
 
@@ -135,9 +146,10 @@
 
         <!-- Tombol Logout -->
         <div class="pt-2">
-            <form method="POST" action="{{ route('logout') }}">
+            <form id="logout-mitra-form" method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" 
+                <button type="button" 
+                        onclick="confirmLogout('logout-mitra-form')"
                         class="w-full py-3 rounded-2xl bg-white hover:bg-rose-50 text-rose-600 border border-slate-200/80 hover:border-rose-200 text-xs font-semibold transition flex items-center justify-center space-x-2 cursor-pointer shadow-2xs">
                     <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     <span>Keluar dari Akun</span>
@@ -146,4 +158,37 @@
         </div>
 
     </div>
+
+    @push('scripts')
+        <script>
+            function confirmLogout(formId) {
+                const form = typeof formId === 'string' ? document.getElementById(formId) : formId;
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        iconHtml: '✕',
+                        title: 'Keluar Akun?',
+                        text: 'Apakah Anda yakin ingin keluar dari akun Anda?',
+                        showCancelButton: true,
+                        cancelButtonText: 'Kembali',
+                        confirmButtonText: 'Ya, Keluar',
+                        reverseButtons: true,
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'swal-danger-theme',
+                            confirmButton: 'swal2-confirm',
+                            cancelButton: 'swal2-cancel',
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed && form) {
+                            form.submit();
+                        }
+                    });
+                } else if (confirm('Apakah Anda yakin ingin keluar dari akun Anda?')) {
+                    if (form) form.submit();
+                }
+            }
+        </script>
+    @endpush
 </x-pwa-layout>

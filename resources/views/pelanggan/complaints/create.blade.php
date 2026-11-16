@@ -30,7 +30,7 @@
         </div>
 
         <!-- Complaint Form -->
-        <form method="POST" action="{{ route('pelanggan.complaints.store', $order) }}" enctype="multipart/form-data" class="space-y-4">
+        <form id="complaint-create-form" method="POST" action="{{ route('pelanggan.complaints.store', $order) }}" enctype="multipart/form-data" class="space-y-4">
             @csrf
 
             <!-- Category -->
@@ -97,12 +97,47 @@
                 @enderror
             </div>
 
-            <button type="submit"
+            <button type="button"
+                onclick="confirmSubmitComplaint('complaint-create-form')"
                 class="w-full min-h-[46px] py-3 px-4 bg-rose-600 hover:bg-rose-700 active:scale-[0.99] text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
                 <span>Kirimkan Aduan ke Admin Wilayah</span>
             </button>
         </form>
     </div>
+
+    @push('scripts')
+        <script>
+            function confirmSubmitComplaint(formId) {
+                const form = typeof formId === 'string' ? document.getElementById(formId) : formId;
+                if (form && !form.reportValidity()) return;
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'question',
+                        iconHtml: '?',
+                        title: 'Kirim Aduan Layanan?',
+                        text: 'Laporan kendala Anda akan diteruskan ke tim penanganan operasional.',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batal',
+                        confirmButtonText: 'Ya, Kirim Laporan',
+                        reverseButtons: true,
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'swal-admin-theme',
+                            confirmButton: 'swal2-confirm',
+                            cancelButton: 'swal2-cancel',
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed && form) {
+                            form.submit();
+                        }
+                    });
+                } else if (confirm('Laporan kendala Anda akan diteruskan ke tim penanganan operasional. Kirim aduan?')) {
+                    if (form) form.submit();
+                }
+            }
+        </script>
+    @endpush
 </x-pwa-layout>
 

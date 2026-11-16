@@ -137,6 +137,8 @@
                                         <span class="text-[11px] font-semibold text-amber-600">Menunggu Verifikasi</span>
                                     @elseif ($wd->isApproved())
                                         <span class="text-[11px] font-semibold text-emerald-700">Dicairkan</span>
+                                    @elseif ($wd->isCancelled())
+                                        <span class="text-[11px] font-semibold text-slate-500">Dibatalkan</span>
                                     @else
                                         <span class="text-[11px] font-semibold text-rose-600">Ditolak</span>
                                     @endif
@@ -147,7 +149,17 @@
                                 @endif
                             </div>
                             <div class="text-right shrink-0">
-                                <span class="text-sm font-bold text-slate-900">Rp {{ number_format($wd->amount, 0, ',', '.') }}</span>
+                                <span class="text-sm font-bold text-slate-900 block">Rp {{ number_format($wd->amount, 0, ',', '.') }}</span>
+                                @if ($wd->isPending())
+                                    <form method="POST" action="{{ route('mitra.finance.withdraw.cancel', $wd) }}"
+                                          class="mt-1"
+                                          onsubmit="confirmCancelWithdrawal(event, '{{ $wd->withdrawal_code }}', 'Rp {{ number_format($wd->amount, 0, ',', '.') }}', '{{ $wd->bank_name }}')">
+                                        @csrf
+                                        <button type="submit" class="text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer">
+                                            Batalkan
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -219,4 +231,40 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            function confirmCancelWithdrawal(target) {
+                if (target && target.preventDefault) {
+                    target.preventDefault();
+                }
+                const form = typeof target === 'string' ? document.getElementById(target) : (target?.currentTarget || target?.target || target);
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        iconHtml: '✕',
+                        title: 'Batalkan Penarikan?',
+                        text: 'Apakah Anda yakin ingin membatalkan penarikan dana ini?',
+                        showCancelButton: true,
+                        cancelButtonText: 'Kembali',
+                        confirmButtonText: 'Ya, Batalkan',
+                        reverseButtons: true,
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'swal-danger-theme',
+                            confirmButton: 'swal2-confirm',
+                            cancelButton: 'swal2-cancel',
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed && form) {
+                            form.submit();
+                        }
+                    });
+                } else if (confirm('Apakah Anda yakin ingin membatalkan penarikan dana ini?')) {
+                    if (form) form.submit();
+                }
+            }
+        </script>
+    @endpush
 </x-pwa-layout>

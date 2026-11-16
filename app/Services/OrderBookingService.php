@@ -167,6 +167,29 @@ class OrderBookingService
                     'scheduled_time' => "Estimasi selesai layanan ({$endHourMinute}) melebihi jam tutup operasional (21:00). Silakan pilih jam mulai yang lebih awal.",
                 ]);
             }
+
+            // Cegah pesanan terjadwal ganda untuk diri sendiri pada jadwal yang sama persis
+            if ($recipientType === 'myself') {
+                $scheduledStartTimeUtc = $scheduledStartTime->copy()->utc();
+                $conflictingOrder = Order::where('customer_id', $customer->id)
+                    ->where('recipient_type', 'myself')
+                    ->whereIn('status', [
+                        OrderStatus::MenungguPembayaran,
+                        OrderStatus::MencariMitra,
+                        OrderStatus::Dijadwalkan,
+                        OrderStatus::MenujuLokasi,
+                        OrderStatus::Tiba,
+                        OrderStatus::SedangBerlangsung,
+                    ])
+                    ->where('scheduled_start_time', $scheduledStartTimeUtc)
+                    ->first();
+
+                if ($conflictingOrder) {
+                    throw ValidationException::withMessages([
+                        'scheduled_time' => 'Anda sudah memiliki pesanan aktif pada jadwal tersebut (#'.$conflictingOrder->order_code.'). Silakan periksa menu Pesanan Anda.',
+                    ]);
+                }
+            }
         }
 
         // 3. Validate Risk Consent (CUS-07 & SYS-08)

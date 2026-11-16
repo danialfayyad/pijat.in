@@ -122,6 +122,30 @@ test('partner can view withdrawal form with verified bank account (MIT-16)', fun
         ->assertSee('250.000');
 });
 
+test('partner sees pending withdrawal status and cancel button on withdraw page when pending exists', function () {
+    $wd = WithdrawalRequest::create([
+        'withdrawal_code' => 'WD-PARTNER-PENDING',
+        'user_id' => $this->mitra->id,
+        'bank_account_id' => $this->bankAccount->id,
+        'region_id' => $this->region->id,
+        'amount' => 100000.00,
+        'fee' => 0.00,
+        'net_amount' => 100000.00,
+        'bank_name' => 'BCA',
+        'account_number' => '1234567890',
+        'account_holder_name' => 'Mitra Terapis Testing',
+        'status' => WithdrawalRequest::STATUS_PENDING,
+    ]);
+
+    $response = $this->actingAs($this->mitra)
+        ->get(route('mitra.finance.withdraw'));
+
+    $response->assertOk()
+        ->assertSee('Menunggu Verifikasi Admin')
+        ->assertSee('WD-PARTNER-PENDING')
+        ->assertSee('Batalkan Pengajuan Penarikan');
+});
+
 test('partner cannot withdraw if account is suspended (MIT-16)', function () {
     $this->mitra->update([
         'status' => UserStatus::Ditangguhkan,
@@ -201,4 +225,72 @@ test('partner cannot submit multiple concurrent pending withdrawals (MIT-16)', f
 
     $response->assertRedirect(route('mitra.finance.index'))
         ->assertSessionHas('error');
+});
+
+test('partner can cancel their pending withdrawal and balance is refunded (MIT-16)', function () {
+    // Partner wallet starts at 250k, deduct 100k for pending withdrawal
+    $this->wallet->update(['balance' => 150000.00]);
+
+    $wd = WithdrawalRequest::create([
+        'withdrawal_code' => WithdrawalRequest::generateCode(),
+        'user_id' => $this->mitra->id,
+        'bank_account_id' => $this->bankAccount->id,
+        'region_id' => $this->region->id,
+        'amount' => 100000.00,
+        'fee' => 0.00,
+        'net_amount' => 100000.00,
+        'bank_name' => 'BCA',
+        'account_number' => '1234567890',
+        'account_holder_name' => 'Mitra Terapis Testing',
+        'status' => WithdrawalRequest::STATUS_PENDING,
+    ]);
+
+    $response = $this->actingAs($this->mitra)
+        ->post(route('mitra.finance.withdraw.cancel', $wd));
+
+    $response->assertRedirect(route('mitra.finance.index'))
+        ->assertSessionHas('status');
+
+    // Balance refunded to 250.000
+    $this->wallet->refresh();
+    expect((float) $this->wallet->balance)->toBe(250000.00);
+
+    // Status updated to CANCELLED
+    $wd->refresh();
+    expect($wd->isCancelled())->toBeTrue();
+
+    // Refund ledger entry created
+    $refundTx = WalletTransaction::where('user_id', $this->mitra->id)
+        ->where('reference_type', 'withdrawal_refund')
+        ->where('reference_id', (string) $wd->id)
+        ->first();
+
+    expect($refundTx)->not->toBeNull()
+        ->and((float) $refundTx->amount)->toBe(100000.00)
+        ->and($refundTx->type)->toBe('credit');
+});
+
+test('partner cannot cancel another users withdrawal request', function () {
+    $otherMitra = User::factory()->mitra()->create();
+
+    $wd = WithdrawalRequest::create([
+        'withdrawal_code' => WithdrawalRequest::generateCode(),
+        'user_id' => $otherMitra->id,
+        'region_id' => $this->region->id,
+        'amount' => 50000.00,
+        'fee' => 0.00,
+        'net_amount' => 50000.00,
+        'bank_name' => 'BRI',
+        'account_number' => '9988776655',
+        'account_holder_name' => 'Other Mitra',
+        'status' => WithdrawalRequest::STATUS_PENDING,
+    ]);
+
+    $response = $this->actingAs($this->mitra)
+        ->post(route('mitra.finance.withdraw.cancel', $wd));
+
+    $response->assertForbidden();
+
+    $wd->refresh();
+    expect($wd->isPending())->toBeTrue();
 });

@@ -193,6 +193,7 @@
                                 <option value="pending" {{ $withdrawalStatus === 'pending' ? 'selected' : '' }}>Menunggu Verifikasi ({{ $pendingWithdrawalCount }})</option>
                                 <option value="approved" {{ $withdrawalStatus === 'approved' ? 'selected' : '' }}>Disetujui</option>
                                 <option value="rejected" {{ $withdrawalStatus === 'rejected' ? 'selected' : '' }}>Ditolak</option>
+                                <option value="cancelled" {{ $withdrawalStatus === 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
                             </select>
                         </div>
 
@@ -242,6 +243,7 @@
                                         'is_pending' => $wd->isPending(),
                                         'is_approved' => $wd->isApproved(),
                                         'is_rejected' => $wd->isRejected(),
+                                        'is_cancelled' => $wd->isCancelled(),
                                         'created_at' => $wd->created_at->format('d M Y, H:i'),
                                         'processed_by' => $wd->processedBy?->name,
                                         'processed_at' => $wd->processed_at?->format('d M Y, H:i'),
@@ -275,12 +277,13 @@
                                     <!-- 5. Status (Calm Dot Indicator Tanpa Pill Tebal) -->
                                     <td class="px-5 py-3.5 whitespace-nowrap">
                                         <span class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700">
-                                            <span class="w-1.5 h-1.5 rounded-full {{ match($wd->status) {
+                                            <span class="w-1.5 h-1.5 rounded-full {{ match(strtolower($wd->status)) {
                                                 'pending' => 'bg-amber-500',
                                                 'approved' => 'bg-emerald-500',
+                                                'cancelled' => 'bg-slate-400',
                                                 default => 'bg-rose-500',
                                             } }}"></span>
-                                            {{ $wd->isPending() ? 'Menunggu Verifikasi' : ($wd->isApproved() ? 'Disetujui' : 'Ditolak') }}
+                                            {{ $wd->isPending() ? 'Menunggu Verifikasi' : ($wd->isApproved() ? 'Disetujui' : ($wd->isCancelled() ? 'Dibatalkan Pengguna' : 'Ditolak')) }}
                                         </span>
                                     </td>
 
@@ -605,6 +608,20 @@
                             </div>
                         </template>
 
+                        <!-- Riwayat Dibatalkan oleh Pengguna -->
+                        <template x-if="currentWd.is_cancelled">
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-600 block">Dibatalkan oleh Pemohon</span>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500">Waktu Pembatalan:</span>
+                                    <span class="text-slate-700 font-medium" x-text="currentWd.processed_at || '-'"></span>
+                                </div>
+                                <p class="text-[11px] text-slate-600 leading-relaxed">
+                                    Pengajuan penarikan dana ini dibatalkan sendiri oleh pemohon sebelum diproses. Saldo sebesar nominal pengajuan telah dikembalikan 100% secara otomatis ke dompet.
+                                </p>
+                            </div>
+                        </template>
+
                         <!-- Modal Detail Footer -->
                         <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
                             <button type="button"
@@ -647,8 +664,14 @@
                         <!-- Header -->
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                             <div>
-                                <h3 class="text-base font-bold text-slate-900">Konfirmasi Persetujuan Penarikan</h3>
-                                <p class="text-xs text-slate-400 mt-0.5">Pastikan transfer telah berhasil dilakukan ke rekening pemohon.</p>
+                                <h3 class="text-base font-bold text-slate-900">
+                                    {{ ($xenditEnabled ?? false) ? 'Setujui & Transfer via Xendit' : 'Konfirmasi Persetujuan Penarikan' }}
+                                </h3>
+                                <p class="text-xs text-slate-400 mt-0.5">
+                                    {{ ($xenditEnabled ?? false)
+                                        ? 'Dana akan otomatis ditransfer dari saldo Xendit pusat ke rekening tujuan.'
+                                        : 'Pastikan transfer telah berhasil dilakukan ke rekening pemohon.' }}
+                                </p>
                             </div>
                             <button type="button" @click="closeApprove()" class="text-slate-400 hover:text-slate-600 text-xl leading-none font-bold">&times;</button>
                         </div>
@@ -659,6 +682,13 @@
                               enctype="multipart/form-data"
                               class="space-y-4 text-xs mt-4">
                             @csrf
+
+                            @if ($xenditEnabled ?? false)
+                                <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-[11px] leading-relaxed">
+                                    <span class="font-bold block mb-0.5">Pencairan Otomatis (Xendit Disbursement)</span>
+                                    Anda cukup memastikan data rekening di bawah valid dan tidak ada sengketa aktif. Setelah disetujui, sistem langsung memproses transfer otomatis via Xendit.
+                                </div>
+                            @endif
 
                             <!-- Ringkasan Rekening Otomatis Terisi & Terkunci (Read-only) -->
                             <div class="p-4 bg-slate-50 rounded-xl space-y-2 border border-slate-200/80">
@@ -687,34 +717,36 @@
                                 </div>
                             </div>
 
-                            <!-- Input Referensi Transfer -->
-                            <div>
-                                <label for="modal_transfer_reference" class="font-semibold text-slate-700 block mb-1">
-                                    Nomor Referensi Transfer / Payout (Opsional)
-                                </label>
-                                <input type="text"
-                                       id="modal_transfer_reference"
-                                       name="transfer_reference"
-                                       placeholder="Contoh: REF-BCA-88992211"
-                                       class="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
-                                <span class="text-[10px] text-slate-400 mt-0.5 block">Nomor bukti mutasi / ref dari aplikasi bank atau payment gateway.</span>
-                            </div>
+                            @if (! ($xenditEnabled ?? false))
+                                <!-- Input Referensi Transfer -->
+                                <div>
+                                    <label for="modal_transfer_reference" class="font-semibold text-slate-700 block mb-1">
+                                        Nomor Referensi Transfer / Payout (Opsional)
+                                    </label>
+                                    <input type="text"
+                                           id="modal_transfer_reference"
+                                           name="transfer_reference"
+                                           placeholder="Contoh: REF-BCA-88992211"
+                                           class="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                                    <span class="text-[10px] text-slate-400 mt-0.5 block">Nomor bukti mutasi / ref dari aplikasi bank atau payment gateway.</span>
+                                </div>
 
-                            <!-- Input Unggah Bukti Transfer (WAJIB) -->
-                            <div>
-                                <label for="modal_proof_file" class="font-semibold text-slate-700 block mb-1">
-                                    Unggah Bukti Transfer <span class="text-rose-600 font-bold">* (Wajib)</span>
-                                </label>
-                                <input type="file"
-                                       id="modal_proof_file"
-                                       name="proof_file"
-                                       accept="image/jpeg,image/png,image/jpg,application/pdf"
-                                       class="w-full p-2 rounded-xl border border-slate-200 text-xs text-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
-                                       required>
-                                <span class="text-[10px] text-slate-500 mt-1 block">
-                                    Format: JPG, PNG, atau PDF (maks. 4MB). Berkas bukti transfer wajib diunggah untuk kelengkapan audit kas wilayah.
-                                </span>
-                            </div>
+                                <!-- Input Unggah Bukti Transfer (WAJIB) -->
+                                <div>
+                                    <label for="modal_proof_file" class="font-semibold text-slate-700 block mb-1">
+                                        Unggah Bukti Transfer <span class="text-rose-600 font-bold">* (Wajib)</span>
+                                    </label>
+                                    <input type="file"
+                                           id="modal_proof_file"
+                                           name="proof_file"
+                                           accept="image/jpeg,image/png,image/jpg,application/pdf"
+                                           class="w-full p-2 rounded-xl border border-slate-200 text-xs text-slate-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                                           required>
+                                    <span class="text-[10px] text-slate-500 mt-1 block">
+                                        Format: JPG, PNG, atau PDF (maks. 4MB). Berkas bukti transfer wajib diunggah untuk kelengkapan audit kas wilayah.
+                                    </span>
+                                </div>
+                            @endif
 
                             <!-- Action Buttons -->
                             <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
@@ -728,7 +760,7 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                     </svg>
-                                    Konfirmasi & Setujui Selesai
+                                    {{ ($xenditEnabled ?? false) ? 'Setujui & Kirim via Xendit' : 'Konfirmasi & Setujui Selesai' }}
                                 </button>
                             </div>
                         </form>

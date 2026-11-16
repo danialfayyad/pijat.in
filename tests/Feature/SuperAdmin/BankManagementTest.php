@@ -5,6 +5,7 @@ use App\Models\Bank;
 use App\Models\CustomerAddress;
 use App\Models\Region;
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     $this->superadmin = User::factory()->create([
@@ -224,5 +225,36 @@ test('superadmin can delete bank without withdrawal history', function () {
 
     $this->assertDatabaseMissing('banks', [
         'id' => $bank->id,
+    ]);
+});
+
+test('superadmin can sync available disbursement banks from xendit', function () {
+    config(['services.xendit.secret_key' => 'xnd_test_secret_123']);
+
+    Http::fake([
+        'https://api.xendit.co/available_disbursements_banks' => Http::response([
+            ['name' => 'Bank Central Asia', 'code' => 'BCA'],
+            ['name' => 'Bank Rakyat Indonesia', 'code' => 'BRI'],
+            ['name' => 'Bank Mandiri', 'code' => 'MANDIRI'],
+        ], 200),
+    ]);
+
+    $response = $this->actingAs($this->superadmin)
+        ->post(route('superadmin.banks.sync'));
+
+    $response->assertRedirect(route('superadmin.banks.index'))
+        ->assertSessionHas('status');
+
+    $this->assertDatabaseHas('banks', [
+        'name' => 'Bank Central Asia',
+        'code' => 'BCA',
+    ]);
+    $this->assertDatabaseHas('banks', [
+        'name' => 'Bank Rakyat Indonesia',
+        'code' => 'BRI',
+    ]);
+    $this->assertDatabaseHas('banks', [
+        'name' => 'Bank Mandiri',
+        'code' => 'MANDIRI',
     ]);
 });

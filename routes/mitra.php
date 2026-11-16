@@ -44,6 +44,7 @@ Route::middleware(['auth', 'role:mitra'])->prefix('mitra')->name('mitra.')->grou
     Route::get('/keuangan', [MitraFinanceController::class, 'index'])->name('finance.index');
     Route::get('/keuangan/tarik', [MitraFinanceController::class, 'withdraw'])->name('finance.withdraw');
     Route::post('/keuangan/tarik', [MitraFinanceController::class, 'storeWithdrawal'])->name('finance.withdraw.store');
+    Route::post('/keuangan/tarik/{withdrawal}/cancel', [MitraFinanceController::class, 'cancelWithdrawal'])->name('finance.withdraw.cancel');
 
     // Detail Pesanan, Peta Interaktif & Update Status Layanan
     Route::get('/orders/{order}', [MitraOrderController::class, 'show'])->name('orders.show');

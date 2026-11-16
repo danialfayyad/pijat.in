@@ -14,6 +14,8 @@ use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -83,9 +85,24 @@ class WalletController extends Controller
     /**
      * Show the top-up form (CUS-16).
      */
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
         $user = $request->user()->load('primaryAddress.region');
+
+        // Jika pelanggan memiliki tagihan top-up yang masih aktif (ongoing) dan tidak sedang dalam mode ubah metode
+        if (! $request->boolean('change')) {
+            $pendingInvoice = TopupInvoice::where('user_id', $user->id)
+                ->whereNull('order_id')
+                ->where('status', 'PENDING')
+                ->where('expires_at', '>', now())
+                ->latest()
+                ->first();
+
+            if ($pendingInvoice) {
+                return redirect()->route('pelanggan.wallet.invoice', $pendingInvoice->invoice_number)
+                    ->with('info', 'Anda memiliki pembayaran top up yang sedang berlangsung. Selesaikan pembayaran atau pilih Ubah Metode Pembayaran.');
+            }
+        }
 
         return view('pelanggan.wallet.topup', compact('user'));
     }
@@ -146,15 +163,31 @@ class WalletController extends Controller
             ->firstOrFail();
 
         try {
-            $this->topupService->markPaid($invoice, 'SIMULATED-'.strtoupper(Str::random(10)));
+            $secretKey = config('services.xendit.secret_key');
+
+            // 1. Jika ini invoice Xendit sungguhan di mode sandbox, panggil simulator resmi Xendit lewat API
+            if (! empty($secretKey) && ! empty($invoice->xendit_invoice_id) && ! str_starts_with($invoice->xendit_invoice_id, 'SIMULATED-')) {
+                try {
+                    // Panggil API Simulasi Resmi Xendit
+                    Http::withBasicAuth($secretKey, '')
+                        ->timeout(10)
+                        ->post("https://api.xendit.co/v2/invoices/{$invoice->xendit_invoice_id}/simulate_payment");
+                } catch (\Throwable $e) {
+                    Log::warning('Xendit simulate payment error: '.$e->getMessage());
+                }
+            }
+
+            // 2. Tandai lunas di database lokal dan tambah saldo
+            $this->topupService->markPaid($invoice, $invoice->xendit_invoice_id ?: 'SIMULATED-'.strtoupper(Str::random(10)));
 
             if ($invoice->order_id) {
                 return redirect()->route('pelanggan.orders.show', $invoice->order_id)
                     ->with('success', "Pembayaran tagihan sebesar {$invoice->formatted_amount} berhasil! Pesanan Anda telah lunas dan sistem sedang mencarikan mitra terapis.");
             }
 
-            return redirect()->route('pelanggan.wallet.index')
-                ->with('status', "Pembayaran senilai {$invoice->formatted_amount} berhasil! Saldo dompet Anda telah diperbarui.");
+            // Arahkan kembali ke halaman invoice agar pengguna melihat animasi "Pembayaran Berhasil"
+            return redirect()->route('pelanggan.wallet.invoice', $invoice->invoice_number)
+                ->with('status', "Pembayaran senilai {$invoice->formatted_amount} berhasil diverifikasi!");
         } catch (DomainException $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -185,11 +218,27 @@ class WalletController extends Controller
                     ->with('success', 'Pembayaran terkonfirmasi oleh Xendit! Pesanan Anda telah lunas dan sistem sedang mencarikan mitra terapis.');
             }
 
-            return redirect()->route('pelanggan.wallet.index')
+            return redirect()->route('pelanggan.wallet.invoice', $invoice->invoice_number)
                 ->with('status', "Pembayaran senilai {$invoice->formatted_amount} terkonfirmasi oleh Xendit! Saldo dompet Anda telah bertambah.");
         }
 
         return back()->with('warning', 'Pembayaran belum terdeteksi di Xendit. Jika Anda sudah menyelesaikan pembayaran di Xendit, silakan tunggu beberapa detik lalu tekan tombol ini kembali.');
+    }
+
+    /**
+     * Cancel an ongoing pending wallet top-up invoice.
+     */
+    public function cancel(Request $request, string $invoiceNumber): RedirectResponse
+    {
+        $invoice = TopupInvoice::where('invoice_number', $invoiceNumber)
+            ->where('user_id', $request->user()->id)
+            ->where('status', 'PENDING')
+            ->firstOrFail();
+
+        $invoice->update(['status' => 'EXPIRED']);
+
+        return redirect()->route('pelanggan.wallet.index')
+            ->with('status', 'Tagihan pengisian saldo berhasil dibatalkan.');
     }
 
     /**
@@ -209,11 +258,13 @@ class WalletController extends Controller
         $maxAmount = (float) Parameter::get('max_withdrawal_amount', 5000000);
         $fee = (float) Parameter::get('withdrawal_fee_amount', 0);
 
-        $hasPending = WithdrawalRequest::where('user_id', $user->id)
+        $pendingWithdrawal = WithdrawalRequest::where('user_id', $user->id)
             ->where('status', WithdrawalRequest::STATUS_PENDING)
-            ->exists();
+            ->latest()
+            ->first();
+        $hasPending = $pendingWithdrawal !== null;
 
-        return view('pelanggan.wallet.withdraw', compact('user', 'wallet', 'minAmount', 'maxAmount', 'fee', 'hasPending'));
+        return view('pelanggan.wallet.withdraw', compact('user', 'wallet', 'minAmount', 'maxAmount', 'fee', 'hasPending', 'pendingWithdrawal'));
     }
 
     /**
@@ -317,5 +368,61 @@ class WalletController extends Controller
 
         return redirect()->route('pelanggan.wallet.index')
             ->with('status', 'Permohonan penarikan saldo berhasil diajukan dan sedang dalam antrean verifikasi admin wilayah.');
+    }
+
+    /**
+     * Cancel pending customer withdrawal and refund wallet balance immediately (CUS-17).
+     */
+    public function cancelWithdrawal(Request $request, WithdrawalRequest $withdrawal): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($withdrawal->user_id !== $user->id) {
+            abort(403, 'Anda tidak memiliki hak akses untuk membatalkan penarikan ini.');
+        }
+
+        return DB::transaction(function () use ($withdrawal, $user) {
+            $lockedWithdrawal = WithdrawalRequest::where('id', $withdrawal->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if (! $lockedWithdrawal->isPending()) {
+                return redirect()->route('pelanggan.wallet.index')
+                    ->with('error', 'Permohonan penarikan dana ini tidak dapat dibatalkan karena sudah diproses atau dibatalkan sebelumnya.');
+            }
+
+            $lockedWithdrawal->update([
+                'status' => WithdrawalRequest::STATUS_CANCELLED,
+                'processed_at' => now(),
+            ]);
+
+            // Refund customer wallet balance atomically (SYS-05)
+            $this->walletService->credit(
+                $user,
+                (float) $lockedWithdrawal->amount,
+                'withdrawal_refund',
+                (string) $lockedWithdrawal->id,
+                "Pengembalian saldo: Pembatalan penarikan ({$lockedWithdrawal->withdrawal_code})",
+                $lockedWithdrawal->region_id
+            );
+
+            // Notify Customer
+            $this->notificationService->sendToUser(
+                $user,
+                'withdrawal_cancelled',
+                'Penarikan Saldo Dibatalkan',
+                "Pengajuan penarikan dana {$lockedWithdrawal->withdrawal_code} senilai Rp ".number_format($lockedWithdrawal->amount, 0, ',', '.').' berhasil dibatalkan dan saldo telah dikembalikan ke dompet Anda.',
+                [
+                    'withdrawal_id' => $lockedWithdrawal->id,
+                    'withdrawal_code' => $lockedWithdrawal->withdrawal_code,
+                    'amount' => (float) $lockedWithdrawal->amount,
+                    'action_url' => route('pelanggan.wallet.index'),
+                ],
+                'normal'
+            );
+
+            return redirect()->route('pelanggan.wallet.index')
+                ->with('status', "Pengajuan penarikan dana {$lockedWithdrawal->withdrawal_code} senilai Rp ".number_format($lockedWithdrawal->amount, 0, ',', '.').' berhasil dibatalkan dan saldo telah dikembalikan ke dompet Anda.');
+        });
     }
 }

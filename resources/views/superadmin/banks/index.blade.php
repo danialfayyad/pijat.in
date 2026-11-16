@@ -111,13 +111,29 @@
                 @endif
             </form>
 
-            <button type="button" @click="openCreateModal = true"
-                    class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                <span>Tambah Saluran Baru</span>
-            </button>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                @if ($xenditConfigured ?? false)
+                    <!-- Tombol Sinkronisasi dari Xendit -->
+                    <form action="{{ route('superadmin.banks.sync') }}" method="POST" onsubmit="return confirm('Tarik dan perbarui daftar bank resmi langsung dari Xendit?')">
+                        @csrf
+                        <button type="submit"
+                                class="w-full sm:w-auto py-2.5 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span>Tarik Bank dari Xendit</span>
+                        </button>
+                    </form>
+                @endif
+
+                <button type="button" @click="openCreateModal = true"
+                        class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Tambah Saluran Baru</span>
+                </button>
+            </div>
         </div>
 
         <!-- TABLE LIST -->
@@ -127,9 +143,9 @@
                     <thead class="bg-slate-50/80 border-b border-slate-100 text-slate-400 uppercase text-[10px] font-bold tracking-wider">
                         <tr>
                             <th scope="col" class="py-3 px-4">Nama Saluran</th>
-                            <th scope="col" class="py-3 px-4">Kode</th>
+                            <th scope="col" class="py-3 px-4">Kode Bank / Metode</th>
                             <th scope="col" class="py-3 px-4">Kategori</th>
-                            <th scope="col" class="py-3 px-4">Rekening Platform (Opsional)</th>
+                            <th scope="col" class="py-3 px-4">Urutan Tampil</th>
                             <th scope="col" class="py-3 px-4">Keterangan</th>
                             <th scope="col" class="py-3 px-4 text-center">Status</th>
                             <th scope="col" class="py-3 px-4 text-right">Aksi</th>
@@ -155,19 +171,12 @@
                                         </span>
                                     @else
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/60">
-                                            Bank VA
+                                            Bank VA / Pencairan
                                         </span>
                                     @endif
                                 </td>
-                                <td class="py-3.5 px-4 text-slate-600">
-                                    @if ($bank->account_number)
-                                        <div class="font-mono text-slate-900 font-semibold">{{ $bank->account_number }}</div>
-                                        @if ($bank->account_holder_name)
-                                            <div class="text-[11px] text-slate-400">a.n. {{ $bank->account_holder_name }}</div>
-                                        @endif
-                                    @else
-                                        <span class="text-slate-300">-</span>
-                                    @endif
+                                <td class="py-3.5 px-4 text-slate-600 font-mono">
+                                    {{ $bank->sort_order }}
                                 </td>
                                 <td class="py-3.5 px-4 text-slate-500 max-w-xs truncate">
                                     {{ $bank->notes ?: '-' }}
@@ -277,18 +286,11 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 pt-1">
-                        <div class="space-y-1">
-                            <label class="block font-semibold text-slate-700">No. Rekening Platform</label>
-                            <input type="text" name="account_number" placeholder="Opsional"
-                                   class="w-full rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 py-2 px-3 font-mono">
-                        </div>
-
-                        <div class="space-y-1">
-                            <label class="block font-semibold text-slate-700">Atas Nama Pemilik</label>
-                            <input type="text" name="account_holder_name" placeholder="Opsional"
-                                   class="w-full rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 py-2 px-3">
-                        </div>
+                    <div class="space-y-1">
+                        <label class="block font-semibold text-slate-700">Urutan Tampil (Sort Order)</label>
+                        <input type="number" name="sort_order" value="0" min="0"
+                               class="w-full rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 py-2 px-3">
+                        <span class="text-[10px] text-slate-400">Angka lebih kecil tampil lebih awal pada pilihan pembayaran.</span>
                     </div>
 
                     <div class="space-y-1">
@@ -358,18 +360,10 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 pt-1">
-                        <div class="space-y-1">
-                            <label class="block font-semibold text-slate-700">No. Rekening Platform</label>
-                            <input type="text" name="account_number" x-model="editBank.account_number"
-                                   class="w-full rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 py-2 px-3 font-mono">
-                        </div>
-
-                        <div class="space-y-1">
-                            <label class="block font-semibold text-slate-700">Atas Nama Pemilik</label>
-                            <input type="text" name="account_holder_name" x-model="editBank.account_holder_name"
-                                   class="w-full rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 py-2 px-3">
-                        </div>
+                    <div class="space-y-1">
+                        <label class="block font-semibold text-slate-700">Urutan Tampil (Sort Order)</label>
+                        <input type="number" name="sort_order" x-model="editBank.sort_order" min="0"
+                               class="w-full rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 py-2 px-3">
                     </div>
 
                     <div class="space-y-1">

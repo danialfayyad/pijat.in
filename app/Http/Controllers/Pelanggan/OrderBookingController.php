@@ -20,7 +20,9 @@ use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -294,6 +296,7 @@ class OrderBookingController extends Controller
         $todayDate = $nowInRegion->format('Y-m-d');
         $wallet = $user->getOrCreateWallet();
         $activeBanks = Bank::bank()->active()->orderBy('sort_order')->orderBy('name')->get();
+        $bookingToken = (string) Str::uuid();
 
         return view('pelanggan.orders.create', compact(
             'user',
@@ -310,7 +313,8 @@ class OrderBookingController extends Controller
             'todayDate',
             'minTimeToday',
             'isTodayBookable',
-            'regionTz'
+            'regionTz',
+            'bookingToken'
         ));
     }
 
@@ -319,6 +323,31 @@ class OrderBookingController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $bookingToken = $request->input('booking_token');
+
+        // 1. Idempotency Token Guard: Cegah double submit dari tombol Back browser atau multi-klik
+        if ($bookingToken && is_string($bookingToken)) {
+            $cacheKey = "order_booking_token:{$request->user()->id}:{$bookingToken}";
+            $cachedOrderId = Cache::get($cacheKey);
+
+            if ($cachedOrderId && is_numeric($cachedOrderId)) {
+                $existingOrder = Order::where('customer_id', $request->user()->id)->find($cachedOrderId);
+
+                if ($existingOrder) {
+                    if ($existingOrder->status === OrderStatus::MenungguPembayaran) {
+                        $pendingInvoice = $existingOrder->latestPendingTopupInvoice();
+                        if ($pendingInvoice) {
+                            return redirect()->route('pelanggan.wallet.invoice', $pendingInvoice->invoice_number)
+                                ->with('info', 'Pesanan ini sudah dibuat sebelumnya. Silakan selesaikan pembayaran tagihan.');
+                        }
+                    }
+
+                    return redirect()->route('pelanggan.orders.show', $existingOrder)
+                        ->with('info', 'Pesanan Anda sudah berhasil dibuat sebelumnya (Nomor: '.$existingOrder->order_code.').');
+                }
+            }
+        }
+
         $validated = $request->validate([
             'package_id' => ['required', 'exists:service_packages,id'],
             'customer_address_id' => ['required', 'exists:customer_addresses,id'],
@@ -333,6 +362,7 @@ class OrderBookingController extends Controller
             'medical_notes' => ['nullable', 'string', 'max:1000'],
             'risk_agreement' => ['required', 'accepted'],
             'payment_method' => ['nullable', 'string', 'max:50'],
+            'booking_token' => ['nullable', 'string', 'max:100'],
         ], [
             'risk_agreement.accepted' => 'Anda wajib menyetujui syarat & ketentuan risiko layanan sebelum memesan.',
             'risk_agreement.required' => 'Anda wajib menyetujui syarat & ketentuan risiko layanan sebelum memesan.',
@@ -340,6 +370,11 @@ class OrderBookingController extends Controller
 
         try {
             $order = $this->bookingService->createOrder($request->user(), $validated);
+
+            // Simpan token idempotensi setelah pesanan berhasil terbuat
+            if ($bookingToken && is_string($bookingToken)) {
+                Cache::put("order_booking_token:{$request->user()->id}:{$bookingToken}", $order->id, now()->addHours(6));
+            }
 
             // CUS-09 (In-App Payment): Jika saldo kurang (status MenungguPembayaran), langsung arahkan ke invoice in-app
             if ($order->status === OrderStatus::MenungguPembayaran) {

@@ -8,6 +8,8 @@ use App\Models\WalletTransaction;
 use App\Models\WithdrawalRequest;
 use App\Services\NotificationService;
 use App\Services\WalletService;
+use App\Services\XenditDisbursementService;
+use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +20,8 @@ class AdminFinanceController extends Controller
 {
     public function __construct(
         protected WalletService $walletService,
-        protected NotificationService $notificationService
+        protected NotificationService $notificationService,
+        protected XenditDisbursementService $disbursementService
     ) {}
 
     /**
@@ -72,6 +75,8 @@ class AdminFinanceController extends Controller
             $withdrawalQuery->approved();
         } elseif ($withdrawalStatus === 'rejected') {
             $withdrawalQuery->rejected();
+        } elseif ($withdrawalStatus === 'cancelled') {
+            $withdrawalQuery->cancelled();
         }
 
         if ($request->filled('search')) {
@@ -107,6 +112,8 @@ class AdminFinanceController extends Controller
 
         $ledgerTransactions = $ledgerQuery->latest()->paginate(10, ['*'], 'tx_page')->withQueryString();
 
+        $xenditEnabled = $this->disbursementService->isConfigured();
+
         return view('admin.finance.index', compact(
             'assignedRegions',
             'selectedRegionId',
@@ -117,12 +124,13 @@ class AdminFinanceController extends Controller
             'totalApprovedDisbursement',
             'withdrawalStatus',
             'withdrawals',
-            'ledgerTransactions'
+            'ledgerTransactions',
+            'xenditEnabled'
         ));
     }
 
     /**
-     * Approve withdrawal request and confirm payout transfer (ADM-11).
+     * Approve withdrawal request and trigger Xendit disbursement (or manual proof fallback) (ADM-11).
      */
     public function approveWithdrawal(Request $request, WithdrawalRequest $withdrawal): RedirectResponse
     {
@@ -136,20 +144,33 @@ class AdminFinanceController extends Controller
             return back()->with('error', 'Permohonan penarikan ini sudah diproses sebelumnya.');
         }
 
+        $useXendit = $this->disbursementService->isConfigured();
+
         $validated = $request->validate([
             'transfer_reference' => ['nullable', 'string', 'max:100'],
-            'proof_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:4096'],
+            'proof_file' => [$useXendit ? 'nullable' : 'required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:4096'],
         ]);
+
+        $disbursement = null;
+        if ($useXendit) {
+            try {
+                $disbursement = $this->disbursementService->disburse($withdrawal);
+            } catch (DomainException $e) {
+                return back()->with('error', $e->getMessage());
+            }
+        }
 
         $proofPath = null;
         if ($request->hasFile('proof_file')) {
             $proofPath = $request->file('proof_file')->store('withdrawals/proofs', 'public');
         }
 
-        DB::transaction(function () use ($withdrawal, $user, $validated, $proofPath) {
+        DB::transaction(function () use ($withdrawal, $user, $validated, $proofPath, $disbursement) {
             $withdrawal->update([
                 'status' => WithdrawalRequest::STATUS_APPROVED,
-                'transfer_reference' => $validated['transfer_reference'] ?? null,
+                'transfer_reference' => $validated['transfer_reference'] ?? ($disbursement['id'] ?? null),
+                'xendit_disbursement_id' => $disbursement['id'] ?? null,
+                'disbursement_status' => $disbursement['status'] ?? null,
                 'proof_path' => $proofPath ?? $withdrawal->proof_path,
                 'processed_by' => $user->id,
                 'processed_at' => now(),
@@ -170,7 +191,11 @@ class AdminFinanceController extends Controller
             }
         });
 
-        return back()->with('status', "Penarikan {$withdrawal->withdrawal_code} berhasil disetujui dan status pencairan telah diperbarui.");
+        $successMessage = $disbursement
+            ? "Penarikan {$withdrawal->withdrawal_code} disetujui dan transfer otomatis via Xendit ({$disbursement['id']}) sedang diproses."
+            : "Penarikan {$withdrawal->withdrawal_code} berhasil disetujui dan status pencairan telah diperbarui.";
+
+        return back()->with('status', $successMessage);
     }
 
     /**

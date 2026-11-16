@@ -151,9 +151,11 @@
                             <div class="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                                 <div>
                                     @if (! $addr->is_primary)
-                                        <form action="{{ route('pelanggan.addresses.set-primary', $addr) }}" method="POST" class="inline">
+                                        <form id="set-primary-{{ $addr->id }}" action="{{ route('pelanggan.addresses.set-primary', $addr) }}" method="POST" class="inline">
                                             @csrf
-                                            <button type="submit" class="min-h-[40px] text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer">
+                                            <button type="button" 
+                                                    onclick="confirmSetPrimary('set-primary-{{ $addr->id }}')"
+                                                    class="min-h-[40px] text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer">
                                                 Jadikan Alamat Utama
                                             </button>
                                         </form>
@@ -168,11 +170,12 @@
                                         Ubah
                                     </a>
 
-                                    <form action="{{ route('pelanggan.addresses.destroy', $addr) }}" method="POST" class="inline"
-                                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus alamat ini?');">
+                                    <form id="delete-addr-{{ $addr->id }}" action="{{ route('pelanggan.addresses.destroy', $addr) }}" method="POST" class="inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="min-h-[40px] text-xs font-semibold text-rose-600 hover:text-rose-800 transition cursor-pointer">
+                                        <button type="button"
+                                                onclick="confirmDeleteAddress('delete-addr-{{ $addr->id }}')"
+                                                class="min-h-[40px] text-xs font-semibold text-rose-600 hover:text-rose-800 transition cursor-pointer">
                                             Hapus
                                         </button>
                                     </form>
@@ -186,4 +189,66 @@
         </div>
 
     </div>
+
+    @push('scripts')
+        <script>
+            function confirmSetPrimary(formId) {
+                const form = typeof formId === 'string' ? document.getElementById(formId) : formId;
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        iconHtml: '✓',
+                        title: 'Jadikan Alamat Utama?',
+                        text: 'Alamat ini akan otomatis digunakan sebagai tujuan utama pemesanan.',
+                        showCancelButton: true,
+                        cancelButtonText: 'Batal',
+                        confirmButtonText: 'Ya, Jadikan Utama',
+                        reverseButtons: true,
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'swal-admin-theme',
+                            confirmButton: 'swal2-confirm',
+                            cancelButton: 'swal2-cancel',
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed && form) {
+                            form.submit();
+                        }
+                    });
+                } else if (confirm('Alamat ini akan otomatis digunakan sebagai tujuan utama pemesanan. Lanjutkan?')) {
+                    if (form) form.submit();
+                }
+            }
+
+            function confirmDeleteAddress(formId) {
+                const form = typeof formId === 'string' ? document.getElementById(formId) : formId;
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        iconHtml: '✕',
+                        title: 'Hapus Alamat?',
+                        text: 'Apakah Anda yakin ingin menghapus alamat ini?',
+                        showCancelButton: true,
+                        cancelButtonText: 'Kembali',
+                        confirmButtonText: 'Ya, Hapus',
+                        reverseButtons: true,
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'swal-danger-theme',
+                            confirmButton: 'swal2-confirm',
+                            cancelButton: 'swal2-cancel',
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed && form) {
+                            form.submit();
+                        }
+                    });
+                } else if (confirm('Apakah Anda yakin ingin menghapus alamat ini?')) {
+                    if (form) form.submit();
+                }
+            }
+        </script>
+    @endpush
 </x-pwa-layout>

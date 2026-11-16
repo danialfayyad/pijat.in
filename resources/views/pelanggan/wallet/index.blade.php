@@ -9,14 +9,7 @@
         <div class="relative shrink-0 text-white pt-4 pb-6 px-5 overflow-hidden">
             <!-- Top Bar Navigasi -->
             <div class="relative z-10 flex items-center justify-between mb-4">
-                <a href="{{ route('pelanggan.dashboard') }}"
-                   class="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/25 active:scale-95 transition cursor-pointer"
-                   title="Kembali ke Beranda"
-                   aria-label="Kembali ke Beranda">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                </a>
+                <div class="w-10 h-10" aria-hidden="true"></div>
 
                 <span class="text-xs font-bold text-white uppercase tracking-widest">
                     Dompet Digital
@@ -191,6 +184,10 @@
                                         $wdBorder = 'border-emerald-600 text-emerald-600';
                                         $wdStatusText = 'Dicairkan';
                                         $wdStatusColor = 'text-emerald-700';
+                                    } elseif ($wd->isCancelled()) {
+                                        $wdBorder = 'border-slate-300 text-slate-400';
+                                        $wdStatusText = 'Dibatalkan';
+                                        $wdStatusColor = 'text-slate-500';
                                     } else {
                                         $wdBorder = 'border-rose-500 text-rose-600';
                                         $wdStatusText = 'Ditolak';
@@ -217,9 +214,19 @@
                                         <div class="text-xs font-bold text-slate-900 font-mono">
                                             Rp {{ number_format($wd->amount, 0, ',', '.') }}
                                         </div>
-                                        <span class="text-[11px] font-semibold {{ $wdStatusColor }}">
+                                        <span class="text-[11px] font-semibold {{ $wdStatusColor }} block">
                                             {{ $wdStatusText }}
                                         </span>
+                                        @if ($wd->isPending())
+                                            <form id="cancel-wd-{{ $wd->id }}" method="POST" action="{{ route('pelanggan.wallet.withdraw.cancel', $wd) }}" class="mt-1">
+                                                @csrf
+                                                <button type="button" 
+                                                        onclick="confirmCancelWithdrawal('cancel-wd-{{ $wd->id }}')"
+                                                        class="text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer">
+                                                    Batalkan
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach
@@ -319,4 +326,40 @@
         </div>
 
     </div>
+
+    @push('scripts')
+        <script>
+            function confirmCancelWithdrawal(target) {
+                if (target && target.preventDefault) {
+                    target.preventDefault();
+                }
+                const form = typeof target === 'string' ? document.getElementById(target) : (target?.currentTarget || target?.target || target);
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        iconHtml: '✕',
+                        title: 'Batalkan Penarikan?',
+                        text: 'Apakah Anda yakin ingin membatalkan penarikan dana ini?',
+                        showCancelButton: true,
+                        cancelButtonText: 'Kembali',
+                        confirmButtonText: 'Ya, Batalkan',
+                        reverseButtons: true,
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'swal-danger-theme',
+                            confirmButton: 'swal2-confirm',
+                            cancelButton: 'swal2-cancel',
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed && form) {
+                            form.submit();
+                        }
+                    });
+                } else if (confirm('Apakah Anda yakin ingin membatalkan penarikan dana ini?')) {
+                    if (form) form.submit();
+                }
+            }
+        </script>
+    @endpush
 </x-pwa-layout>

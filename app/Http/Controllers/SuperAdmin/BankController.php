@@ -4,6 +4,8 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bank;
+use App\Services\XenditDisbursementService;
+use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -11,6 +13,10 @@ use Illuminate\View\View;
 
 class BankController extends Controller
 {
+    public function __construct(
+        protected XenditDisbursementService $disbursementService
+    ) {}
+
     /**
      * Tampilkan daftar master rekening & saluran bank pencairan.
      */
@@ -22,9 +28,7 @@ class BankController extends Controller
             $search = trim($request->input('search'));
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%")
-                    ->orWhere('account_number', 'like', "%{$search}%")
-                    ->orWhere('account_holder_name', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%");
             });
         }
 
@@ -52,13 +56,66 @@ class BankController extends Controller
         $totalCount = Bank::count();
         $activeCount = Bank::where('is_active', true)->count();
         $inactiveCount = Bank::where('is_active', false)->count();
+        $xenditConfigured = $this->disbursementService->isConfigured();
 
         return view('superadmin.banks.index', compact(
             'banks',
             'totalCount',
             'activeCount',
-            'inactiveCount'
+            'inactiveCount',
+            'xenditConfigured'
         ));
+    }
+
+    /**
+     * Sinkronisasi daftar bank resmi langsung dari Xendit API.
+     */
+    public function syncXendit(): RedirectResponse
+    {
+        try {
+            $availableBanks = $this->disbursementService->getAvailableBanks(popularOnly: true);
+
+            if (empty($availableBanks)) {
+                return redirect()->route('superadmin.banks.index')
+                    ->with('error', 'Tidak ada data bank yang diterima dari Xendit.');
+            }
+
+            // Hapus bank hasil sync lama yang bukan QRIS / E-Wallet kustom
+            $keepCodes = collect($availableBanks)->pluck('code')->merge(['QRIS', 'GOPAY', 'DANA', 'OVO', 'SHOPEEPAY'])->all();
+            Bank::whereNotIn('code', $keepCodes)->delete();
+
+            $syncedCount = 0;
+            foreach ($availableBanks as $b) {
+                Bank::updateOrCreate(
+                    ['code' => $b['code']],
+                    [
+                        'name' => $b['name'],
+                        'category' => 'bank',
+                        'sort_order' => $b['sort_order'],
+                        'is_active' => true,
+                    ]
+                );
+                $syncedCount++;
+            }
+
+            // Pastikan QRIS & E-Wallet default tetap ada
+            Bank::firstOrCreate(
+                ['code' => 'QRIS'],
+                [
+                    'name' => 'QRIS Standar Nasional',
+                    'category' => 'qris',
+                    'sort_order' => 0,
+                    'is_active' => true,
+                    'notes' => 'Saluran pembayaran QRIS Nasional instan',
+                ]
+            );
+
+            return redirect()->route('superadmin.banks.index')
+                ->with('status', "Berhasil menyinkronkan {$syncedCount} bank nasional populer dari Xendit.");
+        } catch (DomainException $e) {
+            return redirect()->route('superadmin.banks.index')
+                ->with('error', $e->getMessage());
+        }
     }
 
     /**
