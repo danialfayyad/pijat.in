@@ -23,8 +23,7 @@
          }">
 
         <!-- 1. GREEN HERO HEADER (TETAP DIPERTAHANKAN) -->
-        <div
-            class="relative bg-gradient-to-b from-[#059669] via-[#047857] to-[#064e3b] text-white px-5 pt-4 pb-8 overflow-hidden shrink-0">
+        <div class="relative bg-gradient-to-b from-[#059669] via-[#047857] to-[#064e3b] text-white px-5 sm:px-6 pt-5 pb-10 sm:pb-12 overflow-hidden shrink-0">
             <!-- Fluid Wave Kurva Ombak Background -->
             <div class="absolute inset-0 pointer-events-none opacity-20">
                 <svg class="w-full h-full" viewBox="0 0 400 300" fill="none" preserveAspectRatio="none">
@@ -36,7 +35,7 @@
             </div>
 
             <!-- Top Bar Navigasi -->
-            <div class="relative z-10 flex items-center justify-between">
+            <div class="relative z-10 flex items-center justify-between mb-1">
                 <a href="{{ route('pelanggan.wallet.index') }}"
                     class="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/25 active:scale-95 transition cursor-pointer"
                     title="Kembali ke Dompet" aria-label="Kembali ke Dompet">
@@ -60,7 +59,7 @@
             </div>
 
             <!-- Info Saldo di Tengah -->
-            <div class="relative z-10 flex flex-col items-center text-center py-4">
+            <div class="relative z-10 flex flex-col items-center text-center py-4 sm:py-5">
                 <h2 class="text-xs font-bold text-emerald-100 uppercase tracking-widest drop-shadow-xs">
                     Saldo Dompet Saat Ini
                 </h2>
@@ -73,7 +72,7 @@
 
                 <!-- Limit Penarikan Badge Info -->
                 <div
-                    class="mt-2.5 inline-flex items-center space-x-3 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] text-emerald-100">
+                    class="mt-3.5 inline-flex items-center space-x-3 px-4 py-1.5 rounded-full bg-white/12 backdrop-blur-md border border-white/20 text-xs text-emerald-100 shadow-2xs">
                     <span>Min: <strong class="text-white font-mono">Rp
                             {{ number_format($minAmount, 0, ',', '.') }}</strong></span>
                     <span class="text-white/40">•</span>
@@ -84,7 +83,7 @@
         </div>
 
         <!-- 2. WHITE CONTENT AREA (BAGIAN DALAM YANG DIPERBAIKI BERSIH & RAPI) -->
-        <div class="relative z-10 -mt-4 bg-white rounded-t-3xl px-5 pt-5 pb-6 flex-1 min-h-0 overflow-y-auto space-y-4">
+        <div class="relative z-10 -mt-2.5 bg-white rounded-t-3xl px-5 pt-6 pb-8 flex-1 min-h-0 overflow-y-auto space-y-4">
 
             @if ($errors->any())
                 <div class="rounded-xl bg-rose-50 border border-rose-200 p-3.5 text-xs text-rose-800 shadow-2xs">
@@ -128,8 +127,20 @@
                                 <span class="font-medium text-slate-900">{{ $pendingWithdrawal->account_holder_name }}</span>
                             </div>
                             <div class="flex items-center justify-between text-slate-500">
+                                <span>Nominal Penarikan</span>
+                                <span class="font-mono font-semibold text-slate-900">Rp {{ number_format($pendingWithdrawal->amount, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-slate-500">
                                 <span>Biaya Layanan</span>
-                                <span class="font-semibold text-emerald-700">Gratis (Rp 0)</span>
+                                @if (($pendingWithdrawal->fee ?? 0) > 0)
+                                    <span class="font-mono font-semibold text-slate-900">Rp {{ number_format($pendingWithdrawal->fee, 0, ',', '.') }}</span>
+                                @else
+                                    <span class="font-semibold text-emerald-700">Gratis (Rp 0)</span>
+                                @endif
+                            </div>
+                            <div class="flex items-center justify-between text-slate-900 font-bold pt-1.5 border-t border-slate-100">
+                                <span>Total Ditransfer ke Rekening</span>
+                                <span class="font-mono text-emerald-700 font-bold">Rp {{ number_format($pendingWithdrawal->net_amount, 0, ',', '.') }}</span>
                             </div>
                             <div class="flex items-center justify-between text-slate-500 pt-2 border-t border-slate-100">
                                 <span>Kode Pengajuan</span>
@@ -192,7 +203,7 @@
                                     class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition shadow-2xs cursor-pointer"
                                     required>
                                 <option value="">-- Pilih Bank Tujuan Resmi --</option>
-                                @foreach (\App\Models\Bank::active()->orderBy('sort_order')->orderBy('name')->get() as $bank)
+                                @foreach (\App\Models\Bank::bank()->active()->orderBy('sort_order')->orderBy('name')->get() as $bank)
                                     <option value="{{ $bank->name }}" {{ old('bank_name') === $bank->name || old('bank_name') === $bank->code ? 'selected' : '' }}>
                                         {{ $bank->name }} ({{ strtoupper($bank->code) }})
                                     </option>

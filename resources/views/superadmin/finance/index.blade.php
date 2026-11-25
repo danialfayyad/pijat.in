@@ -34,11 +34,17 @@
             @endphp
             <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-1">
                 <div class="flex items-center justify-between text-slate-500">
-                    <span class="text-xs font-medium">Komisi Platform</span>
+                    <span class="text-xs font-medium">Net Komisi Platform</span>
                     <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
                 </div>
                 <div class="text-2xl font-bold text-emerald-700">Rp {{ number_format($totalPlatformCommission, 0, ',', '.') }}</div>
-                <div class="text-[11px] text-emerald-600 font-medium">Pendapatan bersih ({{ $formattedCommPercent }}%)</div>
+                <div class="text-[11px] text-slate-500 font-medium truncate">
+                    @if (isset($totalVoucherDiscount) && $totalVoucherDiscount > 0)
+                        Bruto: Rp {{ number_format($totalGrossCommission ?? $totalPlatformCommission, 0, ',', '.') }} &bull; Diskon: -Rp {{ number_format($totalVoucherDiscount, 0, ',', '.') }}
+                    @else
+                        Pendapatan bersih ({{ $formattedCommPercent }}%)
+                    @endif
+                </div>
             </div>
 
             <!-- Total Liabilitas Saldo -->

@@ -8,6 +8,7 @@
         @php
             $appFavicon = \App\Models\Parameter::get('app_favicon');
             $appName = \App\Models\Parameter::get('app_name', config('app.name', 'Pijat.In'));
+            $appLogo = \App\Models\Parameter::get('app_logo');
         @endphp
         @if ($appFavicon)
             <link rel="icon" href="{{ asset('storage/' . $appFavicon) }}">
@@ -598,11 +599,13 @@
 
                     triggerDesktopAlert(notifData) {
                         this.playChime();
-                        const title = notifData.title || 'Pijat.In - Tugas Masuk';
+                        const title = notifData.title || ('{{ $appName }} - Tugas Masuk');
+                        const defaultIcon = '{{ $appLogo ? asset("storage/" . $appLogo) : asset("/icons/icon-192x192.png") }}';
+                        const defaultBadge = '{{ $appLogo ? asset("storage/" . $appLogo) : asset("/icons/badge-72x72.png") }}';
                         const options = {
                             body: notifData.body || 'Ada antrean operasional atau tugas baru yang memerlukan tindakan Anda.',
-                            icon: '/icons/icon-192x192.png',
-                            badge: '/icons/badge-72x72.png',
+                            icon: notifData.icon || defaultIcon,
+                            badge: defaultBadge,
                             tag: 'pijatin_alert_' + (notifData.id || Date.now()),
                             renotify: true,
                             data: {

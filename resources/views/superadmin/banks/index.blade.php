@@ -161,19 +161,18 @@
                                     {{ $bank->code }}
                                 </td>
                                 <td class="py-3.5 px-4">
-                                    @if ($bank->category === 'qris')
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60">
+                                    <span class="inline-flex items-center gap-1.5 text-xs text-slate-700">
+                                        @if ($bank->category === 'qris')
+                                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                                             QRIS
-                                        </span>
-                                    @elseif ($bank->category === 'ewallet')
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200/60">
+                                        @elseif ($bank->category === 'ewallet')
+                                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
                                             E-Wallet
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/60">
+                                        @else
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
                                             Bank VA / Pencairan
-                                        </span>
-                                    @endif
+                                        @endif
+                                    </span>
                                 </td>
                                 <td class="py-3.5 px-4 text-slate-600 font-mono">
                                     {{ $bank->sort_order }}

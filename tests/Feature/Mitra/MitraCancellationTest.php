@@ -4,6 +4,7 @@ use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Models\CustomerAddress;
 use App\Models\Order;
+use App\Models\Parameter;
 use App\Models\PartnerProfile;
 use App\Models\Region;
 use App\Models\Service;
@@ -11,6 +12,7 @@ use App\Models\ServicePackage;
 use App\Models\User;
 use App\Models\Wallet;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 beforeEach(function () {
     $this->region = Region::where('status', 'aktif')->first() ?? Region::factory()->create([
@@ -115,6 +117,39 @@ test('mitra regular cancellation incurs 15 penalty points and returns order to b
 
     // Mitra gets 15 demerit points
     expect($this->mitra->fresh()->penalty_points)->toBe(15);
+});
+
+test('mitra regular cancellation respects dynamic penalty points configured in system parameters', function () {
+    Parameter::updateOrCreate(
+        ['key' => 'partner_cancellation_penalty_points'],
+        [
+            'value' => '25',
+            'type' => 'integer',
+            'group' => 'operational',
+            'label' => 'Poin Sanksi Pembatalan Sepihak Mitra',
+            'unit' => 'Poin',
+        ]
+    );
+    Cache::forget('sys_param_partner_cancellation_penalty_points');
+
+    $order = ($this->createOrder)([
+        'order_type' => OrderType::Terjadwal,
+        'status' => OrderStatus::Dijadwalkan,
+        'scheduled_start_time' => Carbon::now()->addHours(5),
+    ]);
+
+    $response = $this->actingAs($this->mitra)
+        ->post(route('mitra.orders.cancel', $order), [
+            'cancellation_type' => 'regular',
+            'reason' => 'Alasan darurat pembatalan',
+        ]);
+
+    $response->assertRedirect(route('mitra.orders.scheduled'));
+    $order->refresh();
+
+    expect($order->status)->toBe(OrderStatus::MencariMitra)
+        ->and($order->mitra_id)->toBeNull()
+        ->and($this->mitra->fresh()->penalty_points)->toBe(25);
 });
 
 test('mitra special cancellation customer not present at Tiba gives 50% compensation and 0 penalty to mitra (MIT-11)', function () {

@@ -3,7 +3,9 @@
 use App\Enums\Role;
 use App\Models\AuditLog;
 use App\Models\Parameter;
+use App\Models\PushSubscription;
 use App\Models\User;
+use App\Services\NotificationService;
 use Database\Seeders\ParameterSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -134,4 +136,55 @@ test('superadmin can remove custom logo and favicon to revert to default assets'
 
     Storage::disk('public')->assertMissing($savedLogo);
     Storage::disk('public')->assertMissing($savedFavicon);
+});
+
+test('pwa manifest dynamically reflects superadmin branding settings and logo', function () {
+    Storage::fake('public');
+
+    $logoFile = UploadedFile::fake()->image('brand_logo.png', 512, 512);
+
+    $this->actingAs($this->superadmin)
+        ->put(route('superadmin.branding.update'), [
+            'app_name' => 'BrandPijat',
+            'app_tagline' => 'Tagline Keren',
+            'app_description' => 'Deskripsi Keren',
+            'app_logo' => $logoFile,
+        ]);
+
+    $savedLogo = Parameter::get('app_logo');
+
+    $response = $this->get('/manifest.json');
+    $response->assertOk()
+        ->assertJson([
+            'short_name' => 'BrandPijat',
+            'description' => 'Deskripsi Keren',
+        ]);
+
+    $data = $response->json();
+    expect($data['icons'][0]['src'])->toContain($savedLogo);
+});
+
+test('notification service dispatches web push with superadmin logo when configured', function () {
+    Parameter::set('app_logo', 'branding/test_notif_logo.png', 'Test notification logo', $this->superadmin);
+
+    $customer = User::factory()->create([
+        'role' => Role::Pelanggan,
+    ]);
+
+    $subscription = PushSubscription::create([
+        'user_id' => $customer->id,
+        'endpoint' => 'https://fcm.googleapis.com/fcm/send/fake-endpoint',
+        'public_key' => 'fake_key',
+        'auth_token' => 'fake_auth',
+    ]);
+
+    $service = app(NotificationService::class);
+    $notif = $service->sendToUser(
+        $customer,
+        'order_confirmed',
+        'Pesanan Diterima',
+        'Terapis sedang menuju lokasi Anda.'
+    );
+
+    expect($notif)->not->toBeNull();
 });

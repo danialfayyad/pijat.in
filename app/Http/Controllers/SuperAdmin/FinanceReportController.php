@@ -29,9 +29,12 @@ class FinanceReportController extends Controller
         $totalTopupSettled = (float) TopupInvoice::where('status', 'PAID')->sum('amount');
         $totalDisbursed = (float) WithdrawalRequest::where('status', WithdrawalRequest::STATUS_APPROVED)->sum('amount');
 
-        $totalPlatformCommission = (float) Order::where('status', 'selesai')
-            ->selectRaw('SUM(total_price * (commission_percent / 100)) as commission')
+        $totalGrossCommission = (float) Order::where('status', 'selesai')
+            ->selectRaw('SUM((total_price + COALESCE(discount_amount, 0)) * (commission_percent / 100)) as commission')
             ->value('commission');
+
+        $totalVoucherDiscount = (float) Order::where('status', 'selesai')->sum('discount_amount');
+        $totalPlatformCommission = max(0.0, round($totalGrossCommission - $totalVoucherDiscount, 2));
 
         // Net platform floating liability
         $totalFloatingLiability = $totalCustomerBalance + $totalPartnerBalance;
@@ -55,11 +58,13 @@ class FinanceReportController extends Controller
             // Regional order volume & commissions
             $ordersQuery = Order::where('region_id', $region->id)->where('status', 'selesai');
             $completedOrdersCount = $ordersQuery->count();
-            $totalOrderVolume = (float) $ordersQuery->sum('total_price');
-            $platformCommission = (float) Order::where('region_id', $region->id)
+            $totalOrderVolume = (float) $ordersQuery->selectRaw('SUM(total_price + COALESCE(discount_amount, 0)) as vol')->value('vol');
+            $grossPlatformCommission = (float) Order::where('region_id', $region->id)
                 ->where('status', 'selesai')
-                ->selectRaw('SUM(total_price * (commission_percent / 100)) as comm')
+                ->selectRaw('SUM((total_price + COALESCE(discount_amount, 0)) * (commission_percent / 100)) as comm')
                 ->value('comm');
+            $regionalDiscount = (float) Order::where('region_id', $region->id)->where('status', 'selesai')->sum('discount_amount');
+            $platformCommission = max(0.0, round($grossPlatformCommission - $regionalDiscount, 2));
 
             // Regional Top-up & Withdrawal Volume
             $topupVolume = (float) TopupInvoice::where('region_id', $region->id)->where('status', 'PAID')->sum('amount');
@@ -72,6 +77,8 @@ class FinanceReportController extends Controller
                 'total_floating' => $customerBalance + $partnerBalance,
                 'completed_orders_count' => $completedOrdersCount,
                 'total_order_volume' => $totalOrderVolume,
+                'gross_commission' => $grossPlatformCommission,
+                'voucher_discount' => $regionalDiscount,
                 'platform_commission' => $platformCommission,
                 'topup_volume' => $topupVolume,
                 'withdrawal_volume' => $withdrawalVolume,
@@ -86,6 +93,8 @@ class FinanceReportController extends Controller
             'totalFloatingLiability',
             'totalTopupSettled',
             'totalDisbursed',
+            'totalGrossCommission',
+            'totalVoucherDiscount',
             'totalPlatformCommission',
             'regionStats',
             'platformCommissionPercent'

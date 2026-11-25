@@ -73,7 +73,7 @@ class MitraProfileController extends Controller
     }
 
     /**
-     * Update bank account with re-verification safeguards (MIT-20).
+     * Update bank account (langsung aktif tanpa perlu verifikasi ulang admin).
      */
     public function updateBank(Request $request): RedirectResponse
     {
@@ -90,23 +90,13 @@ class MitraProfileController extends Controller
         $user = $request->user();
         $currentBank = $user->primaryBankAccount;
 
-        // If account number unchanged, simple update without reverification
-        if ($currentBank && $currentBank->account_number === $validated['account_number']) {
-            $currentBank->update([
-                'bank_name' => $validated['bank_name'],
-                'account_holder_name' => $validated['account_holder_name'],
-            ]);
-
-            return redirect()->route('mitra.profile')->with('status', 'Rekening bank berhasil diperbarui.');
-        }
-
-        // If changed, triggers re-verification safeguards
         if ($currentBank) {
             $currentBank->update([
                 'bank_name' => $validated['bank_name'],
                 'account_number' => $validated['account_number'],
                 'account_holder_name' => $validated['account_holder_name'],
-                'is_verified' => false,
+                'is_verified' => true,
+                'verified_at' => now(),
             ]);
         } else {
             $user->bankAccounts()->create([
@@ -114,15 +104,12 @@ class MitraProfileController extends Controller
                 'account_number' => $validated['account_number'],
                 'account_holder_name' => $validated['account_holder_name'],
                 'is_primary' => true,
-                'is_verified' => false,
+                'is_verified' => true,
+                'verified_at' => now(),
             ]);
         }
 
-        $user->update(['status' => UserStatus::MenungguVerifikasi]);
-        $this->notificationService->notifyPartnerVerificationSubmitted($user->fresh());
-
-        return redirect()->route('mitra.status')
-            ->with('status', 'Pembaruan nomor rekening memerlukan verifikasi ulang oleh Admin Wilayah.');
+        return redirect()->route('mitra.profile')->with('status', 'Rekening bank berhasil diperbarui dan siap digunakan.');
     }
 
     /**
@@ -243,16 +230,16 @@ class MitraProfileController extends Controller
 
         $requiresReverification = false;
 
-        // Check if bank account changed
+        // Check if bank account changed (langsung diperbarui dan otomatis aktif)
         $currentBank = $user->primaryBankAccount;
         if (! empty($validated['account_number']) && $currentBank && $validated['account_number'] !== $currentBank->account_number) {
             $currentBank->update([
                 'bank_name' => $validated['bank_name'] ?? $currentBank->bank_name,
                 'account_number' => $validated['account_number'],
                 'account_holder_name' => $validated['account_holder_name'] ?? $currentBank->account_holder_name,
-                'is_verified' => false,
+                'is_verified' => true,
+                'verified_at' => now(),
             ]);
-            $requiresReverification = true;
         }
 
         // Check if address coordinates changed
@@ -296,7 +283,7 @@ class MitraProfileController extends Controller
             $this->notificationService->notifyPartnerVerificationSubmitted($user->fresh());
 
             return redirect()->route('mitra.status')
-                ->with('status', 'Pembaruan data perbankan atau domisili Anda memerlukan verifikasi ulang oleh Admin Wilayah.');
+                ->with('status', 'Pembaruan titik koordinat atau domisili Anda memerlukan verifikasi ulang oleh Admin Wilayah.');
         }
 
         return back()->with('status', 'Profil berhasil diperbarui.');

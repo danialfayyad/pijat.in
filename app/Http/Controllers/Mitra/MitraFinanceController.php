@@ -30,17 +30,45 @@ class MitraFinanceController extends Controller
         $user = $request->user()->load('partnerProfile');
         $wallet = $user->getOrCreateWallet();
 
-        $range = $request->input('range', '7_days');
+        $selectedMonth = $request->string('month', 'semua')->toString();
+        $selectedType = $request->string('type', 'semua')->toString();
+        $range = $request->input('range', null);
 
         $query = WalletTransaction::where('wallet_id', $wallet->id);
 
-        if ($range === '7_days') {
+        if (preg_match('/^(\d{4})-(\d{2})$/', $selectedMonth, $matches) === 1) {
+            $range = null;
+            $query
+                ->whereYear('created_at', (int) $matches[1])
+                ->whereMonth('created_at', (int) $matches[2]);
+        } elseif ($range === '7_days') {
             $query->where('created_at', '>=', Carbon::now()->subDays(7)->startOfDay());
         } elseif ($range === '30_days') {
             $query->where('created_at', '>=', Carbon::now()->subDays(30)->startOfDay());
+        } else {
+            $selectedMonth = 'semua';
         }
 
+        match ($selectedType) {
+            'masuk' => $query->where('type', 'credit'),
+            'keluar' => $query->where('type', 'debit'),
+            'penarikan' => $query->whereIn('reference_type', ['withdrawal_request', 'withdrawal_refund', 'partner_withdrawal', 'withdrawal']),
+            default => $selectedType = 'semua',
+        };
+
         $transactions = $query->latest()->paginate(15)->withQueryString();
+
+        $monthOptions = collect([
+            ['value' => 'semua', 'label' => 'Semua'],
+        ]);
+
+        for ($i = 0; $i < 6; $i++) {
+            $date = Carbon::now()->startOfMonth()->subMonths($i);
+            $monthOptions->push([
+                'value' => $date->format('Y-m'),
+                'label' => $date->translatedFormat('M Y'),
+            ]);
+        }
 
         // Income & withdrawal statistics
         $currentMonthIncome = (float) WalletTransaction::where('wallet_id', $wallet->id)
@@ -58,7 +86,19 @@ class MitraFinanceController extends Controller
             ->where('status', WithdrawalRequest::STATUS_PENDING)
             ->sum('amount');
 
-        $withdrawalRequests = WithdrawalRequest::where('user_id', $user->id)
+        $withdrawalRequestsQuery = WithdrawalRequest::where('user_id', $user->id);
+
+        if (preg_match('/^(\d{4})-(\d{2})$/', $selectedMonth, $matches) === 1) {
+            $withdrawalRequestsQuery
+                ->whereYear('created_at', (int) $matches[1])
+                ->whereMonth('created_at', (int) $matches[2]);
+        } elseif ($range === '7_days') {
+            $withdrawalRequestsQuery->where('created_at', '>=', Carbon::now()->subDays(7)->startOfDay());
+        } elseif ($range === '30_days') {
+            $withdrawalRequestsQuery->where('created_at', '>=', Carbon::now()->subDays(30)->startOfDay());
+        }
+
+        $withdrawalRequests = $withdrawalRequestsQuery
             ->latest()
             ->take(10)
             ->get();
@@ -88,7 +128,10 @@ class MitraFinanceController extends Controller
             'pendingWithdrawal',
             'withdrawalRequests',
             'bankAccount',
-            'heldTransactions'
+            'heldTransactions',
+            'monthOptions',
+            'selectedMonth',
+            'selectedType'
         ));
     }
 

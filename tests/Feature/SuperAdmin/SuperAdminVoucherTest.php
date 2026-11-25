@@ -257,3 +257,75 @@ test('voucher calculation and validation logic handles all conditions correctly'
     expect($valExpired['valid'])->toBeFalse()
         ->and($valExpired['message'])->toContain('kedaluwarsa');
 });
+
+test('superadmin can deactivate voucher by unchecking status on update', function () {
+    $voucher = Voucher::create([
+        'code' => 'ACTIVEVOUCHER',
+        'name' => 'Voucher Aktif',
+        'type' => Voucher::TYPE_FIXED,
+        'amount' => 10000,
+        'per_user_limit' => 1,
+        'is_active' => true,
+    ]);
+
+    // Saat checkbox di-uncheck, browser tidak mengirimkan is_active atau mengirimkan 0
+    $response = $this->actingAs($this->superadmin)
+        ->put(route('superadmin.vouchers.update', $voucher), [
+            'code' => 'ACTIVEVOUCHER',
+            'name' => 'Voucher Aktif',
+            'type' => Voucher::TYPE_FIXED,
+            'amount' => 10000,
+            'per_user_limit' => 1,
+            // is_active omitted or 0
+            'is_active' => '0',
+        ]);
+
+    $response->assertRedirect(route('superadmin.vouchers.index'));
+    expect($voucher->fresh()->is_active)->toBeFalse();
+
+    // Uji juga ketika parameter is_active benar-benar tidak dikirim sama sekali oleh browser (standar unchecked checkbox)
+    $voucher->update(['is_active' => true]);
+    $this->actingAs($this->superadmin)
+        ->put(route('superadmin.vouchers.update', $voucher), [
+            'code' => 'ACTIVEVOUCHER',
+            'name' => 'Voucher Aktif',
+            'type' => Voucher::TYPE_FIXED,
+            'amount' => 10000,
+            'per_user_limit' => 1,
+        ]);
+
+    expect($voucher->fresh()->is_active)->toBeFalse();
+});
+
+test('superadmin can update voucher starts_at and expires_at', function () {
+    $pastDate = Carbon::now()->subDays(5)->startOfMinute();
+    $voucher = Voucher::create([
+        'code' => 'ALREADYSTART',
+        'name' => 'Voucher Sudah Berjalan',
+        'type' => Voucher::TYPE_FIXED,
+        'amount' => 15000,
+        'per_user_limit' => 1,
+        'starts_at' => $pastDate,
+        'expires_at' => Carbon::now()->addDays(10),
+        'is_active' => true,
+    ]);
+
+    $newStartDate = Carbon::now('Asia/Jakarta')->addDays(2)->startOfMinute();
+    $response = $this->actingAs($this->superadmin)
+        ->put(route('superadmin.vouchers.update', $voucher), [
+            'code' => 'ALREADYSTART',
+            'name' => 'Voucher Sudah Berjalan Diperbarui',
+            'type' => Voucher::TYPE_FIXED,
+            'amount' => 15000,
+            'per_user_limit' => 1,
+            'starts_at' => $newStartDate->format('Y-m-d\TH:i'),
+            'expires_at' => Carbon::now('Asia/Jakarta')->addDays(10)->format('Y-m-d\TH:i'),
+            'is_active' => true,
+        ]);
+
+    $response->assertRedirect(route('superadmin.vouchers.index'));
+
+    $voucher->refresh();
+    expect($voucher->starts_at->timestamp)->toBe(Carbon::parse($newStartDate->format('Y-m-d\TH:i'), 'Asia/Jakarta')->setTimezone('UTC')->timestamp)
+        ->and($voucher->name)->toBe('Voucher Sudah Berjalan Diperbarui');
+});

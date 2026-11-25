@@ -145,12 +145,12 @@
          x-data="invoicePayment()">
 
         <!-- 1. TOP APP BAR -->
-        <header class="sticky top-0 z-30 bg-white border-b border-slate-200/80 px-4 py-3 flex items-center justify-between shrink-0 shadow-2xs">
+        <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/70 px-4 py-2.5 min-h-[56px] flex items-center justify-between shrink-0 shadow-2xs">
             <a href="{{ $invoice->order ? route('pelanggan.orders.show', $invoice->order) : route('pelanggan.wallet.index') }}" 
-               class="w-9 h-9 rounded-full flex items-center justify-center text-slate-700 hover:bg-slate-100 active:scale-95 transition cursor-pointer"
+               class="w-8 h-8 -ml-1 rounded-full flex items-center justify-center text-slate-700 hover:bg-slate-100 transition shrink-0 cursor-pointer"
                aria-label="Kembali">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                 </svg>
             </a>
 

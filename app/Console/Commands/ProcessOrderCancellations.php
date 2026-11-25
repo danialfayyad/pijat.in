@@ -32,6 +32,7 @@ class ProcessOrderCancellations extends Command
 
         $this->info("Cancelled stuck instant orders: {$result['cancelled_instant']}");
         $this->info("Cancelled stuck scheduled orders: {$result['cancelled_scheduled']}");
+        $this->info("Cancelled abandoned scheduled orders (partner no-show): {$result['cancelled_abandoned_scheduled']}");
         $this->info("Expired unpaid orders: {$result['expired_unpaid']}");
         $this->info("Expired top-up invoices: {$result['expired_invoices']}");
 

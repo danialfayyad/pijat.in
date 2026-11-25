@@ -6,7 +6,15 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Models\Faq;
 use App\Models\Service;
+use App\Services\PwaService;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/manifest.json', function () {
+    return response()->json(PwaService::getManifest(), 200, [
+        'Content-Type' => 'application/manifest+json; charset=utf-8',
+        'Cache-Control' => 'no-cache, private',
+    ]);
+})->name('pwa.manifest');
 
 Route::get('/', function () {
     $services = Service::query()

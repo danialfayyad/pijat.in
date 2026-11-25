@@ -107,7 +107,7 @@
             selectedRegions: [],
             isDropdownOpen: false,
             allRegions: @js($regions->map->only(['id', 'name', 'status'])),
-            adminAssignments: @js($admins->mapWithKeys(fn($a) => [$a->id => $a->assignedRegions->pluck('id')])),
+            adminAssignments: @js($admins->mapWithKeys(fn($a) => [(string)$a->id => $a->assignedRegions->pluck('id')->map(fn($id) => (int)$id)])),
             
             openAssignModal(adminId = '') {
                 this.selectedAdmin = adminId ? String(adminId) : '';
@@ -121,6 +121,9 @@
                 this.searchQuery = '';
                 this.selectedRegions = [];
                 this.isDropdownOpen = false;
+            },
+            onAdminChange() {
+                this.selectedRegions = this.selectedRegions.filter(id => !this.isAlreadyAssigned(id));
             },
             get filteredRegions() {
                 if (!this.searchQuery.trim()) return this.allRegions;
@@ -151,7 +154,8 @@
             },
             isAlreadyAssigned(regionId) {
                 if (!this.selectedAdmin || !this.adminAssignments[this.selectedAdmin]) return false;
-                return this.adminAssignments[this.selectedAdmin].includes(regionId);
+                const numId = Number(regionId);
+                return this.adminAssignments[this.selectedAdmin].some(id => Number(id) === numId);
             },
 
             // State Modal Detail Informasi Admin
@@ -315,12 +319,6 @@
                                             @click="openDetailModal(@js($adminPayload))"
                                             class="text-xs font-semibold text-slate-600 hover:text-emerald-700 hover:underline inline-flex items-center gap-1 cursor-pointer">
                                             <span>Detail</span>
-                                        </button>
-                                        <span class="text-slate-200">|</span>
-                                        <button type="button" 
-                                            @click="openAssignModal({{ $admin->id }})"
-                                            class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-1 cursor-pointer">
-                                            <span>+ Tugaskan</span>
                                         </button>
                                         <span class="text-slate-200">|</span>
                                         <button type="button" 
@@ -546,84 +544,85 @@
                             <!-- 1. Dropdown Pilih Admin -->
                             <div>
                                 <label for="modal_user_id" class="block text-xs font-semibold text-slate-700 mb-1">1. Pilih Akun Admin *</label>
-                                <select id="modal_user_id" name="user_id" x-model="selectedAdmin" required
+                                <select id="modal_user_id" name="user_id" x-model="selectedAdmin" @change="onAdminChange()" required
                                     class="w-full text-xs rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 bg-slate-50/50">
                                     <option value="">-- Pilih Akun Admin --</option>
                                     @foreach ($admins as $admin)
                                         <option value="{{ $admin->id }}">{{ $admin->name }} ({{ $admin->email }})</option>
                                     @endforeach
                                 </select>
+                                <div x-show="selectedAdmin" class="mt-1 flex items-center justify-between text-[11px] text-slate-500">
+                                    <span>Admin saat ini membina <strong class="text-slate-700 font-semibold" x-text="(adminAssignments[selectedAdmin] || []).length"></strong> kota.</span>
+                                    <span class="text-amber-600 font-medium" x-show="(adminAssignments[selectedAdmin] || []).length > 0">Kota binaan ditandai & tidak dapat dipilih ganda.</span>
+                                </div>
                             </div>
 
-                            <!-- 2. Combobox Cari Kota dengan Floating Dropdown -->
-                            <div class="relative" @click.outside="isDropdownOpen = false">
-                                <label for="modal_search_regions" class="block text-xs font-semibold text-slate-700 mb-1 flex justify-between items-center">
-                                    <span>2. Cari & Pilih Kota Tugas *</span>
-                                    <span x-show="selectedRegions.length > 0" class="text-emerald-700 font-semibold text-[11px]" x-text="selectedRegions.length + ' kota dipilih'"></span>
-                                </label>
-                                <div class="relative">
-                                    <input type="text" id="modal_search_regions" x-model="searchQuery" 
-                                        @focus="isDropdownOpen = true"
-                                        @click="isDropdownOpen = true"
-                                        @keydown.escape="isDropdownOpen = false"
-                                        placeholder="Ketik nama kota atau klik untuk membuka daftar..."
-                                        class="w-full text-xs placeholder:text-xs rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 pl-8 pr-8">
-                                    <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                    </svg>
-                                    <button type="button" @click="isDropdownOpen = !isDropdownOpen" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
-                                        <svg class="w-4 h-4 transition-transform duration-200" :class="isDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                        </svg>
-                                    </button>
+                            <!-- 2. Pencarian & Pemilihan Kota Tugas (Embedded List Bebas Terpotong) -->
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <label for="modal_search_regions" class="block text-xs font-semibold text-slate-700">
+                                        2. Cari & Pilih Kota Tugas <span class="text-rose-500">*</span>
+                                    </label>
+                                    <span x-show="selectedRegions.length > 0" class="inline-flex items-center gap-1 text-emerald-700 font-semibold text-[11px] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                        <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                        <span x-text="selectedRegions.length + ' kota dipilih'"></span>
+                                    </span>
                                 </div>
 
-                                <!-- Floating Popover Dropdown -->
-                                <div x-show="isDropdownOpen" 
-                                     x-transition:enter="transition ease-out duration-150"
-                                     x-transition:enter-start="opacity-0 translate-y-1"
-                                     x-transition:enter-end="opacity-100 translate-y-0"
-                                     x-transition:leave="transition ease-in duration-100"
-                                     x-transition:leave-start="opacity-100 translate-y-0"
-                                     x-transition:leave-end="opacity-0 translate-y-1"
-                                     class="absolute z-30 left-0 right-0 mt-1.5 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden"
-                                     style="display: none;">
-                                    
-                                    <!-- Header Dropdown -->
-                                    <div class="p-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[11px]">
-                                        <span class="text-slate-500">
-                                            Menampilkan <b class="text-slate-700" x-text="filteredRegions.length"></b> kota
+                                <div class="rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 space-y-2.5">
+                                    <!-- Search Input -->
+                                    <div class="relative">
+                                        <input type="text" id="modal_search_regions" x-model="searchQuery" 
+                                            placeholder="Ketik nama kota (misal: Yogyakarta, Surabaya, Bandung)..."
+                                            class="w-full text-xs placeholder:text-xs rounded-lg border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 bg-white pl-8 pr-8 py-2">
+                                        <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                        </svg>
+                                        <button type="button" x-show="searchQuery.length > 0" @click="searchQuery = ''" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </button>
+                                    </div>
+
+                                    <!-- Action Bar: Counter & Quick Select -->
+                                    <div class="flex items-center justify-between text-[11px] px-0.5 text-slate-500">
+                                        <span>
+                                            Menampilkan <strong class="text-slate-700 font-semibold" x-text="filteredRegions.length"></strong> kota
+                                            <span x-show="searchQuery.trim()" class="text-slate-400">hasil pencarian</span>
                                         </span>
-                                        <div class="space-x-2">
-                                            <button type="button" @click="selectAllFiltered()" class="text-emerald-700 hover:underline font-semibold cursor-pointer">
-                                                + Pilih Semua
+                                        <div class="flex items-center space-x-2">
+                                            <button type="button" @click="selectAllFiltered()" class="text-emerald-700 hover:text-emerald-800 font-semibold hover:underline cursor-pointer">
+                                                + Pilih Semua Hasil
                                             </button>
-                                            <button type="button" @click="isDropdownOpen = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
-                                                Tutup ✕
+                                            <span class="text-slate-300">|</span>
+                                            <button type="button" @click="clearSelected()" :disabled="selectedRegions.length === 0" class="text-slate-500 hover:text-rose-600 disabled:opacity-40 disabled:cursor-not-allowed hover:underline cursor-pointer">
+                                                Batal Pilih
                                             </button>
                                         </div>
                                     </div>
 
-                                    <!-- List Hasil Kota -->
-                                    <div class="max-h-48 overflow-y-auto divide-y divide-slate-100">
+                                    <!-- Scrollable City List -->
+                                    <div class="max-h-52 overflow-y-auto divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
                                         <template x-for="r in filteredRegions" :key="r.id">
                                             <div @click="!isAlreadyAssigned(r.id) && toggleRegion(r.id)"
-                                                 class="px-3.5 py-2 flex items-center justify-between text-xs transition cursor-pointer select-none"
+                                                 class="px-3 py-2 flex items-center justify-between text-xs transition cursor-pointer select-none"
                                                  :class="{
-                                                     'bg-emerald-50/70 text-emerald-900 font-semibold': selectedRegions.includes(r.id),
+                                                     'bg-emerald-50/70 text-emerald-950 font-semibold border-l-2 border-emerald-600': selectedRegions.includes(r.id),
                                                      'hover:bg-slate-50 text-slate-700': !selectedRegions.includes(r.id) && !isAlreadyAssigned(r.id),
-                                                     'bg-slate-50 text-slate-400 cursor-not-allowed': isAlreadyAssigned(r.id)
+                                                     'bg-slate-50/70 text-slate-400 cursor-not-allowed opacity-75': isAlreadyAssigned(r.id)
                                                  }">
-                                                <div class="flex items-center space-x-2.5">
+                                                <div class="flex items-center space-x-2.5 min-w-0 pr-2">
                                                     <input type="checkbox" 
                                                            :checked="selectedRegions.includes(r.id)" 
                                                            :disabled="isAlreadyAssigned(r.id)"
-                                                           class="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 pointer-events-none w-3.5 h-3.5">
-                                                    <span x-text="r.name"></span>
+                                                           class="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 pointer-events-none w-4 h-4 shrink-0">
+                                                    <span class="break-words" x-text="r.name"></span>
                                                 </div>
-                                                <div class="flex items-center space-x-1.5">
-                                                    <span x-show="isAlreadyAssigned(r.id)" class="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded font-normal">
-                                                        Sudah ditugaskan
+                                                <div class="flex items-center space-x-1.5 shrink-0">
+                                                    <span x-show="isAlreadyAssigned(r.id)" class="text-[10px] text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-normal">
+                                                        Sudah Ditugaskan
+                                                    </span>
+                                                    <span x-show="r.status === 'aktif' && !isAlreadyAssigned(r.id)" class="text-[9px] text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded font-medium">
+                                                        Aktif
                                                     </span>
                                                     <span x-show="selectedRegions.includes(r.id)" class="text-emerald-700 text-xs font-bold">
                                                         ✓
@@ -633,7 +632,8 @@
                                         </template>
 
                                         <div x-show="filteredRegions.length === 0" class="py-6 text-center text-xs text-slate-400">
-                                            Tidak ada kota yang sesuai dengan kata kunci.
+                                            <p>Tidak ada kota yang sesuai dengan kata kunci "<span class="font-medium text-slate-600" x-text="searchQuery"></span>".</p>
+                                            <button type="button" @click="searchQuery = ''" class="mt-1 text-[11px] text-emerald-600 hover:underline cursor-pointer">Tampilkan semua kota</button>
                                         </div>
                                     </div>
                                 </div>
@@ -651,11 +651,11 @@
                                     </button>
                                 </div>
 
-                                <div x-show="selectedRegions.length > 0" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+                                <div x-show="selectedRegions.length > 0" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-0.5">
                                     <template x-for="r in selectedRegionObjects" :key="r.id">
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-emerald-300 text-emerald-800 rounded-lg text-xs font-medium shadow-2xs">
                                             <span x-text="r.name"></span>
-                                            <button type="button" @click="removeRegion(r.id)" class="text-emerald-400 hover:text-rose-600 font-bold leading-none cursor-pointer">
+                                            <button type="button" @click.stop="removeRegion(r.id)" class="text-emerald-400 hover:text-rose-600 font-bold leading-none cursor-pointer">
                                                 ×
                                             </button>
                                         </span>
@@ -663,7 +663,7 @@
                                 </div>
 
                                 <div x-show="selectedRegions.length === 0" class="py-1 text-center text-xs text-slate-400">
-                                    Belum ada kota yang dipilih. Cari dan centang kota pada kolom di atas.
+                                    Belum ada kota yang dipilih. Centang kota pada daftar di atas.
                                 </div>
                             </div>
                         </div>
@@ -789,55 +789,53 @@
                             </div>
 
                             <!-- Penugasan Wilayah Pertama (Opsional) -->
-                            <div class="pt-2 border-t border-slate-100 space-y-2 relative" @click.outside="createDropdownOpen = false">
+                            <div class="pt-2 border-t border-slate-100 space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <label class="block text-xs font-semibold text-slate-700">Tugaskan Wilayah Awal (Opsional)</label>
-                                    <span x-show="createSelectedRegions.length > 0" class="text-emerald-700 font-semibold text-[11px]" x-text="createSelectedRegions.length + ' kota dipilih'"></span>
+                                    <label for="create_search_regions" class="block text-xs font-semibold text-slate-700">Tugaskan Wilayah Awal (Opsional)</label>
+                                    <span x-show="createSelectedRegions.length > 0" class="inline-flex items-center gap-1 text-emerald-700 font-semibold text-[11px] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                        <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                        <span x-text="createSelectedRegions.length + ' kota dipilih'"></span>
+                                    </span>
                                 </div>
 
-                                <div class="relative">
-                                    <input type="text" x-model="createSearchQuery"
-                                        @focus="createDropdownOpen = true"
-                                        @click="createDropdownOpen = true"
-                                        @keydown.escape="createDropdownOpen = false"
-                                        placeholder="Pilih kota tugas awal admin ini..."
-                                        class="w-full text-xs placeholder:text-xs rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 pl-8 pr-8">
-                                    <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                    </svg>
-                                    <button type="button" @click="createDropdownOpen = !createDropdownOpen" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
-                                        <svg class="w-4 h-4 transition-transform duration-200" :class="createDropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                <div class="rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 space-y-2">
+                                    <div class="relative">
+                                        <input type="text" id="create_search_regions" x-model="createSearchQuery"
+                                            placeholder="Cari kota tugas awal admin ini..."
+                                            class="w-full text-xs placeholder:text-xs rounded-lg border-slate-200 focus:border-emerald-500 focus:ring-emerald-500 bg-white pl-8 pr-8 py-2">
+                                        <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                         </svg>
-                                    </button>
-                                </div>
-
-                                <!-- Floating Popover Dropdown -->
-                                <div x-show="createDropdownOpen" 
-                                     x-transition:enter="transition ease-out duration-150"
-                                     x-transition:enter-start="opacity-0 translate-y-1"
-                                     x-transition:enter-end="opacity-100 translate-y-0"
-                                     x-transition:leave="transition ease-in duration-100"
-                                     x-transition:leave-start="opacity-100 translate-y-0"
-                                     x-transition:leave-end="opacity-0 translate-y-1"
-                                     class="absolute z-30 left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden"
-                                     style="display: none;">
-                                    <div class="p-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[11px]">
-                                        <span class="text-slate-500">Menampilkan <b class="text-slate-700" x-text="createFilteredRegions.length"></b> kota</span>
-                                        <button type="button" @click="selectAllCreateFiltered()" class="text-emerald-700 hover:underline font-semibold cursor-pointer">+ Pilih Semua</button>
+                                        <button type="button" x-show="createSearchQuery.length > 0" @click="createSearchQuery = ''" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </button>
                                     </div>
-                                    <div class="max-h-40 overflow-y-auto divide-y divide-slate-100">
+
+                                    <div class="flex items-center justify-between text-[11px] px-0.5 text-slate-500">
+                                        <span>Menampilkan <strong class="text-slate-700 font-semibold" x-text="createFilteredRegions.length"></strong> kota</span>
+                                        <div class="flex items-center space-x-2">
+                                            <button type="button" @click="selectAllCreateFiltered()" class="text-emerald-700 hover:underline font-semibold cursor-pointer">+ Pilih Semua Hasil</button>
+                                            <span class="text-slate-300">|</span>
+                                            <button type="button" @click="clearCreateSelected()" :disabled="createSelectedRegions.length === 0" class="text-slate-500 hover:text-rose-600 disabled:opacity-40 disabled:cursor-not-allowed hover:underline cursor-pointer">Batal Pilih</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="max-h-36 overflow-y-auto divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
                                         <template x-for="r in createFilteredRegions" :key="r.id">
                                             <div @click="toggleCreateRegion(r.id)"
-                                                 class="px-3.5 py-2 flex items-center justify-between text-xs transition cursor-pointer select-none"
-                                                 :class="createSelectedRegions.includes(r.id) ? 'bg-emerald-50/70 text-emerald-900 font-semibold' : 'hover:bg-slate-50 text-slate-700'">
-                                                <div class="flex items-center space-x-2.5">
-                                                    <input type="checkbox" :checked="createSelectedRegions.includes(r.id)" class="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 pointer-events-none w-3.5 h-3.5">
-                                                    <span x-text="r.name"></span>
+                                                 class="px-3 py-2 flex items-center justify-between text-xs transition cursor-pointer select-none"
+                                                 :class="createSelectedRegions.includes(r.id) ? 'bg-emerald-50/70 text-emerald-950 font-semibold border-l-2 border-emerald-600' : 'hover:bg-slate-50 text-slate-700'">
+                                                <div class="flex items-center space-x-2.5 min-w-0 pr-2">
+                                                    <input type="checkbox" :checked="createSelectedRegions.includes(r.id)" class="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 pointer-events-none w-4 h-4 shrink-0">
+                                                    <span class="break-words" x-text="r.name"></span>
                                                 </div>
-                                                <span x-show="createSelectedRegions.includes(r.id)" class="text-emerald-700 text-xs font-bold">✓</span>
+                                                <span x-show="createSelectedRegions.includes(r.id)" class="text-emerald-700 text-xs font-bold shrink-0">✓</span>
                                             </div>
                                         </template>
+
+                                        <div x-show="createFilteredRegions.length === 0" class="py-4 text-center text-xs text-slate-400">
+                                            Tidak ada kota yang sesuai.
+                                        </div>
                                     </div>
                                 </div>
 
@@ -846,7 +844,7 @@
                                     <template x-for="r in createSelectedRegionObjects" :key="r.id">
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-emerald-300 text-emerald-800 rounded-lg text-xs font-medium shadow-2xs">
                                             <span x-text="r.name"></span>
-                                            <button type="button" @click="removeCreateRegion(r.id)" class="text-emerald-400 hover:text-rose-600 font-bold leading-none cursor-pointer">×</button>
+                                            <button type="button" @click.stop="removeCreateRegion(r.id)" class="text-emerald-400 hover:text-rose-600 font-bold leading-none cursor-pointer">×</button>
                                         </span>
                                     </template>
                                 </div>

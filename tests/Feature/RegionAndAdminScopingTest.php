@@ -67,6 +67,39 @@ test('system rejects overlapping region boundaries (SA-06)', function () {
     $this->assertDatabaseMissing('regions', ['name' => 'Wilayah B (Overlap)']);
 });
 
+test('system permits adjacent neighboring regions that share a border line (SA-06)', function () {
+    $superadmin = User::factory()->create(['role' => Role::Superadmin]);
+    $regionService = app(RegionService::class);
+
+    // Create Region 1: [100.0, -1.0] to [101.0, 0.0]
+    $coords1 = [
+        [100.0, -1.0],
+        [101.0, -1.0],
+        [101.0, 0.0],
+        [100.0, 0.0],
+        [100.0, -1.0],
+    ];
+    $regionService->createRegion('Wilayah Barat', $coords1, 'Asia/Jakarta', 'nonaktif');
+
+    // Create Region 2 sharing the border x=101.0 (from y=-1.0 to y=0.0): [101.0, -1.0] to [102.0, 0.0]
+    $coords2 = [
+        [101.0, -1.0],
+        [102.0, -1.0],
+        [102.0, 0.0],
+        [101.0, 0.0],
+        [101.0, -1.0],
+    ];
+
+    $response = $this->actingAs($superadmin)->post(route('superadmin.regions.store'), [
+        'name' => 'Wilayah Timur Bersebelahan',
+        'coordinates' => json_encode($coords2),
+        'timezone' => 'Asia/Jakarta',
+    ]);
+
+    $response->assertRedirect(route('superadmin.regions.index'));
+    $this->assertDatabaseHas('regions', ['name' => 'Wilayah Timur Bersebelahan']);
+});
+
 test('system prevents activation of a region without at least 1 assigned admin (SA-06)', function () {
     $superadmin = User::factory()->create(['role' => Role::Superadmin]);
     $regionService = app(RegionService::class);

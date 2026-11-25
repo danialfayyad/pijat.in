@@ -152,7 +152,7 @@ class MitraDashboardController extends Controller
     {
         $user = $request->user();
 
-        $dispatch = OrderDispatch::with(['order.service', 'order.customerAddress'])
+        $dispatch = OrderDispatch::with(['order.service', 'order.customerAddress', 'order.customer'])
             ->where('partner_id', $user->id)
             ->where('status', OrderDispatch::STATUS_OFFERED)
             ->where('expires_at', '>', now())
@@ -185,10 +185,17 @@ class MitraDashboardController extends Controller
             $distanceKm = round($earthRadius * $c, 1);
         }
 
+        $customerRating = $order->customer?->customerRating();
+        $customerRatingsCount = $order->customer?->customerRatingsCount() ?? 0;
+
         return response()->json([
             'has_offer' => true,
             'dispatch_id' => $dispatch->id,
             'order_id' => $order->id,
+            'customer_name' => $order->recipient_name,
+            'customer_rating' => $customerRating !== null ? number_format($customerRating, 1) : null,
+            'customer_ratings_count' => $customerRatingsCount,
+            'is_new_customer' => $customerRatingsCount === 0,
             'service_name' => $order->service_name,
             'duration_minutes' => $order->duration_minutes,
             'total_price' => (float) $order->total_price,

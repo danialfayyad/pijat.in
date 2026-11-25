@@ -47,8 +47,9 @@ class OrderSettlementService
             }
 
             $commissionPercent = (float) ($order->commission_percent ?? Parameter::get('platform_commission_percent', 20.0));
-            $totalPrice = (float) $order->total_price;
-            $partnerEarning = round($totalPrice * (1 - ($commissionPercent / 100)), 2);
+            // Bagi hasil mitra dihitung dari tarif kotor layanan (sebelum subsidi voucher diskon platform)
+            $grossPrice = (float) $order->total_price + (float) ($order->discount_amount ?? 0);
+            $partnerEarning = round($grossPrice * (1 - ($commissionPercent / 100)), 2);
 
             $mitra = User::find($order->mitra_id);
             if (! $mitra || $partnerEarning <= 0) {

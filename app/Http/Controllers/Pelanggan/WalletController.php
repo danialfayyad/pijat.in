@@ -69,7 +69,15 @@ class WalletController extends Controller
             ]);
         }
 
-        $withdrawalRequests = WithdrawalRequest::where('user_id', $user->id)->latest()->take(5)->get();
+        $withdrawalRequestsQuery = WithdrawalRequest::where('user_id', $user->id);
+
+        if (preg_match('/^(\d{4})-(\d{2})$/', $selectedMonth, $matches) === 1) {
+            $withdrawalRequestsQuery
+                ->whereYear('created_at', (int) $matches[1])
+                ->whereMonth('created_at', (int) $matches[2]);
+        }
+
+        $withdrawalRequests = $withdrawalRequestsQuery->latest()->take(5)->get();
 
         return view('pelanggan.wallet.index', compact(
             'user',

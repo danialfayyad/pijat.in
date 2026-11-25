@@ -51,12 +51,11 @@
         <!-- ============================================== -->
         <div x-show="activeTab === 'berjalan'" class="space-y-4">
             @forelse ($runningOrders as $order)
-                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-4">
+                <div data-order-code="{{ $order->order_code }}" class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-4">
                     <!-- Header Kartu -->
                     <div class="flex items-start justify-between border-b border-slate-100 pb-3">
                         <div>
-                            <span class="text-[10px] font-bold text-slate-400 font-mono tracking-wider block">{{ $order->order_code }}</span>
-                            <h3 class="text-base font-bold text-slate-900 mt-0.5">{{ $order->service_name }}</h3>
+                            <h3 class="text-base font-bold text-slate-900">{{ $order->service_name }}</h3>
                             <span class="text-xs text-slate-500">{{ $order->duration_minutes }} Menit • {{ $order->order_type->label() }}</span>
                         </div>
                         <span class="text-xs font-semibold text-emerald-700 shrink-0">
@@ -134,12 +133,11 @@
         <!-- ============================================== -->
         <div x-show="activeTab === 'terjadwal'" class="space-y-4">
             @forelse ($scheduledOrders as $order)
-                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-4">
+                <div data-order-code="{{ $order->order_code }}" class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-4">
                     <!-- Header Kartu -->
                     <div class="flex items-start justify-between border-b border-slate-100 pb-3">
                         <div>
-                            <span class="text-[10px] font-bold text-slate-400 font-mono tracking-wider block">{{ $order->order_code }}</span>
-                            <h3 class="text-base font-bold text-slate-900 mt-0.5">{{ $order->service_name }}</h3>
+                            <h3 class="text-base font-bold text-slate-900">{{ $order->service_name }}</h3>
                             <span class="text-xs text-slate-500">{{ $order->duration_minutes }} Menit Layanan</span>
                         </div>
                         <span class="text-xs font-semibold text-emerald-700 shrink-0">
@@ -238,12 +236,11 @@
         <!-- ============================================== -->
         <div x-show="activeTab === 'history'" class="space-y-3">
             @forelse ($historyOrders as $order)
-                <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-3">
+                <div data-order-code="{{ $order->order_code }}" class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-3">
                     <!-- Header -->
                     <div class="flex items-start justify-between border-b border-slate-100 pb-2.5">
                         <div>
-                            <span class="text-[10px] font-bold text-slate-400 font-mono tracking-wider block">{{ $order->order_code }}</span>
-                            <h3 class="text-xs font-bold text-slate-900 mt-0.5">{{ $order->service_name }}</h3>
+                            <h3 class="text-xs font-bold text-slate-900">{{ $order->service_name }}</h3>
                             <span class="text-[11px] text-slate-400">{{ $order->updated_at->translatedFormat('d M Y, H:i') }}</span>
                         </div>
                         @if ($order->status === \App\Enums\OrderStatus::Selesai)
@@ -271,12 +268,6 @@
                             @endif
                         </div>
                     </div>
-
-                    @if ($order->cancellation_reason)
-                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-600">
-                            <strong>Alasan Pembatalan:</strong> {{ $order->cancellation_reason }}
-                        </div>
-                    @endif
 
                     <div class="pt-1">
                         <a href="{{ route('mitra.orders.show', $order) }}"

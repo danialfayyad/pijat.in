@@ -7,6 +7,7 @@ use App\Enums\Role;
 use App\Enums\UserStatus;
 use App\Models\Complaint;
 use App\Models\Order;
+use App\Models\Parameter;
 use App\Models\PenaltyAppeal;
 use App\Models\PushSubscription;
 use App\Models\Region;
@@ -95,13 +96,17 @@ class NotificationService
 
         // 3. Dispatch Web Push to all registered device subscriptions for this user
         $subscriptions = $user->pushSubscriptions;
+        $appLogo = Parameter::get('app_logo');
+        $notificationIcon = ! empty($appLogo) ? asset('storage/'.$appLogo) : url('/icons/icon-192x192.png');
+        $notificationBadge = ! empty($appLogo) ? asset('storage/'.$appLogo) : url('/icons/badge-72x72.png');
+
         foreach ($subscriptions as $subscription) {
             $this->dispatchWebPushPayload($subscription, [
                 'notification' => [
                     'title' => $title,
                     'body' => $body,
-                    'icon' => '/icons/icon-192x192.png',
-                    'badge' => '/icons/badge-72x72.png',
+                    'icon' => $notificationIcon,
+                    'badge' => $notificationBadge,
                     'vibrate' => $priority === 'high' ? [200, 100, 200, 100, 200] : [100, 50, 100],
                     'tag' => "event_{$eventCode}_{$notification->id}",
                     'data' => array_merge($data, [

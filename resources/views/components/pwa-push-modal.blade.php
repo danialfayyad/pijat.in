@@ -1,163 +1,73 @@
 @auth
-@php
-    $isMitra = Auth::user()->isMitra();
-@endphp
-
 <div x-data="pwaPushModal()"
      x-show="showModal"
      x-cloak
-     x-transition:enter="transition ease-out duration-200"
+     x-transition:enter="ease-out duration-300"
      x-transition:enter-start="opacity-0"
      x-transition:enter-end="opacity-100"
-     x-transition:leave="transition ease-in duration-150"
+     x-transition:leave="ease-in duration-200"
      x-transition:leave-start="opacity-100"
      x-transition:leave-end="opacity-0"
      @open-pwa-push-modal.window="openModal()"
      @pwa-push-permission-changed.window="handlePermissionChange($event.detail)"
-     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md"
+     style="display: none;"
      role="dialog"
      aria-modal="true"
      aria-labelledby="push-modal-title">
 
     <div @click.away="dismiss()"
-         class="relative w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl border border-slate-200/90 text-center overflow-hidden space-y-4">
+         class="relative w-full max-w-sm rounded-3xl bg-white p-6 text-center shadow-2xl border border-slate-200/90 space-y-4">
         
-        <!-- Top Emerald Accent Bar -->
-        <div class="h-1.5 w-full bg-[#064e3b] absolute top-0 left-0"></div>
-
-        <!-- TAMPILAN 1: STATUS DEFAULT (BELUM DIBERI IZIN) -->
-        <div x-show="permissionStatus === 'default'" class="space-y-4 pt-1">
-            <!-- Icon Bel Notifikasi -->
-            <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center mx-auto ring-8 ring-emerald-50/70 shadow-2xs">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-            </div>
-
-            @if ($isMitra)
-                <div>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
-                        Radar & Pesanan Mitra
-                    </span>
-                    <h3 id="push-modal-title" class="text-base font-bold text-slate-900 mt-2">
-                        Aktifkan Notifikasi Pesanan
-                    </h3>
-                    <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
-                        Terima pemberitahuan instan saat ada tawaran pesanan baru (60 detik) dan info pencairan saldo dompet, meski aplikasi sedang di latar belakang.
-                    </p>
-                </div>
-
-                <!-- Poin Manfaat untuk Mitra -->
-                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-left space-y-2 text-xs text-slate-700">
-                    <div class="flex items-start space-x-2">
-                        <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 font-bold text-[10px] mt-0.5">✓</span>
-                        <span><strong>Tawaran Instan 60 Detik:</strong> Nada getar & alarm agar pesanan tidak terlewat.</span>
-                    </div>
-                    <div class="flex items-start space-x-2">
-                        <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 font-bold text-[10px] mt-0.5">✓</span>
-                        <span><strong>Pesanan Terjadwal:</strong> Update bursa pesanan baru di area tugas Anda.</span>
-                    </div>
-                    <div class="flex items-start space-x-2">
-                        <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 font-bold text-[10px] mt-0.5">✓</span>
-                        <span><strong>Pencairan Saldo:</strong> Konfirmasi mutasi dompet dan transfer ke rekening.</span>
-                    </div>
-                </div>
-            @else
-                <div>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
-                        Pelacakan Layanan Real-Time
-                    </span>
-                    <h3 id="push-modal-title" class="text-base font-bold text-slate-900 mt-2">
-                        Aktifkan Notifikasi Layanan
-                    </h3>
-                    <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
-                        Tetap terhubung dengan terapis Anda. Dapatkan kabar seketika saat terapis mulai jalan ke lokasi, tiba di alamat, dan mengirim pesan.
-                    </p>
-                </div>
-
-                <!-- Poin Manfaat untuk Pelanggan -->
-                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-left space-y-2 text-xs text-slate-700">
-                    <div class="flex items-start space-x-2">
-                        <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 font-bold text-[10px] mt-0.5">✓</span>
-                        <span><strong>Status OTW & Tiba:</strong> Tahu pasti saat terapis bergerak menuju lokasi.</span>
-                    </div>
-                    <div class="flex items-start space-x-2">
-                        <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 font-bold text-[10px] mt-0.5">✓</span>
-                        <span><strong>Pesan Chat Masuk:</strong> Komunikasi langsung saat terapis berada di perjalanan.</span>
-                    </div>
-                    <div class="flex items-start space-x-2">
-                        <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 font-bold text-[10px] mt-0.5">✓</span>
-                        <span><strong>Konfirmasi Pembayaran:</strong> Bukti top-up dan update saldo dompet Anda.</span>
-                    </div>
-                </div>
-            @endif
-
-            <!-- Tombol Aksi -->
-            <div class="space-y-2 pt-1">
-                <button type="button" 
-                        @click="requestPush()"
-                        :disabled="isSubscribing"
-                        class="w-full min-h-[44px] py-2.5 px-4 rounded-xl bg-[#064e3b] hover:bg-emerald-900 active:scale-[0.99] text-white font-bold text-xs shadow-xs transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-75">
-                    <template x-if="!isSubscribing">
-                        <span class="flex items-center space-x-1.5">
-                            <span>Izinkan Notifikasi</span>
-                            <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                            </svg>
-                        </span>
-                    </template>
-                    <template x-if="isSubscribing">
-                        <span class="flex items-center space-x-2">
-                            <svg class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                            </svg>
-                            <span>Mengaktifkan...</span>
-                        </span>
-                    </template>
-                </button>
-
-                <button type="button" 
-                        @click="dismiss()"
-                        class="w-full min-h-[42px] py-2 px-4 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 active:scale-[0.99] font-semibold text-xs transition cursor-pointer">
-                    Nanti Saja
-                </button>
-            </div>
+        <!-- Icon Notifikasi dengan Pulse & Ring (Matching Mitra GPS Style) -->
+        <div class="relative mx-auto w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center ring-8 ring-emerald-50">
+            <svg class="w-8 h-8 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+            <span class="absolute top-0 right-0 w-4 h-4 rounded-full bg-emerald-600 border-2 border-white flex items-center justify-center text-[9px] text-white font-bold">!</span>
         </div>
 
-        <!-- TAMPILAN 2: STATUS DENIED (DIBLOKIR DI PENGATURAN BROWSER) -->
-        <div x-show="permissionStatus === 'denied'" class="space-y-4 pt-1">
-            <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mx-auto ring-8 ring-amber-50/70 shadow-2xs">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        <div>
+            <p class="text-[11px] font-bold text-emerald-700 uppercase tracking-wide mb-1.5">
+                Pelanggan: Notifikasi Layanan
+            </p>
+            <h3 id="push-modal-title" class="text-base font-extrabold text-slate-900 leading-snug">
+                Aktifkan Notifikasi Pesanan
+            </h3>
+            <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                Dapatkan pembaruan langsung saat terapis bergerak menuju lokasi Anda, tiba di alamat, dan mengirim pesan konfirmasi.
+            </p>
+        </div>
+
+        <!-- Panduan jika izin diblokir di browser -->
+        <div x-show="permissionStatus === 'denied'" class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-left text-[11px] text-amber-950 space-y-1">
+            <p class="font-bold flex items-center space-x-1">
+                <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <span>Izin Notifikasi Diblokir di Browser</span>
+            </p>
+            <ol class="list-decimal pl-4 space-y-0.5 text-amber-900 text-[10px] leading-relaxed">
+                <li>Klik ikon <strong>Gembok / Setelan Situs</strong> di sebelah kiri address bar.</li>
+                <li>Ubah opsi <strong>Notifikasi</strong> menjadi <strong>Izinkan (Allow)</strong>.</li>
+                <li>Muat ulang halaman ini.</li>
+            </ol>
+        </div>
+
+        <!-- Action Buttons (Matching Mitra GPS Style) -->
+        <div class="space-y-2 pt-1">
+            <button type="button" 
+                    @click="requestPush()" 
+                    :disabled="isSubscribing"
+                    class="w-full min-h-[46px] py-3 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-75">
+                <svg class="w-4 h-4 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                 </svg>
-            </div>
-
-            <div>
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">
-                    Izin Diblokir di Peramban
-                </span>
-                <h3 class="text-base font-bold text-slate-900 mt-2">
-                    Notifikasi Dinonaktifkan
-                </h3>
-                <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
-                    Peramban Anda saat ini memblokir izin notifikasi untuk situs ini.
-                </p>
-            </div>
-
-            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-left space-y-2 text-xs text-slate-700 leading-relaxed">
-                <p class="font-semibold text-slate-900 text-[11px]">Cara mengaktifkan kembali:</p>
-                <ol class="list-decimal list-inside space-y-1 text-[11px] text-slate-600">
-                    <li>Klik ikon gembok / setelan di bilah alamat browser.</li>
-                    <li>Ubah izin <strong>Notifikasi</strong> menjadi <strong>Izinkan (Allow)</strong>.</li>
-                    <li>Muat ulang (*refresh*) halaman ini.</li>
-                </ol>
-            </div>
+                <span x-text="isSubscribing ? 'Memproses Izin...' : 'Aktifkan Izin Notifikasi'"></span>
+            </button>
 
             <button type="button" 
-                    @click="dismiss()"
-                    class="w-full min-h-[44px] py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-[0.99] font-bold text-xs transition cursor-pointer">
-                Tutup
+                    @click="dismiss()" 
+                    class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer">
+                <span x-text="permissionStatus === 'denied' ? 'Tutup' : 'Nanti Saja'"></span>
             </button>
         </div>
 
@@ -207,6 +117,7 @@
             },
 
             async requestPush() {
+                if (this.isSubscribing) return;
                 this.isSubscribing = true;
                 try {
                     let perm = 'unsupported';
@@ -224,8 +135,8 @@
                             Swal.fire({
                                 icon: 'success',
                                 iconHtml: '✓',
-                                title: 'Notifikasi Layar Aktif',
-                                text: 'Pemberitahuan instan kini aktif untuk pesanan dan pembaruan layanan Anda.',
+                                title: 'Notifikasi Layanan Aktif',
+                                text: 'Pemberitahuan instan kini aktif untuk pembaruan pesanan dan pesan terapis Anda.',
                                 confirmButtonText: 'Siap',
                                 buttonsStyling: false,
                                 customClass: {

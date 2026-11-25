@@ -7,8 +7,11 @@ use App\Enums\OrderType;
 use App\Models\Order;
 use App\Models\OrderDispatch;
 use App\Models\OrderStatusHistory;
+use App\Models\Parameter;
 use App\Models\TopupInvoice;
 use App\Models\User;
+use App\Models\Voucher;
+use App\Models\VoucherUsage;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -142,6 +145,8 @@ class OrderCancellationService
                 'mitra_id' => null,
             ]);
 
+            $this->restoreVoucherUsage($lockedOrder);
+
             OrderStatusHistory::create([
                 'order_id' => $lockedOrder->id,
                 'from_status' => $status->value,
@@ -264,10 +269,10 @@ class OrderCancellationService
 
             if ($type === 'regular') {
                 // MIT-12: Pembatalan sepihak oleh mitra
-                // Mitra terkena penalti poin (15 poin) per DEC-12
+                $penaltyPoints = (int) Parameter::get('partner_cancellation_penalty_points', 15);
                 $this->penaltyService->applyViolation(
                     $mitra,
-                    15,
+                    $penaltyPoints,
                     "Pembatalan sepihak pesanan {$lockedOrder->order_code} oleh mitra: {$reason}",
                     null,
                     $mitra,
@@ -462,13 +467,14 @@ class OrderCancellationService
     /**
      * Automatic cancellation of stuck orders and expired invoices (SYS-02).
      *
-     * @return array{cancelled_instant: int, cancelled_scheduled: int, expired_unpaid: int, expired_invoices: int}
+     * @return array{cancelled_instant: int, cancelled_scheduled: int, cancelled_abandoned_scheduled: int, expired_unpaid: int, expired_invoices: int}
      */
     public function autoCancelStuckOrders(): array
     {
         $now = Carbon::now();
         $instantCount = 0;
         $scheduledCount = 0;
+        $abandonedScheduledCount = 0;
         $unpaidCount = 0;
 
         // 1. Pesanan instan tanpa mitra > 30 menit
@@ -501,6 +507,8 @@ class OrderCancellationService
                     'cancelled_by_id' => null,
                     'cancelled_by_role' => 'system',
                 ]);
+
+                $this->restoreVoucherUsage($order);
 
                 OrderStatusHistory::create([
                     'order_id' => $order->id,
@@ -542,6 +550,8 @@ class OrderCancellationService
                     'cancelled_by_role' => 'system',
                 ]);
 
+                $this->restoreVoucherUsage($order);
+
                 OrderStatusHistory::create([
                     'order_id' => $order->id,
                     'from_status' => OrderStatus::MencariMitra->value,
@@ -555,7 +565,60 @@ class OrderCancellationService
             });
         }
 
-        // 3. Pesanan belum dibayar (MenungguPembayaran) > 15 menit
+        // 3. Pesanan terjadwal yang sudah diambil mitra, namun mitra tidak berangkat > 60 menit dari jadwal (Wanprestasi Mitra)
+        $abandonedScheduled = Order::where('order_type', OrderType::Terjadwal)
+            ->where('status', OrderStatus::Dijadwalkan)
+            ->whereNotNull('mitra_id')
+            ->where('scheduled_start_time', '<=', $now->copy()->subMinutes(60))
+            ->get();
+
+        foreach ($abandonedScheduled as $order) {
+            DB::transaction(function () use ($order, &$abandonedScheduledCount) {
+                if ($order->customer) {
+                    $this->walletService->credit(
+                        $order->customer,
+                        (float) $order->total_price,
+                        'order_refund',
+                        (string) $order->id,
+                        "Refund 100% pembatalan otomatis: Mitra tidak hadir pada pesanan terjadwal {$order->order_code}",
+                        $order->region_id
+                    );
+                }
+
+                if ($order->mitra) {
+                    $this->penaltyService->applyViolation(
+                        $order->mitra,
+                        25,
+                        "Wanprestasi: Mitra tidak berangkat hingga melebihi 60 menit dari jadwal pesanan {$order->order_code}",
+                        null,
+                        null,
+                        $order
+                    );
+                }
+
+                $order->update([
+                    'status' => OrderStatus::Dibatalkan,
+                    'cancellation_reason' => 'Pembatalan otomatis sistem: Mitra terapis tidak berangkat melebihi batas toleransi 60 menit dari jadwal.',
+                    'cancelled_by_id' => null,
+                    'cancelled_by_role' => 'system',
+                ]);
+
+                $this->restoreVoucherUsage($order);
+
+                OrderStatusHistory::create([
+                    'order_id' => $order->id,
+                    'from_status' => OrderStatus::Dijadwalkan->value,
+                    'to_status' => OrderStatus::Dibatalkan->value,
+                    'actor_id' => null,
+                    'actor_role' => 'system',
+                    'note' => 'Pembatalan otomatis sistem: Mitra terapis wanprestasi (tidak berangkat > 60 menit setelah jadwal). Refund 100% ke pelanggan dan penalti 25 poin SP diterbitkan untuk mitra.',
+                ]);
+
+                $abandonedScheduledCount++;
+            });
+        }
+
+        // 4. Pesanan belum dibayar (MenungguPembayaran) > 15 menit
         $unpaidOrders = Order::where('status', OrderStatus::MenungguPembayaran)
             ->where('created_at', '<=', $now->copy()->subMinutes(15))
             ->get();
@@ -568,6 +631,8 @@ class OrderCancellationService
                     'cancelled_by_id' => null,
                     'cancelled_by_role' => 'system',
                 ]);
+
+                $this->restoreVoucherUsage($order);
 
                 OrderStatusHistory::create([
                     'order_id' => $order->id,
@@ -582,7 +647,7 @@ class OrderCancellationService
             });
         }
 
-        // 4. Kedaluwarsa invoice top-up (SYS-02: kedaluwarsa top-up 15 menit)
+        // 5. Kedaluwarsa invoice top-up (SYS-02: kedaluwarsa top-up 15 menit)
         $expiredInvoicesCount = TopupInvoice::where('status', 'PENDING')
             ->where('expires_at', '<=', $now)
             ->update(['status' => 'EXPIRED']);
@@ -590,8 +655,20 @@ class OrderCancellationService
         return [
             'cancelled_instant' => $instantCount,
             'cancelled_scheduled' => $scheduledCount,
+            'cancelled_abandoned_scheduled' => $abandonedScheduledCount,
             'expired_unpaid' => $unpaidCount,
             'expired_invoices' => $expiredInvoicesCount,
         ];
+    }
+
+    /**
+     * Pulihkan pemakaian voucher pelanggan jika pesanan dibatalkan.
+     */
+    protected function restoreVoucherUsage(Order $order): void
+    {
+        if ($order->voucher_id) {
+            VoucherUsage::where('order_id', $order->id)->delete();
+            Voucher::where('id', $order->voucher_id)->where('used_count', '>', 0)->decrement('used_count');
+        }
     }
 }

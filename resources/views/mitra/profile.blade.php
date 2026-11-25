@@ -77,17 +77,6 @@
                     <span class="text-sm font-semibold text-slate-800 group-hover:text-emerald-700 transition">Keamanan Kata Sandi</span>
                     <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-500 shrink-0 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
-
-                <!-- Notifikasi Web Push & Radar -->
-                <button type="button" 
-                        onclick="window.dispatchEvent(new CustomEvent('open-pwa-push-modal'))"
-                        class="w-full px-4 py-3.5 flex items-center justify-between hover:bg-slate-50 transition group cursor-pointer text-left">
-                    <div>
-                        <span class="text-sm font-semibold text-slate-800 group-hover:text-emerald-700 transition block">Notifikasi Web Push & Radar</span>
-                        <span class="text-[10px] text-slate-400 block font-normal">Izin pemberitahuan pesanan instan</span>
-                    </div>
-                    <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-500 shrink-0 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </button>
             </div>
         </div>
 
@@ -111,31 +100,62 @@
                         <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </div>
                 </a>
-            </div>
-        </div>
-
-        <!-- Kelompok C: Performa & Keuangan -->
-        <div class="space-y-1.5">
-            <h3 class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-1">Performa & Keuangan</h3>
-            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs divide-y divide-slate-100 overflow-hidden">
-                <!-- Dompet & Keuangan -->
-                <a href="{{ route('mitra.finance.index') }}" class="px-4 py-3.5 flex items-center justify-between hover:bg-slate-50 transition group cursor-pointer">
-                    <span class="text-sm font-semibold text-slate-800 group-hover:text-emerald-700 transition">Dompet & Tarik Saldo</span>
-                    <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-500 shrink-0 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </a>
 
                 <!-- Status Sanksi & Banding -->
                 <a href="{{ route('mitra.penalties.index') }}" class="px-4 py-3.5 flex items-center justify-between hover:bg-slate-50 transition group cursor-pointer">
-                    <span class="text-sm font-semibold text-slate-800 group-hover:text-emerald-700 transition">Status Sanksi & Banding</span>
-                    <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-500 shrink-0 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <span class="text-sm font-semibold text-slate-800 group-hover:text-emerald-700 transition">Status Sanksi & Poin Pelanggaran</span>
+                    <div class="flex items-center space-x-1.5 shrink-0">
+                        @if ($user->penalty_points > 0)
+                            <span class="text-xs font-semibold text-rose-600">
+                                {{ $user->penalty_points }} Poin
+                            </span>
+                        @else
+                            <span class="text-xs font-medium text-slate-500">
+                                0 Poin
+                            </span>
+                        @endif
+                        <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-500 shrink-0 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </div>
                 </a>
             </div>
         </div>
 
-        <!-- Kelompok D: Bantuan & Layanan -->
+        <!-- Kelompok C: Bantuan & Layanan -->
         <div class="space-y-1.5">
             <h3 class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-1">Bantuan & Layanan</h3>
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs divide-y divide-slate-100 overflow-hidden">
+                <!-- Pasang Aplikasi di HP -->
+                <button type="button"
+                        x-data="pwaInstallTrigger()"
+                        @click="triggerInstall()"
+                        class="w-full px-4 py-3.5 flex items-center justify-between hover:bg-slate-50 transition group cursor-pointer text-left">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="text-sm font-semibold text-slate-800 group-hover:text-emerald-700 transition block">
+                                Pasang Aplikasi di HP
+                            </span>
+                            <span class="text-[11px] text-slate-400 block" x-text="isStandalone ? 'Aplikasi sudah terpasang di HP' : 'Akses instan dari layar utama tanpa browser'"></span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1.5 shrink-0">
+                        <span x-show="!isStandalone" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                            Pasang
+                        </span>
+                        <span x-show="isStandalone" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 flex items-center gap-1">
+                            <svg class="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Terpasang
+                        </span>
+                        <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-500 shrink-0 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                </button>
+
                 <!-- Pusat Bantuan & Live Chat -->
                 <a href="{{ route('mitra.help.index') }}" class="px-4 py-3.5 flex items-center justify-between hover:bg-slate-50 transition group cursor-pointer">
                     <span class="text-sm font-semibold text-slate-800 group-hover:text-emerald-700 transition">Pusat Bantuan & Live Chat</span>

@@ -7,16 +7,24 @@ use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use App\Models\Order;
 use App\Models\Service;
+use App\Services\OrderCancellationService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CustomerDashboardController extends Controller
 {
+    public function __construct(
+        protected OrderCancellationService $cancellationService
+    ) {}
+
     /**
      * Display the customer PWA home dashboard.
      */
     public function index(Request $request): View
     {
+        // Pastikan pesanan yang batas waktunya habis dibatalkan otomatis dan direfund
+        $this->cancellationService->autoCancelStuckOrders();
+
         $user = $request->user()->load(['primaryAddress.region', 'region']);
 
         $services = Service::active()

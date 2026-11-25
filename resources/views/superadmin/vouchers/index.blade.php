@@ -24,8 +24,11 @@
                  expires_at: '',
                  is_active: true
              },
+             minStartsAt: '{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}',
              editUrl: '',
              openEdit(v) {
+                 const nowStr = '{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}';
+                 const startsAt = v.starts_at_local || (v.starts_at ? v.starts_at.substring(0, 16) : '');
                  this.editVoucher = {
                      id: v.id,
                      code: v.code,
@@ -37,10 +40,11 @@
                      min_order_amount: parseFloat(v.min_order_amount || 0),
                      quota: v.quota || '',
                      per_user_limit: v.per_user_limit || 1,
-                     starts_at: v.starts_at ? v.starts_at.substring(0, 16) : '',
-                     expires_at: v.expires_at ? v.expires_at.substring(0, 16) : '',
+                     starts_at: startsAt,
+                     expires_at: v.expires_at_local || (v.expires_at ? v.expires_at.substring(0, 16) : ''),
                      is_active: Boolean(v.is_active)
                  };
+                 this.minStartsAt = (startsAt && startsAt < nowStr) ? startsAt : nowStr;
                  this.editUrl = '{{ url('/superadmin/vouchers') }}/' + v.id;
                  this.openEditModal = true;
              }
@@ -259,15 +263,15 @@
                                 <td class="px-5 py-3.5 whitespace-nowrap">
                                     @if ($voucher->starts_at && $voucher->expires_at)
                                         <div class="text-xs text-slate-700 font-medium">
-                                            {{ $voucher->starts_at->translatedFormat('d M Y') }} &ndash; {{ $voucher->expires_at->translatedFormat('d M Y') }}
+                                            {{ $voucher->starts_at->copy()->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i') }} &ndash; {{ $voucher->expires_at->copy()->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i') }} WIB
                                         </div>
                                     @elseif ($voucher->expires_at)
                                         <div class="text-xs text-slate-700 font-medium">
-                                            s/d {{ $voucher->expires_at->translatedFormat('d M Y') }}
+                                            s/d {{ $voucher->expires_at->copy()->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i') }} WIB
                                         </div>
                                     @elseif ($voucher->starts_at)
                                         <div class="text-xs text-slate-700 font-medium">
-                                            Mulai {{ $voucher->starts_at->translatedFormat('d M Y') }}
+                                            Mulai {{ $voucher->starts_at->copy()->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i') }} WIB
                                         </div>
                                     @else
                                         <span class="text-xs text-slate-400">Selamanya</span>
@@ -308,7 +312,11 @@
                                 <td class="px-5 py-3.5 text-right whitespace-nowrap">
                                     <div class="inline-flex items-center space-x-2">
                                         <button type="button" 
-                                                @click="openEdit({{ json_encode($voucher) }})"
+                                                @click="openEdit({
+                                                    ...{{ json_encode($voucher) }},
+                                                    starts_at_local: '{{ $voucher->starts_at ? $voucher->starts_at->copy()->setTimezone('Asia/Jakarta')->format('Y-m-d\TH:i') : '' }}',
+                                                    expires_at_local: '{{ $voucher->expires_at ? $voucher->expires_at->copy()->setTimezone('Asia/Jakarta')->format('Y-m-d\TH:i') : '' }}'
+                                                })"
                                                 class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition cursor-pointer">
                                             Edit
                                         </button>
@@ -440,13 +448,13 @@
                         <!-- Masa Berlaku -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">Mulai Berlaku</label>
-                                <input type="datetime-local" name="starts_at" min="{{ now()->format('Y-m-d\TH:i') }}"
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Mulai Berlaku (WIB)</label>
+                                <input type="datetime-local" name="starts_at" min="{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}"
                                        class="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 focus:ring-emerald-500 focus:border-emerald-500">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">Kedaluwarsa Pada</label>
-                                <input type="datetime-local" name="expires_at" min="{{ now()->format('Y-m-d\TH:i') }}"
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Kedaluwarsa Pada (WIB)</label>
+                                <input type="datetime-local" name="expires_at" min="{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}"
                                        class="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 focus:ring-emerald-500 focus:border-emerald-500">
                             </div>
                         </div>
@@ -458,6 +466,7 @@
                         </div>
 
                         <div class="flex items-center gap-2 pt-1">
+                            <input type="hidden" name="is_active" value="0">
                             <input type="checkbox" id="create_is_active" name="is_active" value="1" checked
                                    class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
                             <label for="create_is_active" class="text-xs font-semibold text-slate-700 cursor-pointer">
@@ -568,13 +577,17 @@
                         <!-- Masa Berlaku -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">Mulai Berlaku</label>
-                                <input type="datetime-local" name="starts_at" x-model="editVoucher.starts_at"
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Mulai Berlaku (WIB)</label>
+                                <input type="datetime-local" 
+                                       name="starts_at" 
+                                       x-model="editVoucher.starts_at"
+                                       :min="minStartsAt"
+                                       @focus="minStartsAt = '{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}'"
                                        class="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 focus:ring-emerald-500 focus:border-emerald-500">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">Kedaluwarsa Pada</label>
-                                <input type="datetime-local" name="expires_at" x-model="editVoucher.expires_at" min="{{ now()->format('Y-m-d\TH:i') }}"
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Kedaluwarsa Pada (WIB)</label>
+                                <input type="datetime-local" name="expires_at" x-model="editVoucher.expires_at" min="{{ now('Asia/Jakarta')->format('Y-m-d\TH:i') }}"
                                        class="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 focus:ring-emerald-500 focus:border-emerald-500">
                             </div>
                         </div>
@@ -586,6 +599,7 @@
                         </div>
 
                         <div class="flex items-center gap-2 pt-1">
+                            <input type="hidden" name="is_active" value="0">
                             <input type="checkbox" id="edit_is_active" name="is_active" value="1" x-model="editVoucher.is_active"
                                    class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
                             <label for="edit_is_active" class="text-xs font-semibold text-slate-700 cursor-pointer">

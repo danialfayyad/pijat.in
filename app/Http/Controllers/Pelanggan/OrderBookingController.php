@@ -11,6 +11,7 @@ use App\Models\OrderRating;
 use App\Models\OrderStatusHistory;
 use App\Models\Service;
 use App\Models\ServicePackage;
+use App\Models\Voucher;
 use App\Services\InstantOrderMatchingService;
 use App\Services\OrderBookingService;
 use App\Services\OrderCancellationService;
@@ -40,6 +41,8 @@ class OrderBookingController extends Controller
      */
     public function index(Request $request): View
     {
+        $this->cancellationService->autoCancelStuckOrders();
+
         $user = $request->user();
 
         $orders = Order::where('customer_id', $user->id)
@@ -96,6 +99,60 @@ class OrderBookingController extends Controller
             'message' => $available
                 ? 'Mitra terapis online tersedia di sekitar lokasi Anda.'
                 : 'Saat ini tidak ada mitra terapis online yang tersedia di sekitar lokasi Anda (radius 5 km). Silakan beralih ke jadwal Terjadwal.',
+        ]);
+    }
+
+    /**
+     * Validasi kode voucher via AJAX saat proses pemesanan.
+     */
+    public function validateVoucher(Request $request): JsonResponse
+    {
+        $code = strtoupper(trim((string) $request->input('code', '')));
+        $packageId = $request->input('package_id');
+
+        if ($code === '') {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Masukkan kode voucher terlebih dahulu.',
+            ], 422);
+        }
+
+        $package = ServicePackage::where('is_active', true)->find($packageId);
+        if (! $package) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Paket layanan tidak ditemukan atau sudah tidak aktif.',
+            ], 422);
+        }
+
+        $voucher = Voucher::active()->where('code', $code)->first();
+        if (! $voucher) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Kode voucher "'.$code.'" tidak ditemukan atau tidak aktif.',
+            ], 422);
+        }
+
+        $valResult = $voucher->validateFor($request->user(), (float) $package->price);
+        if (! $valResult['valid']) {
+            return response()->json([
+                'valid' => false,
+                'message' => $valResult['message'] ?? 'Voucher tidak memenuhi syarat transaksi.',
+            ], 422);
+        }
+
+        $discountAmount = min((float) $valResult['discount_amount'], (float) $package->price);
+        $finalPrice = max(0.0, round((float) $package->price - $discountAmount, 2));
+
+        return response()->json([
+            'valid' => true,
+            'voucher_id' => $voucher->id,
+            'code' => $voucher->code,
+            'name' => $voucher->name,
+            'discount_amount' => $discountAmount,
+            'package_price' => (float) $package->price,
+            'final_price' => $finalPrice,
+            'message' => 'Voucher '.$voucher->code.' berhasil diterapkan! Potongan Rp '.number_format($discountAmount, 0, ',', '.'),
         ]);
     }
 
@@ -362,6 +419,7 @@ class OrderBookingController extends Controller
             'medical_notes' => ['nullable', 'string', 'max:1000'],
             'risk_agreement' => ['required', 'accepted'],
             'payment_method' => ['nullable', 'string', 'max:50'],
+            'voucher_code' => ['nullable', 'string', 'max:50'],
             'booking_token' => ['nullable', 'string', 'max:100'],
         ], [
             'risk_agreement.accepted' => 'Anda wajib menyetujui syarat & ketentuan risiko layanan sebelum memesan.',
@@ -401,6 +459,9 @@ class OrderBookingController extends Controller
         if ($order->customer_id !== $request->user()->id) {
             abort(403, 'Akses ditolak.');
         }
+
+        $this->cancellationService->autoCancelStuckOrders();
+        $order->refresh();
 
         $order->load(['customerAddress', 'region', 'service', 'servicePackage', 'mitra.partnerProfile']);
 

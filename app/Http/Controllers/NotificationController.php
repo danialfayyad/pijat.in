@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Parameter;
 use App\Models\SystemNotification;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
@@ -110,6 +111,8 @@ class NotificationController extends Controller
         $user = $request->user();
         $unreadCount = $user->systemNotifications()->unread()->count();
         $latest = $user->systemNotifications()->unread()->latest('id')->first();
+        $appLogo = Parameter::get('app_logo');
+        $notifIcon = ! empty($appLogo) ? asset('storage/'.$appLogo) : asset('/icons/icon-192x192.png');
 
         return response()->json([
             'unread_count' => $unreadCount,
@@ -119,6 +122,7 @@ class NotificationController extends Controller
                 'title' => $latest->title,
                 'body' => $latest->body,
                 'priority' => $latest->priority,
+                'icon' => $notifIcon,
                 'action_url' => $latest->action_url ?? '/',
             ] : null,
         ]);

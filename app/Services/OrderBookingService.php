@@ -10,6 +10,8 @@ use App\Models\OrderStatusHistory;
 use App\Models\Parameter;
 use App\Models\ServicePackage;
 use App\Models\User;
+use App\Models\Voucher;
+use App\Models\VoucherUsage;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -201,6 +203,31 @@ class OrderBookingService
 
         $medicalNotes = ! empty($data['medical_notes']) ? trim((string) $data['medical_notes']) : null;
 
+        // 4. Validate Voucher (jika ada kode voucher yang disertakan)
+        $voucherCode = strtoupper(trim((string) ($data['voucher_code'] ?? '')));
+        $voucher = null;
+        $discountAmount = 0.0;
+
+        if ($voucherCode !== '') {
+            $voucher = Voucher::active()->where('code', $voucherCode)->first();
+            if (! $voucher) {
+                throw ValidationException::withMessages([
+                    'voucher_code' => 'Kode voucher "'.$voucherCode.'" tidak ditemukan atau sudah tidak aktif.',
+                ]);
+            }
+
+            $valResult = $voucher->validateFor($customer, (float) $package->price);
+            if (! $valResult['valid']) {
+                throw ValidationException::withMessages([
+                    'voucher_code' => $valResult['message'] ?? 'Voucher tidak memenuhi syarat transaksi.',
+                ]);
+            }
+
+            $discountAmount = min((float) $valResult['discount_amount'], (float) $package->price);
+        }
+
+        $finalPrice = max(0.0, round((float) $package->price - $discountAmount, 2));
+
         // Generate Order inside database transaction
         return DB::transaction(function () use (
             $customer,
@@ -213,7 +240,11 @@ class OrderBookingService
             $preferredGender,
             $orderType,
             $scheduledStartTime,
-            $medicalNotes
+            $medicalNotes,
+            $voucher,
+            $discountAmount,
+            $finalPrice,
+            $data
         ) {
             $orderCode = $this->generateUniqueOrderCode();
 
@@ -233,7 +264,9 @@ class OrderBookingService
                 'service_package_id' => $package->id,
                 'service_name' => $package->service->name.' ('.$package->duration_minutes.' Menit)',
                 'duration_minutes' => $package->duration_minutes,
-                'total_price' => $package->price,
+                'total_price' => $finalPrice,
+                'discount_amount' => $discountAmount,
+                'voucher_id' => $voucher?->id,
                 'commission_percent' => (float) Parameter::get('platform_commission_percent', 20.00),
                 'recipient_type' => $recipientType,
                 'recipient_name' => $recipientName,
@@ -250,6 +283,17 @@ class OrderBookingService
                 'reschedule_count' => 0,
             ]);
 
+            // Catat riwayat pemakaian voucher & update counter pemakaian
+            if ($voucher) {
+                VoucherUsage::create([
+                    'voucher_id' => $voucher->id,
+                    'user_id' => $customer->id,
+                    'order_id' => $order->id,
+                    'discount_amount' => $discountAmount,
+                ]);
+                $voucher->increment('used_count');
+            }
+
             OrderStatusHistory::create([
                 'order_id' => $order->id,
                 'from_status' => null,
@@ -261,15 +305,17 @@ class OrderBookingService
 
             // Automatic payment via wallet balance if sufficient (CUS-09)
             $wallet = $customer->getOrCreateWallet();
-            if ((float) $wallet->balance >= (float) $package->price) {
-                $this->walletService->debit(
-                    $customer,
-                    (float) $package->price,
-                    'order_payment',
-                    (string) $order->id,
-                    'Pembayaran pesanan '.$order->order_code,
-                    $address->region_id
-                );
+            if ((float) $wallet->balance >= $finalPrice) {
+                if ($finalPrice > 0) {
+                    $this->walletService->debit(
+                        $customer,
+                        $finalPrice,
+                        'order_payment',
+                        (string) $order->id,
+                        'Pembayaran pesanan '.$order->order_code.($discountAmount > 0 ? ' (Diskon Voucher Rp '.number_format($discountAmount, 0, ',', '.').')' : ''),
+                        $address->region_id
+                    );
+                }
 
                 $order->update(['status' => OrderStatus::MencariMitra]);
 
@@ -288,7 +334,7 @@ class OrderBookingService
                 }
             } else {
                 // CUS-09: Insufficient balance -> generate deficit invoice via Xendit / QRIS / selected payment method
-                $deficit = (float) $package->price - (float) $wallet->balance;
+                $deficit = round($finalPrice - (float) $wallet->balance, 2);
                 $paymentMethod = $data['payment_method'] ?? 'QRIS';
                 app(TopupService::class)->createOrderDeficitInvoice($order, $deficit, $paymentMethod);
             }

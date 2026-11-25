@@ -45,4 +45,10 @@ return [
         'private_key' => env('VAPID_PRIVATE_KEY', 'AXII_EIp1dBQ3_1h5W8pycYGiCoC1bVQ4E2GExeMdI0'),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
+    ],
+
 ];

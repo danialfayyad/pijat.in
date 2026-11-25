@@ -102,14 +102,11 @@
          x-init="initWizard()">
 
         <!-- Header Info -->
-        <div class="mb-1">
-            <span class="inline-block text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200">
-                Pendaftaran Mitra Terapis
-            </span>
-            <h2 class="text-base font-extrabold text-slate-900 leading-tight mt-1.5">
-                Kelengkapan Berkas & Identitas
+        <div class="space-y-0.5">
+            <h2 class="text-base font-bold text-slate-900 leading-tight">
+                Pendaftaran Mitra
             </h2>
-            <p class="text-xs text-slate-500">Ikuti 4 langkah mudah di bawah ini untuk memulai kemitraan Anda.</p>
+            <p class="text-xs text-slate-500">Lengkapi data kependudukan, wilayah operasional, dan rekening pencairan mitra.</p>
         </div>
 
         @if ($user->isDitolak())
@@ -192,20 +189,20 @@
             <!-- STEP 1: Identitas Kependudukan & Dokumen KTP -->
             <div x-show="currentStep === 1" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
                 <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-5 space-y-4">
-                    <div class="flex items-center space-x-3 border-b border-slate-100 pb-3">
-                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center font-bold text-xs">
+                    <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/70 flex items-center justify-center font-bold text-xs shrink-0">
                             1
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 text-sm">Identitas Kependudukan dan Foto Wajah</h3>
-                            <p class="text-xs text-slate-500">Wajib sesuai dengan e-KTP fisik asli Anda.</p>
+                            <h3 class="font-semibold text-slate-900 text-xs">Identitas & Dokumen KTP</h3>
+                            <p class="text-[11px] text-slate-500">Wajib sesuai dengan e-KTP fisik asli Anda.</p>
                         </div>
                     </div>
 
                     <!-- Input NIK & Nomor WhatsApp/HP -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 min-h-[32px] flex items-end mb-1">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">
                                 <span>NIK <span class="text-rose-500">*</span></span>
                             </label>
                             <input type="text" name="nik" maxlength="16" x-model="nik" @input="nik = (nik || '').replace(/[^0-9]/g, '')" inputmode="numeric" pattern="[0-9]*" required placeholder="16 digit nomor NIK di KTP"
@@ -214,7 +211,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 min-h-[32px] flex items-end mb-1">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">
                                 <span>Nomor WhatsApp/HP <span class="text-rose-500">*</span></span>
                             </label>
                             <input type="tel" name="phone" x-model="phone" @input="phone = (phone || '').replace(/[^0-9]/g, '')" inputmode="numeric" pattern="[0-9]*" required placeholder="Contoh: 081234567890"
@@ -223,72 +220,80 @@
                         </div>
                     </div>
 
-                    <!-- Upload Cards: KYC Frame Gojek/DANA Style -->
-                    <div class="space-y-4 pt-1">
-                        <!-- Foto e-KTP Asli KYC Frame -->
+                    <!-- Upload Cards: Foto e-KTP & Selfie -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                        <!-- Foto e-KTP Asli -->
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
-                                <label class="block text-xs font-bold text-slate-900">
+                                <label class="block text-xs font-semibold text-slate-900">
                                     Foto e-KTP Asli <span class="text-rose-500">*</span>
                                 </label>
-                                <span class="text-[11px] text-slate-500">e-KTP fisik jelas & tidak terpotong</span>
+                                <span class="text-[11px] text-slate-500">e-KTP fisik jelas</span>
                             </div>
 
-                            <!-- KYC Frame Box -->
-                            <div class="relative w-full rounded-2xl border-2 border-dashed border-slate-300 hover:border-emerald-600 bg-slate-50/70 hover:bg-emerald-50/20 transition-all overflow-hidden group">
-                                <!-- Empty State: Ketuk untuk Buka Kamera Langsung -->
+                            <div class="relative w-full min-h-[175px] rounded-xl border-2 border-dashed border-slate-300 hover:border-emerald-600 bg-slate-50/70 transition overflow-hidden flex flex-col justify-center items-center p-4">
+                                <!-- Empty State -->
                                 <div id="ktp_empty_state" 
-                                     onclick="openLiveCamera('ktp')" 
-                                     class="py-8 px-4 flex flex-col items-center justify-center text-center cursor-pointer select-none {{ $partnerProfile?->ktp_path ? 'hidden' : '' }}">
-                                    <div class="w-12 h-12 rounded-2xl bg-emerald-100/70 text-emerald-800 flex items-center justify-center mb-2.5 group-hover:scale-105 group-hover:bg-emerald-700 group-hover:text-white transition-all shadow-2xs">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                     class="flex flex-col items-center justify-center text-center select-none w-full {{ $partnerProfile?->ktp_path ? 'hidden' : '' }}">
+                                    <div class="w-10 h-10 rounded-xl bg-white border border-slate-200/80 text-emerald-700 flex items-center justify-center mb-2 shadow-2xs">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
                                         </svg>
                                     </div>
-                                    <p class="text-xs font-bold text-slate-900 group-hover:text-emerald-800 transition">
-                                        Buka Kamera Langsung
+                                    <p class="text-xs font-semibold text-slate-800">
+                                        Unggah Foto e-KTP
                                     </p>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">
-                                        Ketuk untuk menyalakan kamera dan foto e-KTP fisik
+                                    <p class="text-[11px] text-slate-500 mt-0.5 mb-3">
+                                        Foto langsung dengan bingkai atau pilih berkas
                                     </p>
-                                    
-                                    <button type="button" 
-                                        onclick="event.stopPropagation(); document.getElementById('ktp_gallery_input').click()" 
-                                        class="mt-3 inline-flex items-center space-x-1.5 text-xs text-emerald-700 hover:text-emerald-800 font-semibold cursor-pointer py-1 px-2.5 rounded-lg hover:bg-emerald-50 transition">
-                                        <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                        </svg>
-                                        <span class="underline underline-offset-2">atau pilih dari galeri / file</span>
-                                    </button>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" 
+                                                onclick="openLiveCamera('ktp')" 
+                                                class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            </svg>
+                                            <span>Kamera</span>
+                                        </button>
+                                        <button type="button" 
+                                                onclick="document.getElementById('ktp_file').click()" 
+                                                class="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold rounded-lg shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
+                                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                            </svg>
+                                            <span>Pilih File</span>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Filled State (Image Preview) -->
-                                <div id="ktp_filled_state" class="relative {{ $partnerProfile?->ktp_path ? '' : 'hidden' }}">
-                                    <div class="w-full h-44 bg-slate-900/5 flex items-center justify-center p-2">
+                                <div id="ktp_filled_state" class="relative w-full h-44 {{ $partnerProfile?->ktp_path ? '' : 'hidden' }}">
+                                    <div class="w-full h-full flex items-center justify-center p-2">
                                         <img id="ktp_preview_img" 
                                              src="{{ $partnerProfile?->ktp_path ? Storage::url($partnerProfile->ktp_path) : '' }}" 
-                                             class="w-full h-full object-contain rounded-xl" 
+                                             class="w-full h-full object-contain rounded-lg" 
                                              alt="Preview e-KTP">
                                     </div>
 
                                     <!-- Floating Actions Overlay -->
-                                    <div class="absolute top-2.5 right-2.5 flex items-center space-x-1.5">
+                                    <div class="absolute top-2 right-2 flex items-center gap-1.5">
                                         <button type="button" 
                                                 onclick="openLiveCamera('ktp')" 
-                                                class="min-h-[36px] px-3 py-1.5 bg-white/95 hover:bg-white text-slate-800 text-xs font-bold rounded-xl shadow-xs border border-slate-200 backdrop-blur-xs flex items-center space-x-1.5 cursor-pointer">
-                                            <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                                class="px-2 py-1 bg-white/95 hover:bg-white text-slate-800 text-[11px] font-medium rounded-lg shadow-2xs border border-slate-200 backdrop-blur-xs flex items-center gap-1 cursor-pointer">
+                                            <svg class="w-3 h-3 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                                             </svg>
                                             <span>Foto Ulang</span>
                                         </button>
                                         <button type="button" 
-                                                onclick="document.getElementById('ktp_gallery_input').click()" 
-                                                class="min-h-[36px] px-2.5 py-1.5 bg-white/95 hover:bg-white text-slate-600 text-xs font-medium rounded-xl shadow-xs border border-slate-200 backdrop-blur-xs flex items-center cursor-pointer"
-                                                title="Pilih dari galeri">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                onclick="document.getElementById('ktp_file').click()" 
+                                                class="px-2 py-1 bg-white/95 hover:bg-white text-slate-800 text-[11px] font-medium rounded-lg shadow-2xs border border-slate-200 backdrop-blur-xs flex items-center gap-1 cursor-pointer">
+                                            <svg class="w-3 h-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                                             </svg>
+                                            <span>Ganti File</span>
                                         </button>
                                     </div>
                                 </div>
@@ -297,81 +302,87 @@
                             <!-- Compression & Status Badges -->
                             <div class="flex items-center justify-between min-h-[18px]">
                                 <div id="ktp_compress_status" class="hidden"></div>
-                                @error('ktp_file') <p class="text-xs text-rose-600 font-semibold">{{ $message }}</p> @enderror
+                                @error('ktp_file') <p class="text-xs text-rose-600 font-medium">{{ $message }}</p> @enderror
                                 @if ($partnerProfile?->ktp_path)
-                                    <p id="ktp_saved_badge" class="text-[11px] text-emerald-700 font-medium">✓ File tersimpan di server</p>
+                                    <p id="ktp_saved_badge" class="text-[11px] text-emerald-700 font-medium">✓ File tersimpan</p>
                                 @endif
                             </div>
 
                             <!-- Hidden Inputs -->
-                            <input type="file" id="ktp_file" name="ktp_file" accept="image/*,.pdf" class="hidden">
-                            <input type="file" id="ktp_camera_input" accept="image/*" capture="environment" class="hidden">
-                            <input type="file" id="ktp_gallery_input" accept="image/*,.pdf" class="hidden">
+                            <input type="file" id="ktp_file" name="ktp_file" accept=".jpg,.jpeg,.png,.pdf" class="hidden">
                         </div>
 
-                        <!-- Foto Memegang KTP KYC Frame -->
-                        <div class="space-y-1.5 pt-1">
+                        <!-- Foto Memegang KTP (Selfie) -->
+                        <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
-                                <label class="block text-xs font-bold text-slate-900">
+                                <label class="block text-xs font-semibold text-slate-900">
                                     Foto Memegang KTP <span class="text-rose-500">*</span>
                                 </label>
                                 <span class="text-[11px] text-slate-500">Wajah & KTP satu bingkai</span>
                             </div>
 
-                            <!-- KYC Frame Box -->
-                            <div class="relative w-full rounded-2xl border-2 border-dashed border-slate-300 hover:border-emerald-600 bg-slate-50/70 hover:bg-emerald-50/20 transition-all overflow-hidden group">
+                            <div class="relative w-full min-h-[175px] rounded-xl border-2 border-dashed border-slate-300 hover:border-emerald-600 bg-slate-50/70 transition overflow-hidden flex flex-col justify-center items-center p-4">
                                 <!-- Empty State -->
                                 <div id="selfie_empty_state" 
-                                     onclick="openLiveCamera('selfie')" 
-                                     class="py-8 px-4 flex flex-col items-center justify-center text-center cursor-pointer select-none {{ $partnerProfile?->selfie_path ? 'hidden' : '' }}">
-                                    <div class="w-12 h-12 rounded-2xl bg-emerald-100/70 text-emerald-800 flex items-center justify-center mb-2.5 group-hover:scale-105 group-hover:bg-emerald-700 group-hover:text-white transition-all shadow-2xs">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                     class="flex flex-col items-center justify-center text-center select-none w-full {{ $partnerProfile?->selfie_path ? 'hidden' : '' }}">
+                                    <div class="w-10 h-10 rounded-xl bg-white border border-slate-200/80 text-emerald-700 flex items-center justify-center mb-2 shadow-2xs">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                         </svg>
                                     </div>
-                                    <p class="text-xs font-bold text-slate-900 group-hover:text-emerald-800 transition">
-                                        Buka Kamera Selfie
+                                    <p class="text-xs font-semibold text-slate-800">
+                                        Unggah Foto Selfie KTP
                                     </p>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">
-                                        Ketuk untuk menyalakan kamera depan & foto memegang KTP
+                                    <p class="text-[11px] text-slate-500 mt-0.5 mb-3">
+                                        Foto langsung dengan bingkai atau pilih berkas
                                     </p>
-                                    
-                                    <button type="button" 
-                                        onclick="event.stopPropagation(); document.getElementById('selfie_gallery_input').click()" 
-                                        class="mt-3 inline-flex items-center space-x-1.5 text-xs text-emerald-700 hover:text-emerald-800 font-semibold cursor-pointer py-1 px-2.5 rounded-lg hover:bg-emerald-50 transition">
-                                        <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                        </svg>
-                                        <span class="underline underline-offset-2">atau pilih dari galeri / file</span>
-                                    </button>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" 
+                                                onclick="openLiveCamera('selfie')" 
+                                                class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            </svg>
+                                            <span>Kamera</span>
+                                        </button>
+                                        <button type="button" 
+                                                onclick="document.getElementById('selfie_file').click()" 
+                                                class="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold rounded-lg shadow-2xs transition flex items-center gap-1.5 cursor-pointer">
+                                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                            </svg>
+                                            <span>Pilih File</span>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Filled State (Image Preview) -->
-                                <div id="selfie_filled_state" class="relative {{ $partnerProfile?->selfie_path ? '' : 'hidden' }}">
-                                    <div class="w-full h-44 bg-slate-900/5 flex items-center justify-center p-2">
+                                <div id="selfie_filled_state" class="relative w-full h-44 {{ $partnerProfile?->selfie_path ? '' : 'hidden' }}">
+                                    <div class="w-full h-full flex items-center justify-center p-2">
                                         <img id="selfie_preview_img" 
                                              src="{{ $partnerProfile?->selfie_path ? Storage::url($partnerProfile->selfie_path) : '' }}" 
-                                             class="w-full h-full object-contain rounded-xl" 
+                                             class="w-full h-full object-contain rounded-lg" 
                                              alt="Preview Selfie KTP">
                                     </div>
 
                                     <!-- Floating Actions Overlay -->
-                                    <div class="absolute top-2.5 right-2.5 flex items-center space-x-1.5">
+                                    <div class="absolute top-2 right-2 flex items-center gap-1.5">
                                         <button type="button" 
                                                 onclick="openLiveCamera('selfie')" 
-                                                class="min-h-[36px] px-3 py-1.5 bg-white/95 hover:bg-white text-slate-800 text-xs font-bold rounded-xl shadow-xs border border-slate-200 backdrop-blur-xs flex items-center space-x-1.5 cursor-pointer">
-                                            <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                                class="px-2 py-1 bg-white/95 hover:bg-white text-slate-800 text-[11px] font-medium rounded-lg shadow-2xs border border-slate-200 backdrop-blur-xs flex items-center gap-1 cursor-pointer">
+                                            <svg class="w-3 h-3 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                                             </svg>
                                             <span>Foto Ulang</span>
                                         </button>
                                         <button type="button" 
-                                                onclick="document.getElementById('selfie_gallery_input').click()" 
-                                                class="min-h-[36px] px-2.5 py-1.5 bg-white/95 hover:bg-white text-slate-600 text-xs font-medium rounded-xl shadow-xs border border-slate-200 backdrop-blur-xs flex items-center cursor-pointer"
-                                                title="Pilih dari galeri">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                onclick="document.getElementById('selfie_file').click()" 
+                                                class="px-2 py-1 bg-white/95 hover:bg-white text-slate-800 text-[11px] font-medium rounded-lg shadow-2xs border border-slate-200 backdrop-blur-xs flex items-center gap-1 cursor-pointer">
+                                            <svg class="w-3 h-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                                             </svg>
+                                            <span>Ganti File</span>
                                         </button>
                                     </div>
                                 </div>
@@ -380,35 +391,57 @@
                             <!-- Compression & Status Badges -->
                             <div class="flex items-center justify-between min-h-[18px]">
                                 <div id="selfie_compress_status" class="hidden"></div>
-                                @error('selfie_file') <p class="text-xs text-rose-600 font-semibold">{{ $message }}</p> @enderror
+                                @error('selfie_file') <p class="text-xs text-rose-600 font-medium">{{ $message }}</p> @enderror
                                 @if ($partnerProfile?->selfie_path)
-                                    <p id="selfie_saved_badge" class="text-[11px] text-emerald-700 font-medium">✓ File tersimpan di server</p>
+                                    <p id="selfie_saved_badge" class="text-[11px] text-emerald-700 font-medium">✓ File tersimpan</p>
                                 @endif
                             </div>
 
                             <!-- Hidden Inputs -->
-                            <input type="file" id="selfie_file" name="selfie_file" accept="image/*,.pdf" class="hidden">
-                            <input type="file" id="selfie_camera_input" accept="image/*" capture="user" class="hidden">
-                            <input type="file" id="selfie_gallery_input" accept="image/*,.pdf" class="hidden">
+                            <input type="file" id="selfie_file" name="selfie_file" accept=".jpg,.jpeg,.png,.pdf" class="hidden">
                         </div>
                     </div>
 
-                    <!-- Dokumen Pendukung SKCK dengan Kompresi Otomatis -->
-                    <div class="pt-2 border-t border-slate-100">
-                        <x-image-upload-compressor 
-                            name="skck_file" 
-                            label="Dokumen Pendukung SKCK (Opsional)" 
-                            :multiple="false" 
-                            :maxFiles="1" 
-                            accept="image/*,.pdf"
-                            helpText="Format PDF atau Foto (JPG/PNG). Foto otomatis dikompresi agar ukuran di bawah 2MB." />
+                    <!-- Dokumen Pendukung SKCK (Opsional) -->
+                    <div class="pt-3 border-t border-slate-100">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-xs font-semibold text-slate-900">
+                                Dokumen SKCK <span class="text-slate-400 font-normal">(Opsional)</span>
+                            </label>
+                            <span class="text-[11px] text-slate-500">PDF, JPG, atau PNG (Maks. 5MB)</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100/60 transition cursor-pointer"
+                             onclick="document.getElementById('skck_file').click()">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-8 h-8 rounded-lg bg-white border border-slate-200/80 text-slate-500 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-medium text-slate-800 truncate" x-text="skckFileName || '{{ $partnerProfile?->skck_path ? basename($partnerProfile->skck_path) : 'Belum ada dokumen dipilih' }}'"></p>
+                                    @if ($partnerProfile?->skck_path)
+                                        <span class="text-[10px] text-emerald-700 font-medium block">✓ Dokumen SKCK tersimpan</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <button type="button" 
+                                    onclick="event.stopPropagation(); document.getElementById('skck_file').click()" 
+                                    class="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium rounded-lg transition cursor-pointer shrink-0">
+                                <span>Pilih Dokumen</span>
+                            </button>
+                        </div>
+                        @error('skck_file') <p class="text-xs text-rose-600 mt-1 font-medium">{{ $message }}</p> @enderror
+
+                        <!-- Hidden Inputs for SKCK -->
+                        <input type="file" id="skck_file" name="skck_file" accept=".jpg,.jpeg,.png,.pdf" class="hidden" @change="skckFileName = $event.target.files[0]?.name || ''; persistDraft();">
                     </div>
                 </div>
 
                 <!-- Navigation Button Step 1 -->
-                <div class="pt-1">
+                <div class="pt-2">
                     <button type="button" @click="nextStep()"
-                        class="w-full min-h-[48px] py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-xs transition flex items-center justify-center space-x-2 cursor-pointer">
+                        class="w-full min-h-[44px] py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
                         <span>Lanjut ke Wilayah Layanan</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </button>
@@ -418,81 +451,68 @@
             <!-- STEP 2: Lokasi Domisili & Wilayah Layanan -->
             <div x-show="currentStep === 2" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
                 <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-5 space-y-4">
-                    <div class="flex items-center space-x-3 border-b border-slate-100 pb-3">
-                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center font-bold text-xs">
+                    <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/70 flex items-center justify-center font-bold text-xs shrink-0">
                             2
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 text-sm">Wilayah Layanan dan Alamat Domisili</h3>
-                            <p class="text-xs text-slate-500">Pilih kota layanan yang tersedia, lalu tentukan titik domisili Anda.</p>
+                            <h3 class="font-semibold text-slate-900 text-xs">Wilayah Layanan & Domisili</h3>
+                            <p class="text-[11px] text-slate-500">Pilih wilayah layanan aktif dan tentukan titik koordinat domisili Anda.</p>
                         </div>
                     </div>
 
                     <!-- Input Hidden region_id & secondary_region_id -->
                     <input type="hidden" name="region_id" id="region_id"
                         x-effect="$el.value = selectedRegionId">
-                    <input type="hidden" name="secondary_region_id" id="secondary_region_id"
-                        x-effect="$el.value = secondaryRegionId">
+                    <input type="hidden" name="secondary_region_id" id="secondary_region_id" value="">
 
-                    <!-- 1. Cari Kota / Wilayah Layanan -->
-                    <div>
-                        <label for="search_city" class="block text-xs font-semibold text-slate-700 mb-1">
-                            1. Cari Kota / Wilayah Layanan
-                        </label>
-                        <div class="relative">
-                            <input type="text" id="search_city" x-model="searchQuery" 
-                                placeholder="Ketik nama kota (cth: Surabaya, Malang, Bandung)..."
-                                class="w-full min-h-[44px] text-xs rounded-xl border-slate-200 focus:border-emerald-600 focus:ring-emerald-600 placeholder-slate-400 pl-8 py-2.5">
-                            <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                            <button type="button" x-show="searchQuery" @click="searchQuery = ''" class="min-h-[44px] min-w-[44px] absolute right-0 top-0 flex items-center justify-center text-slate-400 hover:text-slate-600 text-xs cursor-pointer">
-                                ✕
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 2. Klik Kota untuk Memilih Sekaligus (Maksimal 2 Wilayah) -->
+                    <!-- Pilih & Cari Wilayah Layanan -->
                     <div class="space-y-2">
                         <div class="flex items-center justify-between text-xs">
-                            <span class="font-semibold text-slate-700">2. Pilih Wilayah Operasional (Maksimal 2):</span>
-                            <button type="button" x-show="selectedRegionId || secondaryRegionId" @click="clearAllRegions()" class="min-h-[44px] text-rose-600 hover:text-rose-800 text-xs font-semibold cursor-pointer">
-                                Batal Semua
+                            <label for="search_city" class="font-semibold text-slate-700">Wilayah Operasional Layanan</label>
+                            <button type="button" x-show="selectedRegionId" @click="clearSelectedRegion()" class="text-rose-600 hover:text-rose-700 text-xs font-medium cursor-pointer">
+                                Reset Pilihan
                             </button>
+                        </div>
+
+                        <div class="relative flex items-center">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                            <input type="text" id="search_city" x-model="searchQuery" 
+                                placeholder="Cari nama kota layanan..."
+                                class="w-full min-h-[42px] text-xs rounded-xl border border-slate-200 bg-white focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 placeholder:text-slate-400 pl-10 pr-9 py-2.5 transition">
+                            <div class="absolute inset-y-0 right-0 pr-2 flex items-center" x-show="searchQuery">
+                                <button type="button" @click="searchQuery = ''" class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-600 text-xs rounded-full hover:bg-slate-100 transition cursor-pointer" title="Hapus pencarian">
+                                    ✕
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Grid Chips Kota -->
-                        <div class="max-h-56 overflow-y-auto p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/90 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div class="max-h-56 overflow-y-auto p-2 bg-slate-50/80 rounded-xl border border-slate-200/90 grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <template x-for="r in filteredRegions" :key="r.id">
                                 <div @click="toggleRegion(r)"
-                                     class="min-h-[48px] p-3 rounded-xl border cursor-pointer select-none transition flex items-center justify-between text-xs"
+                                     class="min-h-[44px] p-2.5 rounded-xl border cursor-pointer select-none transition flex items-center justify-between text-xs"
                                      :class="{
-                                         'bg-emerald-700 text-white font-bold border-emerald-700 shadow-xs': selectedRegionId == r.id,
-                                         'bg-sky-50 text-sky-950 border-sky-400 font-semibold ring-1 ring-sky-300': secondaryRegionId == r.id,
-                                         'bg-white text-slate-800 border-slate-200 hover:border-emerald-300': selectedRegionId != r.id && secondaryRegionId != r.id
+                                         'bg-emerald-700 text-white font-semibold border-emerald-700 shadow-xs': selectedRegionId == r.id,
+                                         'bg-white text-slate-800 border-slate-200 hover:border-emerald-300': selectedRegionId != r.id
                                      }">
                                     <div class="truncate mr-2">
                                         <span x-text="r.name" class="block truncate"></span>
                                         <span class="text-[11px] block font-normal" 
-                                              :class="{
-                                                  'text-emerald-100': selectedRegionId == r.id,
-                                                  'text-sky-700': secondaryRegionId == r.id,
-                                                  'text-slate-500': selectedRegionId != r.id && secondaryRegionId != r.id
-                                              }"
+                                              :class="selectedRegionId == r.id ? 'text-emerald-100' : 'text-slate-500'"
                                               x-text="r.timezone || 'WIB'"></span>
                                     </div>
                                     <div class="shrink-0 flex items-center">
                                         <template x-if="selectedRegionId == r.id">
                                             <span class="px-2 py-0.5 rounded-md text-[10px] bg-white text-emerald-800 font-bold uppercase tracking-wider shadow-xs">
-                                                1. Utama
+                                                Terpilih
                                             </span>
                                         </template>
-                                        <template x-if="secondaryRegionId == r.id">
-                                            <span class="px-2 py-0.5 rounded-md text-[10px] bg-sky-200 text-sky-900 font-bold uppercase tracking-wider">
-                                                2. Tambahan
-                                            </span>
-                                        </template>
-                                        <template x-if="selectedRegionId != r.id && secondaryRegionId != r.id">
+                                        <template x-if="selectedRegionId != r.id">
                                             <span class="text-sm font-bold text-slate-400">+</span>
                                         </template>
                                     </div>
@@ -508,50 +528,34 @@
                             </div>
                         </div>
 
-                        <!-- Status Pemilihan Kota (Utama & Tambahan) -->
-                        <div class="text-xs pt-1 space-y-1.5">
-                            <div x-show="!selectedRegionId" class="text-slate-500">
-                                Belum ada kota yang dipilih. Pilih 1 kota sebagai domisili utama dan opsional 1 kota tambahan.
-                            </div>
-                            <div x-show="selectedRegionId" class="text-emerald-800 font-semibold flex items-center justify-between">
-                                <span class="flex items-center">
-                                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-600 mr-2 shrink-0"></span>
-                                    <span>Wilayah 1 (Utama / Domisili): <strong x-text="getSelectedRegionName()"></strong></span>
-                                </span>
-                            </div>
-                            <div x-show="secondaryRegionId" class="text-sky-800 font-semibold flex items-center justify-between">
-                                <span class="flex items-center">
-                                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-sky-500 mr-2 shrink-0"></span>
-                                    <span>Wilayah 2 (Tambahan): <strong x-text="getSecondaryRegionName()"></strong></span>
-                                </span>
-                                <button type="button" @click="clearSecondaryRegion()" class="text-rose-600 hover:text-rose-800 text-[11px] font-semibold cursor-pointer">
-                                    Hapus
-                                </button>
-                            </div>
-                            <div x-show="selectedRegionId && !secondaryRegionId" class="text-slate-400 text-[11px]">
-                                Info: Anda dapat memilih 1 kota lagi sebagai wilayah operasional tambahan bila berbatasan langsung.
+                        <!-- Status Pemilihan Kota (Pills) -->
+                        <div x-show="selectedRegionId" class="flex flex-wrap items-center gap-2 pt-0.5 text-xs">
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200/80 text-emerald-800">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                <span class="text-slate-500 text-[11px]">Kota Terpilih:</span>
+                                <span class="font-semibold text-slate-800" x-text="getSelectedRegionName()"></span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 3. Peta Interaktif & Penempatan Pin Domisili -->
+                    <!-- Peta Titik Domisili -->
                     <div class="space-y-2 pt-2 border-t border-slate-100">
                         <div class="flex items-center justify-between">
                             <label class="block text-xs font-semibold text-slate-700">
-                                3. Titik Lokasi Domisili (Peta Spasial)
+                                Titik Lokasi Domisili
                             </label>
-                            <span class="text-xs text-emerald-700 font-medium" x-show="selectedRegionId">
-                                Pin domisili wajib berada di dalam Wilayah Utama
+                            <span class="text-[11px] text-slate-500" x-show="selectedRegionId">
+                                Sesuaikan pin dengan alamat tinggal
                             </span>
                         </div>
 
-                        <div id="map" class="w-full h-64 rounded-xl border border-slate-200 overflow-hidden shadow-inner z-0"></div>
+                        <div id="map" class="w-full h-60 rounded-xl border border-slate-200 overflow-hidden shadow-inner z-0"></div>
                         
-                        <p class="text-xs text-slate-500 flex items-center">
-                            <svg class="w-4 h-4 mr-1 text-emerald-700 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                        <p class="text-[11px] text-slate-500 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-emerald-700 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                             </svg>
-                            Klik peta atau seret pin untuk menentukan titik alamat tempat tinggal Anda.
+                            <span>Klik peta atau geser pin untuk menentukan koordinat domisili Anda.</span>
                         </p>
                     </div>
 
@@ -572,15 +576,15 @@
                 </div>
 
                 <!-- Navigation Buttons Step 2 -->
-                <div class="pt-1 flex items-center space-x-3">
+                <div class="pt-2 grid grid-cols-2 gap-3">
                     <button type="button" @click="prevStep()"
-                        class="w-1/3 min-h-[48px] py-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold rounded-xl transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                        class="w-full min-h-[44px] py-2.5 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                         <span>Kembali</span>
                     </button>
                     <button type="button" @click="nextStep()"
-                        class="w-2/3 min-h-[48px] py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-xs transition flex items-center justify-center space-x-2 cursor-pointer">
-                        <span>Lanjut ke Rekening Bank</span>
+                        class="w-full min-h-[44px] py-2.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                        <span>Lanjut ke Rekening</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </button>
                 </div>
@@ -589,25 +593,25 @@
             <!-- STEP 3: Rekening Bank Pencairan -->
             <div x-show="currentStep === 3" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
                 <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-5 space-y-4">
-                    <div class="flex items-center space-x-3 border-b border-slate-100 pb-3">
-                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center font-bold text-xs">
+                    <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/70 flex items-center justify-center font-bold text-xs shrink-0">
                             3
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 text-sm">Rekening Bank Pencairan Dana</h3>
-                            <p class="text-xs text-slate-500">Nama pemilik rekening <strong>harus sama</strong> dengan nama di KTP (ADM-03).</p>
+                            <h3 class="font-semibold text-slate-900 text-xs">Rekening Bank Pencairan</h3>
+                            <p class="text-[11px] text-slate-500">Nama pemilik rekening wajib sesuai dengan identitas e-KTP Anda.</p>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 min-h-[32px] flex items-end mb-1">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">
                                 <span>Nama Bank <span class="text-rose-500">*</span></span>
                             </label>
                             <select name="bank_name" x-model="bankName" required
                                 class="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:border-emerald-600 focus:ring-emerald-600 transition cursor-pointer">
                                 <option value="">-- Pilih Bank --</option>
-                                @foreach (\App\Models\Bank::active()->orderBy('sort_order')->orderBy('name')->get() as $bank)
+                                @foreach (\App\Models\Bank::bank()->active()->orderBy('sort_order')->orderBy('name')->get() as $bank)
                                     <option value="{{ $bank->name }}">{{ $bank->name }} ({{ strtoupper($bank->code) }})</option>
                                 @endforeach
                             </select>
@@ -615,7 +619,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 min-h-[32px] flex items-end mb-1">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">
                                 <span>Nomor Rekening <span class="text-rose-500">*</span></span>
                             </label>
                             <input type="text" name="account_number" x-model="accountNumber" @input="accountNumber = (accountNumber || '').replace(/[^0-9]/g, '')" inputmode="numeric" pattern="[0-9]*" required placeholder="Contoh: 1234567890"
@@ -624,7 +628,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 min-h-[32px] flex items-end mb-1">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">
                                 <span>Nama Pemilik <span class="text-rose-500">*</span></span>
                             </label>
                             <input type="text" name="account_holder_name" x-model="accountHolderName" required placeholder="Wajib sesuai e-KTP"
@@ -635,131 +639,108 @@
                 </div>
 
                 <!-- Navigation Buttons Step 3 -->
-                <div class="pt-1 flex items-center space-x-3">
+                <div class="pt-2 grid grid-cols-2 gap-3">
                     <button type="button" @click="prevStep()"
-                        class="w-1/3 min-h-[48px] py-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold rounded-xl transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                        class="w-full min-h-[44px] py-2.5 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                         <span>Kembali</span>
                     </button>
                     <button type="button" @click="nextStep()"
-                        class="w-2/3 min-h-[48px] py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-xs transition flex items-center justify-center space-x-2 cursor-pointer">
-                        <span>Lanjut ke Persetujuan SOP</span>
+                        class="w-full min-h-[44px] py-2.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                        <span>Lanjut ke Persetujuan</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </button>
                 </div>
             </div>
 
-            <!-- STEP 4: Ringkasan Berkas, Kode Etik & Persetujuan SOP -->
+            <!-- STEP 4: Konfirmasi Data & Persetujuan Kemitraan -->
             <div x-show="currentStep === 4" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
-                <!-- Ringkasan Data -->
-                <div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-4.5 space-y-3">
-                    <div class="flex items-center space-x-2 text-emerald-900 font-bold text-xs">
-                        <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                        </svg>
-                        <span>Ringkasan Berkas Pendaftaran Anda</span>
-                    </div>
-
-                    <div class="space-y-2 text-xs">
-                        <div class="grid grid-cols-2 gap-2">
-                            <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs">
-                                <span class="text-[10px] text-slate-500 block">NIK Terdaftar</span>
-                                <span class="font-mono font-bold text-slate-900 text-xs block mt-0.5" x-text="nik || '-'"></span>
-                            </div>
-                            <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs">
-                                <span class="text-[10px] text-slate-500 block">Nomor WhatsApp/HP</span>
-                                <span class="font-mono font-bold text-slate-900 text-xs block mt-0.5" x-text="phone || '-'"></span>
-                            </div>
-                        </div>
-
-                        <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="text-slate-500">Wilayah 1 (Utama / Domisili):</span>
-                                <span class="font-bold text-emerald-800" x-text="getSelectedRegionName()"></span>
-                            </div>
-                            <template x-if="secondaryRegionId">
-                                <div class="flex items-center justify-between pt-1.5 border-t border-slate-100">
-                                    <span class="text-slate-500">Wilayah 2 (Tambahan):</span>
-                                    <span class="font-bold text-sky-800" x-text="getSecondaryRegionName()"></span>
-                                </div>
-                            </template>
-                            <div class="pt-2 border-t border-slate-100">
-                                <span class="text-[10px] text-slate-400 block mb-1">Alamat Lengkap Domisili:</span>
-                                <p class="text-slate-700 text-xs leading-relaxed" x-text="addressText || '-'"></p>
-                            </div>
-                        </div>
-
-                        <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs space-y-1">
-                            <span class="text-[10px] text-slate-400 block">Rekening Bank Pencairan Dana</span>
-                            <div class="flex items-center justify-between">
-                                <span class="font-bold text-slate-900"><span x-text="bankName"></span> - <span class="font-mono" x-text="accountNumber"></span></span>
-                                <span class="text-slate-700 font-medium">a.n <span x-text="accountHolderName"></span></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SOP & Persetujuan -->
                 <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-5 space-y-4">
+                    <!-- Step Header -->
                     <div class="flex items-center space-x-3 border-b border-slate-100 pb-3">
-                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center font-bold text-xs">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center font-bold text-xs shrink-0">
                             4
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 text-sm">Persetujuan SOP dan Kode Etik Kemitraan</h3>
-                            <p class="text-xs text-slate-500">Standar operasional higienitas, etika, dan keselamatan pijat.in.</p>
+                            <h3 class="font-bold text-slate-900 text-sm">Konfirmasi & Persetujuan</h3>
+                            <p class="text-xs text-slate-500">Periksa kembali data pendaftaran Anda sebelum dikirim.</p>
                         </div>
                     </div>
 
-                    <!-- Clean Link Card Baca Dokumen SOP -->
-                    <div class="p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100/90 border border-slate-200/90 transition flex items-center justify-between cursor-pointer group"
-                         @click="openSopModal()">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
-                                    <span>SOP & Kode Etik Kemitraan Pijat.In</span>
-                                    <span class="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-1.5 py-0.5 rounded">Versi 2.2</span>
+                    <!-- Clean Structured Data Summary -->
+                    <div class="rounded-xl border border-slate-200/80 bg-slate-50/60 divide-y divide-slate-100 text-xs">
+                        <div class="px-3.5 py-2.5 flex items-center justify-between">
+                            <span class="text-slate-500">NIK</span>
+                            <span class="font-mono font-semibold text-slate-900" x-text="nik || '-'"></span>
+                        </div>
+                        <div class="px-3.5 py-2.5 flex items-center justify-between">
+                            <span class="text-slate-500">No. WhatsApp</span>
+                            <span class="font-mono font-semibold text-slate-900" x-text="phone || '-'"></span>
+                        </div>
+                        <div class="px-3.5 py-2.5 flex items-center justify-between">
+                            <span class="text-slate-500">Wilayah Layanan</span>
+                            <span class="font-semibold text-emerald-800" x-text="getSelectedRegionName()"></span>
+                        </div>
+                        <div class="px-3.5 py-2.5 space-y-1">
+                            <span class="text-slate-500 block text-[11px]">Alamat Domisili</span>
+                            <p class="text-slate-800 leading-relaxed font-normal" x-text="addressText || '-'"></p>
+                        </div>
+                        <div class="px-3.5 py-2.5 flex items-center justify-between">
+                            <span class="text-slate-500">Rekening Pencairan</span>
+                            <span class="font-medium text-slate-900 text-right">
+                                <span x-text="bankName"></span> · <span class="font-mono" x-text="accountNumber"></span><br>
+                                <span class="text-slate-500 text-[11px] font-normal">a.n <span x-text="accountHolderName"></span></span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- SOP Document Link & Agreement Checkbox -->
+                    <div class="space-y-3 pt-1">
+                        <button type="button" @click="openSopModal()"
+                            class="w-full h-[64px] min-h-[64px] max-h-[64px] text-left px-3.5 py-3 rounded-xl border transition flex items-center justify-between gap-3 group cursor-pointer"
+                            :class="sopAgreed ? 'border-emerald-200 bg-emerald-50/40' : 'border-slate-200 bg-slate-50 hover:bg-slate-100/70'">
+                            <div class="flex items-center gap-3 min-w-0 flex-1">
+                                <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition"
+                                    :class="sopAgreed ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200/70 text-slate-600 group-hover:text-slate-800'">
+                                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
                                 </div>
-                                <p class="text-[11px] text-slate-500 mt-0.5">Ketuk untuk membaca dokumen syarat & ketentuan</p>
+                                <div class="min-w-0 flex-1">
+                                    <h4 class="text-xs font-bold text-slate-900 truncate">Ketentuan & SOP Kemitraan</h4>
+                                    <p class="text-[11px] text-slate-500 truncate mt-0.5" x-text="sopAgreed ? 'Sudah dibaca dan disetujui' : 'Ketuk untuk membaca dokumen'"></p>
+                                </div>
                             </div>
-                        </div>
-                        <span class="text-xs font-bold text-emerald-700 flex items-center space-x-1 group-hover:translate-x-0.5 transition-transform shrink-0">
-                            <span>Buka Dokumen</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </span>
-                    </div>
+                            <div class="shrink-0 flex items-center justify-end text-xs font-semibold min-w-[76px]"
+                                :class="sopAgreed ? 'text-emerald-700' : 'text-slate-600 group-hover:text-slate-900'">
+                                <span class="text-[11px] whitespace-nowrap" x-text="sopAgreed ? 'Baca Ulang' : 'Buka Dokumen'"></span>
+                                <svg class="w-4 h-4 ml-0.5 group-hover:translate-x-0.5 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </div>
+                        </button>
 
-                    <!-- Checkbox Persetujuan -->
-                    <div class="pt-1">
-                        <label class="flex items-start space-x-3 cursor-pointer min-h-[44px]">
+                        <label class="flex items-start gap-3 cursor-pointer pt-1 min-h-[44px]">
                             <input type="checkbox" name="sop_agreement" id="sop_agreement" value="1" x-model="sopAgreed" required
                                 @click="handleCheckboxClick($event)"
-                                class="mt-1 rounded border-slate-300 text-emerald-700 focus:ring-emerald-600 cursor-pointer">
-                            <span class="text-xs text-slate-800 leading-relaxed select-none">
-                                Saya menyatakan bahwa seluruh data di atas adalah benar dan sah, serta saya telah membaca, memahami, dan menyetujui sepenuhnya 
-                                <a href="javascript:void(0)" @click.prevent="openSopModal()" class="text-emerald-700 hover:text-emerald-800 font-bold underline underline-offset-2">SOP & Kode Etik Kemitraan Pijat.In Versi 2.2</a>.
+                                class="mt-0.5 w-4.5 h-4.5 rounded border-slate-300 text-emerald-700 focus:ring-emerald-600 cursor-pointer shrink-0">
+                            <span class="text-xs text-slate-700 leading-relaxed select-none">
+                                Saya menyatakan data di atas sudah benar dan menyetujui seluruh ketentuan serta SOP kemitraan Pijat.In.
                             </span>
                         </label>
-                        @error('sop_agreement') <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p> @enderror
+                        @error('sop_agreement') <p class="text-xs text-rose-600 font-semibold">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
                 <!-- Navigation Buttons Step 4 -->
-                <div class="pt-1 flex items-center space-x-3">
+                <div class="pt-2 grid grid-cols-2 gap-3">
                     <button type="button" @click="prevStep()"
-                        class="w-1/3 min-h-[48px] py-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold rounded-xl transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                        class="w-full min-h-[44px] py-2.5 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                         <span>Kembali</span>
                     </button>
                     <button type="submit"
-                        class="w-2/3 min-h-[48px] py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-sm transition inline-flex items-center justify-center space-x-2 cursor-pointer">
-                        <span>Kirim Berkas Pendaftaran</span>
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        class="w-full min-h-[44px] py-2.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-xl shadow-xs transition inline-flex items-center justify-center gap-2 cursor-pointer">
+                        <span>Kirim Berkas</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                         </svg>
                     </button>
@@ -768,156 +749,156 @@
         </form>
 
         <!-- ==================== MODAL DOKUMEN SOP & KODE ETIK (SCROLL TO UNLOCK) ==================== -->
-        <div x-show="showSopModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" style="display: none;">
+        <div x-show="showSopModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4" role="dialog" aria-modal="true" style="display: none;" @keydown.escape.window="closeSopModal()">
             <!-- Backdrop Blur -->
-            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" @click="showSopModal = false"></div>
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" @click="closeSopModal()"></div>
 
-            <div class="flex min-h-full items-center justify-center p-3 text-center">
-                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all my-auto w-full max-w-sm border border-slate-200/90 flex flex-col max-h-[82vh]">
-                    <!-- Modal Header -->
-                    <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/70 shrink-0">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="text-xs font-bold text-slate-900">SOP & Kode Etik Kemitraan</h3>
-                                <p class="text-[10px] text-slate-500">Versi 2.2 — Standar Layanan Resmi Pijat.In</p>
-                            </div>
+            <div class="relative z-10 transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all w-full max-w-md border border-slate-200/90 flex flex-col h-[82vh] max-h-[640px]">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 bg-slate-50/70 shrink-0">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
                         </div>
-                        <button type="button" @click="showSopModal = false" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition cursor-pointer text-xs">
-                            ✕
-                        </button>
-                    </div>
-
-                    <!-- Scrollable Document Content -->
-                    <div id="sop_content_scroll" @scroll="handleSopScroll($event)" class="overflow-y-auto p-4 text-[11px] text-slate-600 space-y-3.5 flex-1 overscroll-contain leading-relaxed divide-y divide-slate-100">
-                        <div class="pb-2">
-                            <div class="inline-block px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200 mb-2">
-                                Prinsip Utama: Layanan Pijat Sehat, Profesional, & Higienis
-                            </div>
-                            <p class="text-slate-700">
-                                Selamat datang di keluarga besar Pijat.In. Seluruh mitra terapis wajib mematuhi standar pelayanan, etika profesi, serta regulasi hukum yang berlaku demi menjaga kehormatan profesi, keselamatan kerja, serta kepercayaan masyarakat.
-                            </p>
-                        </div>
-
-                        <div class="pt-3 space-y-1.5">
-                            <h4 class="font-bold text-slate-900 flex items-center space-x-1.5">
-                                <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[11px]">1</span>
-                                <span>Layanan Pijat Khusus Sesama Jenis (Strict Same-Gender)</span>
-                            </h4>
-                            <p>
-                                Terapis pria <strong>hanya melayani pelanggan pria</strong>, dan terapis wanita <strong>hanya melayani pelanggan wanita</strong> tanpa pengecualian. Tindakan menerima atau meminta pesanan lintas gender merupakan pelanggaran berat yang mengakibatkan pemutusan kemitraan seketika dan penonaktifan akun secara permanen.
-                            </p>
-                        </div>
-
-                        <div class="pt-3 space-y-1.5">
-                            <h4 class="font-bold text-slate-900 flex items-center space-x-1.5">
-                                <span class="w-5 h-5 rounded-md bg-rose-50 text-rose-700 inline-flex items-center justify-center text-[11px]">2</span>
-                                <span>Nol Toleransi Terhadap Tindakan Asusila & Asusila Terselubung</span>
-                            </h4>
-                            <p>
-                                Platform Pijat.In murni menyediakan layanan pijat kesehatan, kebugaran, dan relaksasi keluarga yang bermartabat. Dilarang keras menawarkan, menyetujui, mendiskusikan, atau melakukan segala bentuk tindakan asusila, pornografi, atau pelecehan seksual. Setiap pelanggaran akan dilaporkan secara resmi kepada pihak Kepolisian RI untuk proses pidana.
-                            </p>
-                        </div>
-
-                        <div class="pt-3 space-y-1.5">
-                            <h4 class="font-bold text-slate-900 flex items-center space-x-1.5">
-                                <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[11px]">3</span>
-                                <span>Standar Higienitas, Sanitasi, & Perlengkapan Kerja</span>
-                            </h4>
-                            <p>
-                                Mitra wajib mengenakan seragam resmi atau pakaian kerja rapi, bersih, dan wangi; mencuci tangan sebelum dan sesudah sesi pijat; membawa minyak/lotion pijat berkualitas resmi yang higienis, alas kain bersih, serta masker pelindung.
-                            </p>
-                        </div>
-
-                        <div class="pt-3 space-y-1.5">
-                            <h4 class="font-bold text-slate-900 flex items-center space-x-1.5">
-                                <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[11px]">4</span>
-                                <span>Transparansi Tarif & Larangan Pungutan Tambahan</span>
-                            </h4>
-                            <p>
-                                Seluruh rincian biaya telah diatur secara resmi dan transparan di aplikasi. Mitra dilarang keras meminta tips atau biaya tambahan secara paksa, meminta bayaran di luar sistem, atau mengajak pelanggan bertransaksi di luar aplikasi Pijat.In.
-                            </p>
-                        </div>
-
-                        <div class="pt-3 space-y-1.5">
-                            <h4 class="font-bold text-slate-900 flex items-center space-x-1.5">
-                                <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[11px]">5</span>
-                                <span>Ketepatan Waktu & Koordinasi Pelaksanaan</span>
-                            </h4>
-                            <p>
-                                Mitra wajib hadir tepat waktu sesuai jadwal dan titik lokasi yang ditentukan. Apabila terjadi kendala lalu lintas atau hambatan mendesak di perjalanan, mitra wajib segera mengabari pelanggan melalui saluran komunikasi resmi aplikasi.
-                            </p>
-                        </div>
-
-                        <div class="pt-3 space-y-1.5">
-                            <h4 class="font-bold text-slate-900 flex items-center space-x-1.5">
-                                <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[11px]">6</span>
-                                <span>Rekening Pencairan Dana Pribadi</span>
-                            </h4>
-                            <p>
-                                Pencairan saldo komisi hanya dapat diproses ke rekening bank yang atas namanya sesuai dengan e-KTP fisik terdaftar. Segala bentuk rekayasa data rekening dapat memicu penahanan saldo sementara hingga verifikasi manual oleh tim kepatuhan.
-                            </p>
-                        </div>
-
-                        <div class="pt-3 space-y-1.5">
-                            <h4 class="font-bold text-slate-900 flex items-center space-x-1.5">
-                                <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[11px]">7</span>
-                                <span>Kerahasiaan Data & Privasi Pelanggan</span>
-                            </h4>
-                            <p>
-                                Alamat rumah, nomor telepon, dan data pribadi pelanggan bersifat rahasia. Mitra dilarang keras mendokumentasikan, menyebarluaskan, atau membagikan identitas pelanggan kepada pihak ketiga mana pun.
-                            </p>
-                        </div>
-
-                        <div class="pt-3 pb-2 text-center text-slate-400 text-[11px]">
-                            — Akhir Dokumen SOP & Kode Etik Versi 2.2 —
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900">Ketentuan & SOP Kemitraan</h3>
+                            <p class="text-[11px] text-slate-500">Standar operasional dan kode etik resmi Pijat.In</p>
                         </div>
                     </div>
+                    <button type="button" @click="closeSopModal()" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition cursor-pointer text-sm">
+                        ✕
+                    </button>
+                </div>
 
-                    <!-- Modal Footer Controls -->
-                    <div class="px-4 py-3 border-t border-slate-100 bg-slate-50/80 shrink-0">
-                        <!-- Scroll Status Reminder -->
-                        <div x-show="!hasScrolledToBottom" class="flex items-center justify-center space-x-1.5 text-[10px] text-amber-800 bg-amber-50 py-1.5 px-2.5 rounded-lg border border-amber-200 mb-2">
-                            <svg class="w-3 h-3 animate-bounce text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <!-- Scrollable Document Content -->
+                <div id="sop_content_scroll" @scroll="handleSopScroll($event)" class="overflow-y-auto px-5 py-4 text-xs text-slate-700 flex-1 min-h-0 overscroll-contain leading-relaxed divide-y divide-slate-100">
+                    <!-- Intro -->
+                    <div class="pb-3 text-slate-600 text-xs leading-relaxed">
+                        Pijat.In berkomitmen menyediakan layanan pijat kesehatan keluarga yang aman, bersih, dan profesional. Harap baca dan patuhi ketentuan berikut sebelum mulai menerima pesanan:
+                    </div>
+
+                    <!-- 1 -->
+                    <div class="py-3.5 space-y-1">
+                        <h4 class="font-semibold text-slate-900 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[11px] font-bold shrink-0">1</span>
+                            <span>Layanan Khusus Sesama Jenis</span>
+                        </h4>
+                        <p class="text-slate-600 pl-7 leading-relaxed">
+                            Terapis pria hanya melayani pelanggan pria, dan terapis wanita hanya melayani pelanggan wanita. Pesanan lintas gender dilarang keras dan berakibat pemutusan kemitraan.
+                        </p>
+                    </div>
+
+                    <!-- 2 -->
+                    <div class="py-3.5 space-y-1">
+                        <h4 class="font-semibold text-slate-900 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-md bg-rose-50 text-rose-700 inline-flex items-center justify-center text-[11px] font-bold shrink-0">2</span>
+                            <span>Nol Toleransi Tindakan Asusila</span>
+                        </h4>
+                        <p class="text-slate-600 pl-7 leading-relaxed">
+                            Layanan murni untuk kesehatan dan relaksasi. Segala bentuk pornografi, asusila, atau pelecehan akan langsung dilaporkan ke pihak kepolisian.
+                        </p>
+                    </div>
+
+                    <!-- 3 -->
+                    <div class="py-3.5 space-y-1">
+                        <h4 class="font-semibold text-slate-900 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[11px] font-bold shrink-0">3</span>
+                            <span>Higienitas & Perlengkapan Kerja</span>
+                        </h4>
+                        <p class="text-slate-600 pl-7 leading-relaxed">
+                            Wajib berpakaian rapi dan bersih, mencuci tangan sebelum & sesudah sesi, serta membawa minyak pijat resmi dan alas kain yang higienis.
+                        </p>
+                    </div>
+
+                    <!-- 4 -->
+                    <div class="py-3.5 space-y-1">
+                        <h4 class="font-semibold text-slate-900 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[11px] font-bold shrink-0">4</span>
+                            <span>Transparansi Tarif</span>
+                        </h4>
+                        <p class="text-slate-600 pl-7 leading-relaxed">
+                            Tarif resmi sudah tertera di aplikasi. Dilarang meminta tips secara paksa atau mengarahkan transaksi di luar sistem Pijat.In.
+                        </p>
+                    </div>
+
+                    <!-- 5 -->
+                    <div class="py-3.5 space-y-1">
+                        <h4 class="font-semibold text-slate-900 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[11px] font-bold shrink-0">5</span>
+                            <span>Ketepatan Waktu</span>
+                        </h4>
+                        <p class="text-slate-600 pl-7 leading-relaxed">
+                            Hadir tepat waktu di lokasi pelanggan. Jika terkendala macet atau hambatan mendesak, segera kabari pelanggan lewat aplikasi.
+                        </p>
+                    </div>
+
+                    <!-- 6 -->
+                    <div class="py-3.5 space-y-1">
+                        <h4 class="font-semibold text-slate-900 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[11px] font-bold shrink-0">6</span>
+                            <span>Kesesuaian Rekening Bank</span>
+                        </h4>
+                        <p class="text-slate-600 pl-7 leading-relaxed">
+                            Pencairan komisi hanya dapat dikirim ke rekening bank atas nama terapis yang sesuai dengan e-KTP terdaftar.
+                        </p>
+                    </div>
+
+                    <!-- 7 -->
+                    <div class="py-3.5 space-y-1 pb-10">
+                        <h4 class="font-semibold text-slate-900 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[11px] font-bold shrink-0">7</span>
+                            <span>Kerahasiaan Data Pelanggan</span>
+                        </h4>
+                        <p class="text-slate-600 pl-7 leading-relaxed">
+                            Alamat rumah, nomor telepon, dan data pelanggan bersifat rahasia. Dilarang keras menyebarkan data pelanggan ke pihak mana pun.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Modal Footer Controls -->
+                <div class="px-4 py-3 border-t border-slate-100 bg-slate-50/90 shrink-0 space-y-2">
+                    <!-- Scroll Status Reminder (Fixed Height to prevent layout shift) -->
+                    <div class="h-6 flex items-center justify-center text-[11px]">
+                        <span x-show="!hasScrolledToBottom" class="text-amber-800 flex items-center gap-1.5 font-medium">
+                            <svg class="w-3.5 h-3.5 animate-bounce text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
                             </svg>
-                            <span>Gulir dokumen hingga baris terbawah untuk menyetujui</span>
-                        </div>
-
-                        <div x-show="hasScrolledToBottom" class="flex items-center justify-center space-x-1.5 text-[10px] text-emerald-800 bg-emerald-50 py-1.5 px-2.5 rounded-lg border border-emerald-200 mb-2">
-                            <svg class="w-3 h-3 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <span>Gulir ke baris paling bawah untuk menyetujui</span>
+                        </span>
+                        <span x-show="hasScrolledToBottom" class="text-emerald-700 flex items-center gap-1.5 font-medium" style="display: none;">
+                            <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
-                            <span>Dokumen selesai dibaca. Tombol persetujuan aktif.</span>
-                        </div>
+                            <span>Dokumen telah selesai dibaca</span>
+                        </span>
+                    </div>
 
-                        <div class="flex items-center space-x-2">
-                            <button type="button" @click="showSopModal = false"
-                                class="w-1/3 min-h-[42px] py-2 px-3 text-xs font-semibold text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer">
-                                Tutup
-                            </button>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button type="button" @click="closeSopModal()"
+                            class="w-full min-h-[42px] py-2 px-3 text-xs font-semibold text-slate-600 hover:text-slate-800 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition cursor-pointer">
+                            Tutup
+                        </button>
 
-                            <button type="button"
-                                :disabled="!hasScrolledToBottom"
-                                @click="agreeSopFromModal()"
-                                class="w-2/3 min-h-[42px] py-2 px-3 text-xs font-bold rounded-xl transition flex items-center justify-center space-x-1.5"
-                                :class="hasScrolledToBottom 
-                                    ? 'bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs cursor-pointer' 
-                                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                <span x-text="hasScrolledToBottom ? 'Saya Pahami & Setujui' : 'Gulir ke Bawah Dahulu'"></span>
-                            </button>
-                        </div>
+                        <button type="button"
+                            :disabled="!hasScrolledToBottom"
+                            @click="agreeSopFromModal()"
+                            class="w-full min-h-[42px] py-2 px-3 text-xs font-bold rounded-xl transition flex items-center justify-center space-x-1.5"
+                            :class="hasScrolledToBottom 
+                                ? 'bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs cursor-pointer' 
+                                : 'bg-slate-200 text-slate-400 cursor-not-allowed'">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span x-text="hasScrolledToBottom ? 'Saya Pahami & Setujui' : 'Gulir ke Bawah'"></span>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
+
+
 
     </div>
 
@@ -991,9 +972,79 @@
         }
         window.showOutsideBoundaryAlert = showOutsideBoundaryAlert;
 
+        const ONBOARDING_DRAFT_KEY = 'mitra_onboarding_draft_{{ $user->id }}';
+
+        function getOnboardingDraft() {
+            try {
+                const raw = localStorage.getItem(ONBOARDING_DRAFT_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+        window.getOnboardingDraft = getOnboardingDraft;
+
+        function saveOnboardingDraft(data) {
+            try {
+                localStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify(data));
+            } catch (e) {
+                try {
+                    const fallback = { ...data, ktpDataUrl: null, selfieDataUrl: null };
+                    localStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify(fallback));
+                } catch (err) {}
+            }
+        }
+        window.saveOnboardingDraft = saveOnboardingDraft;
+
+        function clearOnboardingDraft() {
+            try {
+                localStorage.removeItem(ONBOARDING_DRAFT_KEY);
+            } catch (e) {}
+        }
+        window.clearOnboardingDraft = clearOnboardingDraft;
+
+        function dataURLtoFile(dataurl, filename) {
+            if (!dataurl || typeof dataurl !== 'string' || !dataurl.includes(',')) return null;
+            try {
+                const arr = dataurl.split(',');
+                const mimeMatch = arr[0].match(/:(.*?);/);
+                const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                return new File([u8arr], filename, { type: mime });
+            } catch (e) {
+                return null;
+            }
+        }
+        window.dataURLtoFile = dataURLtoFile;
+
+        window.savePhotoDraft = function(prefix, dataUrl, fileName) {
+            const draft = getOnboardingDraft() || {};
+            if (prefix === 'ktp') {
+                draft.ktpDataUrl = dataUrl;
+                draft.ktpFileName = fileName;
+            } else if (prefix === 'selfie') {
+                draft.selfieDataUrl = dataUrl;
+                draft.selfieFileName = fileName;
+            }
+            saveOnboardingDraft(draft);
+        };
+
         function onboardingWizard() {
+            const hasServerErrors = {{ $errors->any() ? 'true' : 'false' }};
+            const draft = !hasServerErrors ? getOnboardingDraft() : null;
+
+            let initStep = {{ $initialStep }};
+            if (!hasServerErrors && draft && draft.currentStep && draft.currentStep >= 1 && draft.currentStep <= 4) {
+                initStep = draft.currentStep;
+            }
+
             return {
-                currentStep: {{ $initialStep }},
+                currentStep: initStep,
                 totalSteps: 4,
                 steps: [
                     { num: 1, title: 'Identitas' },
@@ -1001,45 +1052,84 @@
                     { num: 3, title: 'Rekening' },
                     { num: 4, title: 'Persetujuan' },
                 ],
-                nik: @js(old('nik', $user->nik ?? '')),
-                phone: @js(old('phone', $user->phone ?? '')),
+                nik: @js(old('nik', $user->nik ?? '')) || (draft?.nik ?? ''),
+                phone: @js(old('phone', $user->phone ?? '')) || (draft?.phone ?? ''),
                 searchQuery: '',
-                selectedRegionId: @js(old('region_id', $partnerProfile?->region_id ?? '')),
-                secondaryRegionId: @js(old('secondary_region_id', $partnerProfile?->secondary_region_id ?? '')),
-                addressText: @js(old('address_text', $partnerProfile?->address_text ?? '')),
+                selectedRegionId: @js(old('region_id', $partnerProfile?->region_id ?? '')) || (draft?.selectedRegionId ?? ''),
+                secondaryRegionId: @js(old('secondary_region_id', $partnerProfile?->secondary_region_id ?? '')) || (draft?.secondaryRegionId ?? ''),
+                addressText: @js(old('address_text', $partnerProfile?->address_text ?? '')) || (draft?.addressText ?? ''),
                 regions: @js($activeRegions),
-                bankName: @js(old('bank_name', $bankAccount?->bank_name ?? 'BCA')),
-                accountNumber: @js(old('account_number', $bankAccount?->account_number ?? '')),
-                accountHolderName: @js(old('account_holder_name', $bankAccount?->account_holder_name ?? $user->name)),
+                bankName: @js(old('bank_name', $bankAccount?->bank_name ?? '')) || (draft?.bankName ?? 'BCA'),
+                accountNumber: @js(old('account_number', $bankAccount?->account_number ?? '')) || (draft?.accountNumber ?? ''),
+                accountHolderName: @js(old('account_holder_name', $bankAccount?->account_holder_name ?? '')) || (draft?.accountHolderName ?? @js($user->name)),
                 hasExistingKtp: {{ $partnerProfile?->ktp_path ? 'true' : 'false' }},
                 hasExistingSelfie: {{ $partnerProfile?->selfie_path ? 'true' : 'false' }},
                 showSopModal: false,
-                hasScrolledToBottom: false,
-                sopAgreed: {{ old('sop_agreement') ? 'true' : 'false' }},
+                hasScrolledToBottom: Boolean(draft?.hasScrolledToBottom || draft?.sopAgreed),
+                sopAgreed: {{ old('sop_agreement') ? 'true' : 'false' }} || Boolean(draft?.sopAgreed),
+                skckFileName: draft?.skckFileName || '',
+
+                persistDraft() {
+                    const lat = parseFloat(document.getElementById('lat')?.value) || null;
+                    const lng = parseFloat(document.getElementById('lng')?.value) || null;
+                    const currentDraft = getOnboardingDraft() || {};
+
+                    const updated = {
+                        ...currentDraft,
+                        currentStep: this.currentStep,
+                        nik: this.nik,
+                        phone: this.phone,
+                        selectedRegionId: this.selectedRegionId,
+                        secondaryRegionId: this.secondaryRegionId,
+                        addressText: this.addressText,
+                        lat: lat,
+                        lng: lng,
+                        bankName: this.bankName,
+                        accountNumber: this.accountNumber,
+                        accountHolderName: this.accountHolderName,
+                        sopAgreed: this.sopAgreed,
+                        hasScrolledToBottom: this.hasScrolledToBottom,
+                        skckFileName: this.skckFileName
+                    };
+                    saveOnboardingDraft(updated);
+                },
 
                 openSopModal() {
                     this.showSopModal = true;
+                    history.pushState({ modal: 'sop' }, '');
                     this.$nextTick(() => {
                         const scrollEl = document.getElementById('sop_content_scroll');
                         if (scrollEl) {
+                            scrollEl.scrollTop = 0;
                             if (scrollEl.scrollHeight <= scrollEl.clientHeight + 15) {
                                 this.hasScrolledToBottom = true;
+                                this.persistDraft();
                             }
                         }
                     });
+                },
+
+                closeSopModal(fromPopstate = false) {
+                    const wasOpen = Boolean(this.showSopModal);
+                    this.showSopModal = false;
+                    if (wasOpen && !fromPopstate && history.state && history.state.modal === 'sop') {
+                        history.back();
+                    }
                 },
 
                 handleSopScroll(e) {
                     const el = e.target;
                     if (el.scrollTop + el.clientHeight >= el.scrollHeight - 25) {
                         this.hasScrolledToBottom = true;
+                        this.persistDraft();
                     }
                 },
 
                 agreeSopFromModal() {
                     if (this.hasScrolledToBottom) {
                         this.sopAgreed = true;
-                        this.showSopModal = false;
+                        this.closeSopModal(false);
+                        this.persistDraft();
                     }
                 },
 
@@ -1051,24 +1141,46 @@
                 },
 
                 initWizard() {
+                    window.mitraWizard = this;
+
                     this.$watch('currentStep', (val) => {
                         this.onStepSwitched(val);
+                        this.persistDraft();
                     });
                     this.$watch('nik', (val) => {
                         if (val && /[^0-9]/.test(val)) {
                             this.nik = val.replace(/[^0-9]/g, '');
                         }
+                        this.persistDraft();
                     });
                     this.$watch('phone', (val) => {
                         if (val && /[^0-9]/.test(val)) {
                             this.phone = val.replace(/[^0-9]/g, '');
                         }
+                        this.persistDraft();
                     });
+                    this.$watch('selectedRegionId', () => { this.persistDraft(); });
+                    this.$watch('secondaryRegionId', () => { this.persistDraft(); });
+                    this.$watch('addressText', () => { this.persistDraft(); });
+                    this.$watch('bankName', () => { this.persistDraft(); });
                     this.$watch('accountNumber', (val) => {
                         if (val && /[^0-9]/.test(val)) {
                             this.accountNumber = val.replace(/[^0-9]/g, '');
                         }
+                        this.persistDraft();
                     });
+                    this.$watch('accountHolderName', () => { this.persistDraft(); });
+                    this.$watch('sopAgreed', () => { this.persistDraft(); });
+
+                    if (this.currentStep === 2) {
+                        this.$nextTick(() => {
+                            setTimeout(() => {
+                                if (window.map) {
+                                    window.map.invalidateSize();
+                                }
+                            }, 200);
+                        });
+                    }
                 },
 
                 get filteredRegions() {
@@ -1079,66 +1191,28 @@
 
                 toggleRegion(region) {
                     if (this.selectedRegionId == region.id) {
-                        if (this.secondaryRegionId) {
-                            const sec = this.regions.find(r => r.id == this.secondaryRegionId);
-                            this.selectedRegionId = this.secondaryRegionId;
-                            this.secondaryRegionId = '';
-                            if (window.onSecondaryRegionCleared) {
-                                window.onSecondaryRegionCleared();
-                            }
-                            if (window.onMitraRegionSelected && sec) {
-                                window.onMitraRegionSelected(sec);
-                            }
-                        } else {
-                            this.selectedRegionId = '';
-                            if (window.onMitraRegionCleared) {
-                                window.onMitraRegionCleared();
-                            }
+                        this.selectedRegionId = '';
+                        if (window.onMitraRegionCleared) {
+                            window.onMitraRegionCleared();
                         }
-                    } else if (this.secondaryRegionId == region.id) {
-                        this.secondaryRegionId = '';
-                        if (window.onSecondaryRegionCleared) {
-                            window.onSecondaryRegionCleared();
-                        }
-                    } else if (!this.selectedRegionId) {
+                    } else {
                         this.selectedRegionId = region.id;
                         if (window.onMitraRegionSelected) {
                             window.onMitraRegionSelected(region);
                         }
-                    } else {
-                        this.secondaryRegionId = region.id;
-                        if (window.onSecondaryRegionSelected) {
-                            window.onSecondaryRegionSelected(region);
-                        }
                     }
                 },
 
-                clearAllRegions() {
+                clearSelectedRegion() {
                     this.selectedRegionId = '';
-                    this.secondaryRegionId = '';
                     if (window.onMitraRegionCleared) {
                         window.onMitraRegionCleared();
-                    }
-                    if (window.onSecondaryRegionCleared) {
-                        window.onSecondaryRegionCleared();
-                    }
-                },
-
-                clearSecondaryRegion() {
-                    this.secondaryRegionId = '';
-                    if (window.onSecondaryRegionCleared) {
-                        window.onSecondaryRegionCleared();
                     }
                 },
 
                 getSelectedRegionName() {
                     const r = this.regions.find(x => x.id == this.selectedRegionId);
                     return r ? r.name : 'Belum dipilih';
-                },
-
-                getSecondaryRegionName() {
-                    const r = this.regions.find(x => x.id == this.secondaryRegionId);
-                    return r ? r.name : '';
                 },
 
                 goToStep(targetStep) {
@@ -1281,14 +1355,25 @@
                         );
                         return;
                     }
+                    clearOnboardingDraft();
                     e.target.submit();
                 }
             };
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            const initialLat = parseFloat(document.getElementById('lat').value) || -6.9175;
-            const initialLng = parseFloat(document.getElementById('lng').value) || 107.6191;
+            const hasServerErrors = {{ $errors->any() ? 'true' : 'false' }};
+            const draft = !hasServerErrors && window.getOnboardingDraft ? window.getOnboardingDraft() : null;
+
+            let initialLat = parseFloat(document.getElementById('lat').value) || -6.9175;
+            let initialLng = parseFloat(document.getElementById('lng').value) || 107.6191;
+
+            if (!hasServerErrors && draft && draft.lat && draft.lng) {
+                initialLat = parseFloat(draft.lat);
+                initialLng = parseFloat(draft.lng);
+                document.getElementById('lat').value = initialLat.toFixed(6);
+                document.getElementById('lng').value = initialLng.toFixed(6);
+            }
 
             map = L.map('map').setView([initialLat, initialLng], 12);
             window.map = map;
@@ -1337,6 +1422,9 @@
                 document.getElementById('lat').value = lat.toFixed(6);
                 document.getElementById('lng').value = lng.toFixed(6);
                 reverseGeocode(lat, lng);
+                if (window.mitraWizard) {
+                    window.mitraWizard.persistDraft();
+                }
             }
 
             marker.on('dragend', function (e) {
@@ -1389,13 +1477,8 @@
                     }
                 }).addTo(map);
 
-                if (secondaryPolygonLayer) {
-                    const combinedBounds = regionPolygonLayer.getBounds().extend(secondaryPolygonLayer.getBounds());
-                    map.fitBounds(combinedBounds, { padding: [25, 25] });
-                } else {
-                    const bounds = regionPolygonLayer.getBounds();
-                    map.fitBounds(bounds, { padding: [20, 20] });
-                }
+                const bounds = regionPolygonLayer.getBounds();
+                map.fitBounds(bounds, { padding: [20, 20] });
 
                 const center = regionPolygonLayer.getBounds().getCenter();
                 window.lastValidLatLng = { lat: center.lat, lng: center.lng };
@@ -1409,51 +1492,15 @@
                     map.removeLayer(regionPolygonLayer);
                     regionPolygonLayer = null;
                 }
-                if (secondaryPolygonLayer) {
-                    map.fitBounds(secondaryPolygonLayer.getBounds(), { padding: [20, 20] });
-                }
             };
 
-            // When secondary region is selected
-            window.onSecondaryRegionSelected = function(region) {
-                if (!region || !region.geojson) return;
-
-                if (secondaryPolygonLayer) {
-                    map.removeLayer(secondaryPolygonLayer);
-                }
-
-                secondaryPolygonLayer = L.geoJSON(region.geojson, {
-                    style: {
-                        color: '#0284c7', // Sky-600
-                        fillColor: '#38bdf8', // Sky-400
-                        fillOpacity: 0.18,
-                        weight: 2,
-                        dashArray: '6, 6'
-                    }
-                }).addTo(map);
-
-                if (regionPolygonLayer) {
-                    const combinedBounds = regionPolygonLayer.getBounds().extend(secondaryPolygonLayer.getBounds());
-                    map.fitBounds(combinedBounds, { padding: [25, 25] });
-                } else {
-                    map.fitBounds(secondaryPolygonLayer.getBounds(), { padding: [20, 20] });
-                }
-            };
-
-            window.onSecondaryRegionCleared = function() {
-                if (secondaryPolygonLayer) {
-                    map.removeLayer(secondaryPolygonLayer);
-                    secondaryPolygonLayer = null;
-                }
-                if (regionPolygonLayer) {
-                    map.fitBounds(regionPolygonLayer.getBounds(), { padding: [20, 20] });
-                }
-            };
-
-            // Check if a region is pre-selected on load (e.g. after validation error / edit)
+            // Check if a region is pre-selected on load (e.g. after validation error / edit / draft)
             const activeRegions = @js($activeRegions);
-            const preselectedId = @js(old('region_id', $partnerProfile?->region_id ?? ''));
-            const preselectedSecId = @js(old('secondary_region_id', $partnerProfile?->secondary_region_id ?? ''));
+            let preselectedId = @js(old('region_id', $partnerProfile?->region_id ?? ''));
+
+            if (!preselectedId && !hasServerErrors && draft && draft.selectedRegionId) {
+                preselectedId = draft.selectedRegionId;
+            }
 
             if (preselectedId && activeRegions && activeRegions.length > 0) {
                 const preselected = activeRegions.find(r => r.id == preselectedId);
@@ -1467,13 +1514,6 @@
                 window.onMitraRegionSelected(auto);
             }
 
-            if (preselectedSecId && activeRegions && activeRegions.length > 0) {
-                const preselectedSec = activeRegions.find(r => r.id == preselectedSecId);
-                if (preselectedSec) {
-                    window.onSecondaryRegionSelected(preselectedSec);
-                }
-            }
-
             // Setup Photo Capture & Auto-Compression with Preview
             function setupPhotoUploader(prefix) {
                 const mainInput = document.getElementById(prefix + '_file');
@@ -1483,6 +1523,31 @@
                 const filledState = document.getElementById(prefix + '_filled_state');
                 const previewImg = document.getElementById(prefix + '_preview_img');
                 const statusEl = document.getElementById(prefix + '_compress_status');
+
+                // Restore photo from draft if present
+                if (!hasServerErrors && draft) {
+                    const photoDataUrl = prefix === 'ktp' ? draft.ktpDataUrl : draft.selfieDataUrl;
+                    const photoFileName = prefix === 'ktp' ? draft.ktpFileName : draft.selfieFileName;
+
+                    if (photoDataUrl && mainInput && mainInput.files.length === 0) {
+                        const restoredFile = window.dataURLtoFile ? window.dataURLtoFile(photoDataUrl, photoFileName || (prefix + '.jpg')) : null;
+                        if (restoredFile) {
+                            const dt = new DataTransfer();
+                            dt.items.add(restoredFile);
+                            mainInput.files = dt.files;
+                            if (previewImg) previewImg.src = photoDataUrl;
+                            if (emptyState) emptyState.classList.add('hidden');
+                            if (filledState) filledState.classList.remove('hidden');
+                            if (statusEl) {
+                                statusEl.innerHTML = `<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-semibold border border-emerald-200">
+                                    <svg class="w-3 h-3 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                    <span>✓ Berkas dipulihkan dari draf</span>
+                                </span>`;
+                                statusEl.classList.remove('hidden');
+                            }
+                        }
+                    }
+                }
 
                 function processFile(file) {
                     if (!file) return;
@@ -1548,6 +1613,14 @@
                                 dataTransfer.items.add(compressedFile);
                                 mainInput.files = dataTransfer.files;
 
+                                const readerDraft = new FileReader();
+                                readerDraft.onload = function(ev) {
+                                    if (window.savePhotoDraft) {
+                                        window.savePhotoDraft(prefix, ev.target.result, compressedFile.name);
+                                    }
+                                };
+                                readerDraft.readAsDataURL(compressedFile);
+
                                 if (statusEl) {
                                     statusEl.innerHTML = `<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-semibold border border-emerald-200">
                                         <svg class="w-3 h-3 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
@@ -1596,6 +1669,7 @@
         let currentCameraStream = null;
         let activePhotoPrefix = null;
         let capturedBlob = null;
+        let isCameraModalOpen = false;
 
         async function openLiveCamera(prefix) {
             activePhotoPrefix = prefix;
@@ -1614,6 +1688,15 @@
             liveControls.classList.remove('hidden');
             reviewControls.classList.add('hidden');
             snapshotPreview.classList.add('hidden');
+
+            if (!isCameraModalOpen) {
+                isCameraModalOpen = true;
+                if (history.state && history.state.modal) {
+                    history.replaceState({ modal: 'camera' }, '');
+                } else {
+                    history.pushState({ modal: 'camera' }, '');
+                }
+            }
 
             if (prefix === 'ktp') {
                 title.textContent = 'Kamera: Foto e-KTP Asli';
@@ -1648,7 +1731,7 @@
             } catch (err) {
                 loading.classList.add('hidden');
                 console.warn('Gagal menyalakan kamera langsung:', err);
-                closeCameraModal();
+                closeCameraModal(false);
                 showWarningAlert(
                     'Kamera Tidak Dapat Dinyalakan',
                     'Akses kamera langsung tidak dapat dinyalakan pada perangkat/browser ini. Anda dapat memilih berkas foto dari penyimpanan.',
@@ -1705,10 +1788,10 @@
                 window['processPhoto_' + activePhotoPrefix](file);
             }
 
-            closeCameraModal();
+            closeCameraModal(false);
         }
 
-        function closeCameraModal() {
+        function closeCameraModal(fromPopstate = false) {
             if (currentCameraStream) {
                 currentCameraStream.getTracks().forEach(track => track.stop());
                 currentCameraStream = null;
@@ -1716,7 +1799,33 @@
             const video = document.getElementById('camera_video');
             if (video) video.srcObject = null;
             document.getElementById('camera_modal').classList.add('hidden');
+
+            if (isCameraModalOpen) {
+                isCameraModalOpen = false;
+                if (!fromPopstate && history.state && history.state.modal === 'camera') {
+                    history.back();
+                }
+            }
         }
+
+        // Reset any leftover modal history state from previous reload
+        if (history.state && history.state.modal) {
+            history.replaceState(null, '');
+        }
+
+        // Intercept Android hardware/gesture back button so it closes open modals instead of navigating away
+        window.addEventListener('popstate', function() {
+            const cameraModal = document.getElementById('camera_modal');
+            if (cameraModal && !cameraModal.classList.contains('hidden')) {
+                closeCameraModal(true);
+                return;
+            }
+
+            if (window.mitraWizard && window.mitraWizard.showSopModal) {
+                window.mitraWizard.closeSopModal(true);
+                return;
+            }
+        });
     </script>
 
     <!-- Live Camera Viewfinder Modal -->

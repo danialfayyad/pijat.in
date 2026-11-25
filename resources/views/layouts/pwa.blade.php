@@ -9,7 +9,7 @@
     'hideLogo' => null,
     'hideNotification' => false,
     'hideHeader' => false,
-    'requireLocation' => true,
+    'requireLocation' => false,
 ])
 @php
     $isRootTab = false;
@@ -56,12 +56,32 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/manifest.json?v={{ substr(md5(($appLogo ?? '') . ($appName ?? '') . ($appFavicon ?? '')), 0, 8) }}">
+    <link rel="apple-touch-icon" href="{{ $appLogo ? asset('storage/' . $appLogo) : ($appFavicon ? asset('storage/' . $appFavicon) : asset('/icons/icon-192x192.png')) }}">
     @if ($appFavicon)
         <link rel="icon" href="{{ asset('storage/' . $appFavicon) }}">
     @else
         <link rel="icon" href="/favicon.ico">
     @endif
+
+    <script>
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            window.deferredPwaInstallPrompt = e;
+            window.dispatchEvent(new CustomEvent('pwa-installable'));
+        });
+        window.addEventListener('appinstalled', () => {
+            window.deferredPwaInstallPrompt = null;
+            window.dispatchEvent(new CustomEvent('pwa-installed'));
+        });
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch((err) => {
+                    console.debug('SW registration error:', err);
+                });
+            });
+        }
+    </script>
 
     <!-- Fonts: Maison Neue & Fallbacks -->
     <link rel="preconnect" href="https://db.onlinewebfonts.com">
@@ -253,15 +273,10 @@
                         <h1 class="text-sm font-bold text-slate-900 leading-tight truncate">
                             {{ $headerTitle ?? $appName }}
                         </h1>
-                        @if ($headerSubtitle !== false)
-                            @php
-                                $subtitleText = $headerSubtitle ?? Auth::user()?->role?->label();
-                            @endphp
-                            @if ($subtitleText)
-                                <span class="text-[11px] text-slate-500 truncate block mt-0.5">
-                                    {{ $subtitleText }}
-                                </span>
-                            @endif
+                        @if (!empty($headerSubtitle))
+                            <span class="text-[11px] text-slate-500 truncate block mt-0.5">
+                                {{ $headerSubtitle }}
+                            </span>
                         @endif
                     </div>
                 </div>
@@ -393,7 +408,7 @@
 
     </div>
 
-    @if (Auth::check() && Auth::user()->isMitra() && ($requireLocation ?? true))
+    @if (Auth::check() && Auth::user()->isMitra() && ($requireLocation ?? false))
         <!-- Mandatory Location Access Guard for Mitra (SYS-01 & MIT-04) -->
         <div x-data="pwaLocationGuard()" x-init="initGuard()" x-cloak>
             <div x-show="isBlocked" 
@@ -503,8 +518,11 @@
                         if (state === 'granted') {
                             this.isBlocked = false;
                             this.syncLocation();
-                        } else {
+                        } else if (state === 'denied') {
                             this.isBlocked = true;
+                        } else {
+                            // 'prompt': do not aggressively block screen until requested
+                            this.isBlocked = false;
                         }
                     },
 
@@ -567,6 +585,98 @@
     @auth
         <!-- PWA Web Push Notification Manager (SYS-06, CUS-21, MIT-21) -->
         <script>
+            function pwaInstallTrigger() {
+                return {
+                    isStandalone: false,
+                    canInstallPrompt: false,
+                    isIos: false,
+
+                    init() {
+                        this.isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+                        this.isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                        this.canInstallPrompt = Boolean(window.deferredPwaInstallPrompt);
+
+                        window.addEventListener('pwa-installable', () => {
+                            this.canInstallPrompt = true;
+                        });
+
+                        window.addEventListener('pwa-installed', () => {
+                            this.isStandalone = true;
+                            this.canInstallPrompt = false;
+                        });
+                    },
+
+                    async triggerInstall() {
+                        if (this.isStandalone) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'info',
+                                    iconHtml: '✓',
+                                    title: 'Aplikasi Sudah Terpasang',
+                                    text: 'Aplikasi {{ $appName }} sudah terpasang di layar utama perangkat Anda.',
+                                    confirmButtonText: 'Mengerti',
+                                    buttonsStyling: false,
+                                    customClass: {
+                                        popup: 'swal-admin-theme',
+                                        confirmButton: 'swal2-confirm'
+                                    }
+                                });
+                            } else {
+                                alert('Aplikasi {{ $appName }} sudah terpasang di layar utama perangkat Anda.');
+                            }
+                            return;
+                        }
+
+                        // 1. Android / Chrome / Edge Native Prompt
+                        if (window.deferredPwaInstallPrompt) {
+                            window.deferredPwaInstallPrompt.prompt();
+                            const choiceResult = await window.deferredPwaInstallPrompt.userChoice;
+                            if (choiceResult && choiceResult.outcome === 'accepted') {
+                                window.deferredPwaInstallPrompt = null;
+                                this.canInstallPrompt = false;
+                                this.isStandalone = true;
+                            }
+                            return;
+                        }
+
+                        // 2. iOS Safari Instructions
+                        if (this.isIos) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    title: 'Pasang di iPhone / iPad',
+                                    html: '<div class="text-xs text-slate-600 text-left space-y-3"><p>Ikuti 2 langkah mudah untuk memasang aplikasi ke layar utama:</p><div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200/80 space-y-2"><div class="flex items-start space-x-2"><span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">1</span><span>Ketuk tombol <strong>Bagikan (Share)</strong> <svg class=\"inline w-4 h-4 text-emerald-700\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z\"/></svg> di bilah bawah peramban Safari.</span></div><div class="flex items-start space-x-2"><span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">2</span><span>Gulir dan pilih menu <strong>\"Tambahkan ke Layar Utama\" (Add to Home Screen)</strong> ➕.</span></div></div></div>',
+                                    confirmButtonText: 'Saya Mengerti',
+                                    buttonsStyling: false,
+                                    customClass: {
+                                        popup: 'swal-admin-theme',
+                                        confirmButton: 'swal2-confirm'
+                                    }
+                                });
+                            } else {
+                                alert('Ketuk tombol Share di Safari, lalu pilih \"Add to Home Screen\".');
+                            }
+                            return;
+                        }
+
+                        // 3. Desktop / Android Fallback instruction
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                title: 'Pasang Aplikasi',
+                                html: '<div class="text-xs text-slate-600 text-left space-y-2"><p>Untuk memasang aplikasi ke layar utama:</p><div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5 text-[11px]"><p>1. Klik menu <strong>titik tiga (⋮)</strong> di peramban Anda.</p><p>2. Pilih <strong>\"Pasang Aplikasi\"</strong> atau <strong>\"Tambahkan ke Layar Utama\"</strong>.</p></div></div>',
+                                confirmButtonText: 'Mengerti',
+                                buttonsStyling: false,
+                                customClass: {
+                                    popup: 'swal-admin-theme',
+                                    confirmButton: 'swal2-confirm'
+                                }
+                            });
+                        } else {
+                            alert('Buka menu browser dan pilih \"Tambahkan ke Layar Utama\" atau \"Pasang Aplikasi\".');
+                        }
+                    }
+                };
+            }
+
             window.PwaPushNotification = {
                 isSupported: ('serviceWorker' in navigator) && ('PushManager' in window) && ('Notification' in window),
                 get permission() {
@@ -715,23 +825,27 @@
                     this.playChime();
 
                     // 1. Native OS / Desktop Notification (Windows & Android) with High-Res Icon
+                    const defaultIcon = '{{ $appLogo ? asset("storage/" . $appLogo) : asset("/icons/icon-192x192.png") }}';
+                    const defaultBadge = '{{ $appLogo ? asset("storage/" . $appLogo) : asset("/icons/badge-72x72.png") }}';
+                    const appTitle = '{{ $appName }}';
+
                     if ('Notification' in window && Notification.permission === 'granted') {
                         try {
                             if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
                                 navigator.serviceWorker.ready.then((reg) => {
-                                    reg.showNotification(notif.title || 'Pijat.In', {
+                                    reg.showNotification(notif.title || appTitle, {
                                         body: notif.body || 'Pemberitahuan baru diterima.',
-                                        icon: '/icons/icon-192x192.png',
-                                        badge: '/icons/badge-72x72.png',
+                                        icon: notif.icon || defaultIcon,
+                                        badge: defaultBadge,
                                         tag: 'pijatin_notif_' + notif.id,
                                         renotify: true,
                                         data: { action_url: notif.action_url || '/' }
                                     });
                                 });
                             } else {
-                                const n = new Notification(notif.title || 'Pijat.In', {
+                                const n = new Notification(notif.title || appTitle, {
                                     body: notif.body || 'Pemberitahuan baru diterima.',
-                                    icon: '/icons/icon-192x192.png'
+                                    icon: notif.icon || defaultIcon
                                 });
                                 n.onclick = () => {
                                     window.focus();
@@ -816,17 +930,21 @@
 
             <div @click="openAction()"
                  class="pointer-events-auto bg-white/95 backdrop-blur-md rounded-2xl p-3 border border-slate-200/90 shadow-xl flex items-start space-x-3 cursor-pointer hover:bg-white transition active:scale-[0.98]">
-                <!-- Icon Hijau Emerald -->
-                <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                </div>
+                <!-- Icon / Logo Notifikasi -->
+                @if ($appLogo)
+                    <img src="{{ asset('storage/' . $appLogo) }}" alt="{{ $appName }}" class="w-9 h-9 rounded-xl object-contain bg-white p-0.5 border border-slate-100 shadow-xs shrink-0 mt-0.5">
+                @else
+                    <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </div>
+                @endif
 
                 <!-- Konten Notifikasi -->
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">Pijat.In</span>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">{{ $appName }}</span>
                         <span class="text-[10px] text-slate-400 font-medium">Baru saja</span>
                     </div>
                     <h4 class="text-xs font-bold text-slate-900 leading-snug truncate mt-0.5" x-text="notif.title"></h4>
@@ -846,7 +964,10 @@
         </div>
 
         <x-notification-drawer />
-        <x-pwa-push-modal />
+        @if (Auth::user()->isPelanggan())
+            <x-pwa-push-modal />
+        @endif
+        <x-pwa-install-banner :shouldHideDock="$shouldHideDock" />
     @endauth
 
     @stack('scripts')

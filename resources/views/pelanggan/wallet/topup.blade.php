@@ -88,20 +88,20 @@
         <!-- ========================================================================= -->
         <div x-show="step === 'select_method'" class="flex-1 flex flex-col h-full min-h-0 bg-slate-50">
             <!-- Top App Bar -->
-            <header class="sticky top-0 z-30 bg-white border-b border-slate-200/80 px-4 py-3 flex items-center justify-between shrink-0 shadow-2xs">
+            <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/70 px-4 py-2.5 min-h-[56px] flex items-center justify-between shrink-0 shadow-2xs">
                 <a href="{{ route('pelanggan.wallet.index') }}" 
-                   class="w-9 h-9 rounded-full flex items-center justify-center text-slate-700 hover:bg-slate-100 active:scale-95 transition cursor-pointer"
+                   class="w-8 h-8 -ml-1 rounded-full flex items-center justify-center text-slate-700 hover:bg-slate-100 transition shrink-0 cursor-pointer"
                    aria-label="Kembali ke Dompet">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                     </svg>
                 </a>
 
-                <h1 class="text-sm font-bold text-slate-900 tracking-tight">
+                <h1 class="text-sm font-bold text-slate-900 tracking-tight leading-tight">
                     Pilih Metode Pembayaran
                 </h1>
 
-                <div class="w-9"></div>
+                <div class="w-8"></div>
             </header>
 
             <!-- Top Animated Progress Bar saat klik metode -->
@@ -343,21 +343,21 @@
         <div x-show="step === 'input_amount'" class="flex-1 flex flex-col h-full min-h-0 bg-white justify-between overflow-y-auto" style="display: none;">
             
             <!-- Top App Bar -->
-            <header class="bg-white px-4 py-3 flex items-center justify-between border-b border-slate-100 shrink-0">
+            <header class="bg-white/95 backdrop-blur-md px-4 py-2.5 min-h-[56px] flex items-center justify-between border-b border-slate-200/70 shrink-0">
                 <button type="button" 
                         @click="step = 'select_method'"
-                        class="w-9 h-9 rounded-full flex items-center justify-center text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+                        class="w-8 h-8 -ml-1 rounded-full flex items-center justify-center text-slate-700 hover:bg-slate-100 transition shrink-0 cursor-pointer"
                         aria-label="Kembali ke pilihan metode">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                     </svg>
                 </button>
 
-                <h1 class="text-sm font-bold text-slate-900 tracking-tight" x-text="methodTitle">
+                <h1 class="text-sm font-bold text-slate-900 tracking-tight leading-tight" x-text="methodTitle">
                     Top Up Saldo
                 </h1>
 
-                <div class="w-9"></div>
+                <div class="w-8"></div>
             </header>
 
             <!-- Area Tengah: Nominal Besar & Chip Presets -->

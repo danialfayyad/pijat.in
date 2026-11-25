@@ -56,7 +56,15 @@ self.addEventListener('push', (event) => {
     );
 });
 
-// 2. Handle User Clicking Notification Toast on Laptop Screen
+// 3. Handle Fetch Events (Wajib ada agar Chrome mengenali sebagai PWA installable)
+self.addEventListener('fetch', (event) => {
+    if (event.request.method !== 'GET') return;
+
+    event.respondWith(
+        fetch(event.request).catch(() => caches.match(event.request))
+    );
+});
+
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 

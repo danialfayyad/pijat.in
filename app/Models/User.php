@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'nik', 'gender', 'date_of_birth', 'email', 'phone', 'device_id', 'role', 'status', 'status_reason', 'region_id', 'password', 'phone_verified_at', 'rejection_reason', 'rejection_code', 'penalty_points', 'suspended_until'])]
+#[Fillable(['name', 'nik', 'gender', 'date_of_birth', 'email', 'google_id', 'avatar', 'phone', 'device_id', 'role', 'status', 'status_reason', 'region_id', 'password', 'phone_verified_at', 'rejection_reason', 'rejection_code', 'penalty_points', 'suspended_until'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -355,6 +355,28 @@ class User extends Authenticatable
             2 => (int) ($counts[2] ?? 0),
             1 => (int) ($counts[1] ?? 0),
         ];
+    }
+
+    /**
+     * Get the customer's average rating from partner reviews (rating_type: mitra_to_customer).
+     */
+    public function customerRating(): ?float
+    {
+        $avg = $this->ratingsReceived()
+            ->where('rating_type', 'mitra_to_customer')
+            ->avg('score');
+
+        return $avg !== null ? round((float) $avg, 1) : null;
+    }
+
+    /**
+     * Get the total reviews received as a customer from partners.
+     */
+    public function customerRatingsCount(): int
+    {
+        return $this->ratingsReceived()
+            ->where('rating_type', 'mitra_to_customer')
+            ->count();
     }
 
     /**

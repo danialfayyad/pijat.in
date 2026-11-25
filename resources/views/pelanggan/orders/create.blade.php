@@ -26,21 +26,95 @@
             instantChecked: false,
             instantAvailable: true,
 
-            get currentPrice() {
+            voucherCodeInput: '',
+            appliedVoucherCode: '{{ old('voucher_code', '') }}',
+            appliedVoucherName: '',
+            discountAmount: 0,
+            voucherMessage: '',
+            voucherError: '',
+            isValidatingVoucher: false,
+
+            get packagePrice() {
                 return this.currentPackage ? Number(this.currentPackage.price) : 0;
             },
 
+            get finalPrice() {
+                return Math.max(0, this.packagePrice - this.discountAmount);
+            },
+
+            get currentPrice() {
+                return this.finalPrice;
+            },
+
             get deficitAmount() {
-                return Math.max(0, this.currentPrice - this.walletBalance);
+                return Math.max(0, this.finalPrice - this.walletBalance);
             },
 
             get isBalanceInsufficient() {
-                return this.walletBalance < this.currentPrice;
+                return this.walletBalance < this.finalPrice;
+            },
+
+            async applyVoucher(codeToApply) {
+                const code = (codeToApply || this.voucherCodeInput).trim().toUpperCase();
+                if (!code) {
+                    this.voucherError = 'Masukkan kode voucher terlebih dahulu.';
+                    return;
+                }
+                this.isValidatingVoucher = true;
+                this.voucherError = '';
+                this.voucherMessage = '';
+                try {
+                    const response = await fetch('{{ route('pelanggan.orders.validate-voucher') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            code: code,
+                            package_id: this.selectedPackageId,
+                        })
+                    });
+                    const data = await response.json();
+                    if (response.ok && data.valid) {
+                        this.appliedVoucherCode = data.code;
+                        this.appliedVoucherName = data.name;
+                        this.discountAmount = Number(data.discount_amount);
+                        this.voucherMessage = data.message || 'Voucher berhasil diterapkan!';
+                        this.voucherError = '';
+                        this.voucherCodeInput = data.code;
+                    } else {
+                        this.removeVoucher();
+                        this.voucherError = data.message || 'Kode voucher tidak valid.';
+                    }
+                } catch (e) {
+                    this.voucherError = 'Gagal memvalidasi voucher. Periksa koneksi internet Anda.';
+                } finally {
+                    this.isValidatingVoucher = false;
+                }
+            },
+
+            removeVoucher() {
+                this.appliedVoucherCode = '';
+                this.appliedVoucherName = '';
+                this.discountAmount = 0;
+                this.voucherMessage = '';
+                this.voucherCodeInput = '';
+            },
+
+            init() {
+                if (this.appliedVoucherCode) {
+                    this.applyVoucher(this.appliedVoucherCode);
+                }
             },
 
             selectPackage(id) {
                 this.selectedPackageId = id;
                 this.adjustTimeIfNeeded();
+                if (this.appliedVoucherCode) {
+                    this.applyVoucher(this.appliedVoucherCode);
+                }
             },
 
             async selectOrderType(type) {
@@ -197,6 +271,7 @@
             @csrf
             <input type="hidden" name="package_id" :value="selectedPackageId">
             <input type="hidden" name="payment_method" :value="selectedPaymentMethod">
+            <input type="hidden" name="voucher_code" :value="appliedVoucherCode">
             <input type="hidden" name="booking_token" value="{{ $bookingToken ?? '' }}">
 
             <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs divide-y divide-slate-100">
@@ -227,54 +302,160 @@
                     </div>
                 </div>
 
-                <div class="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center justify-between gap-4 text-xs">
-                    <span class="text-slate-600 font-semibold shrink-0">Total Tarif Layanan</span>
-                    <span class="text-base font-bold text-slate-900 font-mono tracking-tight text-right" x-text="'Rp ' + (currentPackage ? Number(currentPackage.price).toLocaleString('id-ID') : '0')"></span>
-                </div>
-                </div>
-
-                <!-- Bagian 2: Alamat Kunjungan Terapis (CUS-05) -->
-                <div class="py-5 space-y-3.5">
-                <div class="flex items-center justify-between gap-4 pb-1">
-                    <label class="block text-xs font-bold text-slate-900">
-                        Alamat Kunjungan Terapis <span class="text-rose-500">*</span>
+                <!-- Input Voucher Diskon Sederhana (Opsi B) -->
+                <div class="pt-3 border-t border-slate-100 space-y-2">
+                    <label class="block text-xs font-semibold text-slate-800">
+                        Kode Voucher Diskon
                     </label>
-                    <a href="{{ route('pelanggan.addresses.create') }}" class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition shrink-0">
-                        + Tambah Alamat
-                    </a>
+                    <div class="flex items-center gap-2">
+                        <div class="relative flex-1">
+                            <input type="text"
+                                   x-model="voucherCodeInput"
+                                   @keydown.enter.prevent="applyVoucher()"
+                                   :disabled="isValidatingVoucher || !!appliedVoucherCode"
+                                   placeholder="Contoh: PROMOHEMAT"
+                                   class="w-full text-xs uppercase tracking-wider font-semibold rounded-xl border border-slate-200 bg-white focus:border-emerald-600 focus:ring-emerald-600 py-2.5 px-3.5 placeholder:text-slate-400 placeholder:normal-case placeholder:tracking-normal disabled:bg-slate-100 disabled:text-slate-500">
+                        </div>
+                        <template x-if="!appliedVoucherCode">
+                            <button type="button"
+                                    @click="applyVoucher()"
+                                    :disabled="isValidatingVoucher || !voucherCodeInput.trim()"
+                                    class="min-h-[40px] px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-semibold text-xs shadow-2xs transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shrink-0 cursor-pointer">
+                                <span x-show="!isValidatingVoucher">Terapkan</span>
+                                <span x-show="isValidatingVoucher" class="flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                    <span>Cek...</span>
+                                </span>
+                            </button>
+                        </template>
+                        <template x-if="appliedVoucherCode">
+                            <button type="button"
+                                    @click="removeVoucher()"
+                                    class="min-h-[40px] px-3.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs transition flex items-center justify-center shrink-0 cursor-pointer">
+                                Hapus
+                            </button>
+                        </template>
+                    </div>
+
+                    <!-- Notifikasi Sukses Voucher -->
+                    <div x-show="appliedVoucherCode && voucherMessage" x-cloak class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-xs flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 text-xs font-bold">&check;</span>
+                            <span class="truncate font-medium" x-text="voucherMessage"></span>
+                        </div>
+                    </div>
+
+                    <!-- Notifikasi Error Voucher (Hanya teks merah & ikon tanpa kotak background) -->
+                    <div x-show="voucherError" x-cloak class="text-xs text-rose-600 flex items-center gap-1.5 font-medium pt-0.5">
+                        <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span x-text="voucherError"></span>
+                    </div>
+                    @error('voucher_code')
+                        <p class="text-xs text-rose-600 flex items-center gap-1.5 font-medium pt-0.5">
+                            <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>{{ $message }}</span>
+                        </p>
+                    @enderror
                 </div>
 
-                <div class="space-y-2.5">
-                    @foreach ($addresses as $addr)
-                        <label class="block p-3.5 rounded-xl border cursor-pointer transition relative select-none"
-                               @click="selectedAddressId = {{ $addr->id }}"
-                               :class="selectedAddressId == {{ $addr->id }} ? 'bg-emerald-50/70 border-emerald-600 ring-2 ring-emerald-600/20 shadow-xs' : 'bg-white border-slate-200 hover:border-slate-300'">
-                            <div class="flex items-start space-x-3">
-                                <div class="mt-0.5 shrink-0">
-                                    <div class="w-5 h-5 rounded-full border flex items-center justify-center transition"
-                                         :class="selectedAddressId == {{ $addr->id }} ? 'border-emerald-700 bg-emerald-700' : 'border-slate-300 bg-white'">
-                                        <div class="w-2 h-2 rounded-full bg-white" x-show="selectedAddressId == {{ $addr->id }}"></div>
-                                    </div>
-                                    <input type="radio" name="customer_address_id" value="{{ $addr->id }}" x-model="selectedAddressId" class="sr-only">
+                <!-- Rincian Harga & Total Tagihan Bersih -->
+                <div class="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-2 text-xs">
+                    <div class="flex items-center justify-between gap-4 text-slate-600">
+                        <span class="font-medium shrink-0">Tarif Paket Layanan</span>
+                        <span class="font-semibold text-slate-900 font-mono text-right" x-text="'Rp ' + packagePrice.toLocaleString('id-ID')"></span>
+                    </div>
+                    <div x-show="discountAmount > 0" x-cloak class="flex items-center justify-between gap-4 text-emerald-700">
+                        <span class="font-medium shrink-0 flex items-center gap-1.5">
+                            <span>Diskon Voucher</span>
+                            <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800" x-text="appliedVoucherCode"></span>
+                        </span>
+                        <span class="font-bold font-mono text-right" x-text="'-Rp ' + Number(discountAmount).toLocaleString('id-ID')"></span>
+                    </div>
+                    <div class="flex items-center justify-between gap-4 pt-2 border-t border-slate-200/60 font-bold">
+                        <span class="text-slate-900 shrink-0">Total Tagihan Bersih</span>
+                        <span class="text-base font-bold text-slate-900 font-mono tracking-tight text-right" x-text="'Rp ' + finalPrice.toLocaleString('id-ID')"></span>
+                    </div>
+                </div>
+                </div>
+
+                <!-- Bagian 2: Alamat Kunjungan Terapis (Shopee-Style Single Card) -->
+                <div class="py-5 space-y-3">
+                    <div class="flex items-center justify-between gap-4 pb-1">
+                        <label class="block text-xs font-bold text-slate-900">
+                            Alamat Kunjungan Terapis <span class="text-rose-500">*</span>
+                        </label>
+                        <a href="{{ route('pelanggan.addresses.index', ['from' => 'checkout', 'package_id' => $package->id]) }}" 
+                           class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 transition shrink-0 group">
+                            <span>Ganti Alamat</span>
+                            <svg class="w-3.5 h-3.5 text-emerald-600 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+
+                    @if ($defaultAddress)
+                        <!-- Hidden input for form submission -->
+                        <input type="hidden" name="customer_address_id" value="{{ $defaultAddress->id }}" x-model="selectedAddressId">
+
+                        <!-- Shopee-Style Clickable Card -->
+                        <a href="{{ route('pelanggan.addresses.index', ['from' => 'checkout', 'package_id' => $package->id]) }}"
+                           class="p-4 rounded-2xl border border-slate-200/90 bg-white hover:border-emerald-500 hover:shadow-xs active:scale-[0.99] transition-all block group relative select-none">
+                            <div class="flex items-start gap-3.5">
+                                <!-- Location Pin Icon -->
+                                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/70 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
                                 </div>
-                                <div class="flex-1 text-xs min-w-0">
-                                    <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                                        <span class="font-bold text-slate-900 text-xs">{{ $addr->label }}</span>
-                                        @if ($addr->is_primary)
-                                            <span class="text-[11px] font-semibold text-emerald-700">Utama</span>
+
+                                <!-- Address Content -->
+                                <div class="flex-1 min-w-0 text-xs">
+                                    <div class="flex items-center gap-1.5 mb-1 text-xs flex-wrap">
+                                        <span class="font-bold text-slate-900">{{ $defaultAddress->label }}</span>
+                                        @if ($defaultAddress->is_primary)
+                                            <span class="text-emerald-500 font-bold">•</span>
+                                            <span class="font-semibold text-emerald-700">Utama</span>
                                         @endif
-                                        <span class="text-[11px] text-slate-500 font-medium">({{ $addr->region->name ?? 'Wilayah' }})</span>
+                                        @if ($defaultAddress->region)
+                                            <span class="text-slate-300">•</span>
+                                            <span class="text-slate-500">{{ $defaultAddress->region->name }}</span>
+                                        @endif
                                     </div>
-                                    <p class="text-slate-600 mt-1 leading-relaxed text-[11px]">{{ $addr->address_text }}</p>
-                                    @if ($addr->benchmark)
-                                        <p class="text-slate-400 text-[10px] mt-0.5">Patokan: {{ $addr->benchmark }}</p>
+
+                                    <p class="text-xs font-bold text-slate-800 leading-tight">
+                                        {{ $user->name }} <span class="font-normal text-slate-500">({{ $user->phone ?? '-' }})</span>
+                                    </p>
+
+                                    <p class="text-slate-600 mt-1 leading-relaxed text-[11px]">
+                                        {{ $defaultAddress->address_text }}
+                                    </p>
+
+                                    @if ($defaultAddress->benchmark)
+                                        <p class="text-slate-400 text-[10px] mt-0.5 flex items-center gap-1">
+                                            <span class="font-semibold text-slate-500">Patokan:</span>
+                                            <span>{{ $defaultAddress->benchmark }}</span>
+                                        </p>
                                     @endif
                                 </div>
+
+                                <!-- Right Chevron Arrow (Shopee Style) -->
+                                <div class="shrink-0 self-center pl-1">
+                                    <div class="w-7 h-7 rounded-full bg-slate-50 text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-700 flex items-center justify-center transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </div>
+                                </div>
                             </div>
-                        </label>
-                    @endforeach
-                </div>
-                @error('customer_address_id') <p class="text-xs text-rose-600 font-semibold">{{ $message }}</p> @enderror
+                        </a>
+                    @else
+                        <!-- Fallback jika belum ada alamat sama sekali -->
+                        <a href="{{ route('pelanggan.addresses.create', ['from' => 'checkout', 'package_id' => $package->id]) }}"
+                           class="p-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-500 bg-slate-50/70 text-center block transition">
+                            <span class="text-xs font-semibold text-emerald-700">+ Tambah Alamat Layanan</span>
+                        </a>
+                    @endif
+
+                    @error('customer_address_id') <p class="text-xs text-rose-600 font-semibold">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Bagian 3: Penerima Layanan (CUS-04 Gender Lock) -->

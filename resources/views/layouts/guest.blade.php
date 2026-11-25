@@ -3,10 +3,20 @@
     $isLoginPage = request()->routeIs('login');
     $isRegisterPage = request()->routeIs('register');
     $isMitraRegisterPage = request()->routeIs('mitra.register');
-    $isAuthPage = $isLoginPage || $isRegisterPage || $isMitraRegisterPage;
+    $isForgotPasswordPage = request()->routeIs('password.request');
+    $isResetPasswordPage = request()->routeIs('password.reset');
+    $isAuthPage = $isLoginPage || $isRegisterPage || $isMitraRegisterPage || $isForgotPasswordPage || $isResetPasswordPage;
     $appName = \App\Models\Parameter::get('app_name', config('app.name', 'Pijat.In'));
     $appLogo = \App\Models\Parameter::get('app_logo');
     $appFavicon = \App\Models\Parameter::get('app_favicon');
+    $pageTitle = match (true) {
+        $isLoginPage => 'Masuk · ' . $appName,
+        $isMitraRegisterPage => 'Daftar Mitra · ' . $appName,
+        $isRegisterPage => 'Daftar Pelanggan · ' . $appName,
+        $isForgotPasswordPage => 'Lupa Kata Sandi · ' . $appName,
+        $isResetPasswordPage => 'Atur Ulang Kata Sandi · ' . $appName,
+        default => config('app.name', 'Laravel'),
+    };
 @endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
@@ -19,7 +29,7 @@
             <meta name="apple-mobile-web-app-status-bar-style" content="default">
         @endif
 
-        <title>{{ $isLoginPage ? 'Masuk — ' . $appName : ($isMitraRegisterPage ? 'Daftar Mitra — ' . $appName : ($isRegisterPage ? 'Daftar Pelanggan — ' . $appName : config('app.name', 'Laravel'))) }}</title>
+        <title>{{ $pageTitle }}</title>
 
         @if ($appFavicon && file_exists(public_path('storage/' . $appFavicon)))
             <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . $appFavicon) }}">
@@ -71,6 +81,13 @@
                             <p class="text-base text-slate-300 leading-relaxed">
                                 Nikmati kemudahan memesan layanan terapis bersertifikasi langsung ke rumah atau lokasi Anda kapan saja, dengan jaminan kenyamanan, kebersihan, dan tarif transparan.
                             </p>
+                        @elseif ($isForgotPasswordPage || $isResetPasswordPage)
+                            <h2 class="text-3xl xl:text-4xl font-bold text-white tracking-tight leading-snug">
+                                Pemulihan Kata Sandi
+                            </h2>
+                            <p class="text-base text-slate-300 leading-relaxed">
+                                Masukkan email terdaftar Anda untuk menerima tautan reset kata sandi dan melanjutkan akses ke akun Anda.
+                            </p>
                         @else
                             <h2 class="text-3xl xl:text-4xl font-bold text-white tracking-tight leading-snug">
                                 Layanan Pijat Profesional Langsung ke Tempat Anda
@@ -113,6 +130,12 @@
                             @elseif ($isRegisterPage)
                                 <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Buat Akun Pelanggan</h1>
                                 <p class="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">Daftarkan data diri Anda untuk mulai memesan layanan pijat.</p>
+                            @elseif ($isForgotPasswordPage)
+                                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Lupa Kata Sandi</h1>
+                                <p class="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">Masukkan email terdaftar Anda untuk menerima tautan reset kata sandi.</p>
+                            @elseif ($isResetPasswordPage)
+                                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Atur Ulang Kata Sandi</h1>
+                                <p class="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">Masukkan kata sandi baru untuk akun Anda.</p>
                             @else
                                 <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Masuk ke Akun</h1>
                                 <p class="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">Silakan masukkan email dan kata sandi akun Anda untuk melanjutkan.</p>

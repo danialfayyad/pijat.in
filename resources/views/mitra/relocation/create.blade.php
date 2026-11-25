@@ -1,291 +1,459 @@
-<x-pwa-layout title="Pindah Wilayah Domisili - Pijat.In" headerTitle="Pindah Wilayah" :backUrl="route('mitra.profile')">
-    <!-- Leaflet CSS & JS -->
+<x-pwa-layout title="Pindah Wilayah - Pijat.In" headerTitle="Pindah Wilayah" :backUrl="route('mitra.profile')">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <div class="py-2 space-y-4">
+    <div class="py-2 space-y-3">
 
         @if (session('status'))
-            <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold shadow-xs flex items-center space-x-2.5">
-                <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-                <span>{{ session('status') }}</span>
+            <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
+                {{ session('status') }}
             </div>
         @endif
 
         @if (session('error'))
-            <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-semibold shadow-xs flex items-center space-x-2.5">
-                <svg class="w-4 h-4 text-rose-700 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                </svg>
-                <span>{{ session('error') }}</span>
+            <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium">
+                {{ session('error') }}
             </div>
         @endif
 
         @if ($errors->any())
-            <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-semibold shadow-xs flex items-center space-x-2.5">
-                <svg class="w-4 h-4 text-rose-700 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                </svg>
-                <span>{{ $errors->first() }}</span>
+            <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium">
+                {{ $errors->first() }}
             </div>
         @endif
 
         @if ($pendingRequest)
-            {{-- CASE A: Pending Relocation Request exists --}}
-            <div class="bg-white rounded-2xl p-5 border border-amber-200 shadow-xs space-y-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                        </svg>
+            {{-- CASE A: Permohonan Sedang Diproses --}}
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-5 space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <h3 class="text-sm font-bold text-slate-800">Pengajuan Pindah Wilayah</h3>
+                    <span class="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
+                        Menunggu Verifikasi
+                    </span>
+                </div>
+
+                <div class="space-y-2.5 text-xs">
+                    <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                        <span class="text-slate-400">Rute</span>
+                        <span class="font-semibold text-slate-800">{{ $pendingRequest->fromRegion->name }} &rarr; <span class="text-emerald-700">{{ $pendingRequest->toRegion->name }}</span></span>
                     </div>
-                    <div>
-                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">
-                            Menunggu Verifikasi Admin
-                        </span>
-                        <h2 class="text-sm font-bold text-slate-900 mt-1">Permohonan Relokasi Sedang Diproses</h2>
+                    <div class="flex justify-between items-start py-1 border-b border-slate-100">
+                        <span class="text-slate-400 shrink-0 mr-3">Alamat Tujuan</span>
+                        <span class="text-slate-700 text-right">{{ $pendingRequest->address_text }}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1 text-[11px]">
+                        <span class="text-slate-400">Waktu Pengajuan</span>
+                        <span class="text-slate-600">{{ $pendingRequest->created_at->translatedFormat('d M Y, H:i') }}</span>
                     </div>
                 </div>
 
-                <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-950 leading-relaxed">
-                    Permohonan perpindahan domisili Anda sedang ditinjau oleh Admin Wilayah <strong>{{ $pendingRequest->toRegion->name }}</strong>. Selama verifikasi berlangsung, akun kemitraan dinonaktifkan sementara dan penarikan saldo ditangguhkan demi integritas akun.
-                </div>
-
-                <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-2.5 text-xs">
-                    <div class="flex justify-between items-center py-1 border-b border-slate-200/60">
-                        <span class="text-slate-500 font-medium">Wilayah Asal:</span>
-                        <span class="font-bold text-slate-900">{{ $pendingRequest->fromRegion->name }}</span>
-                    </div>
-                    <div class="flex justify-between items-center py-1 border-b border-slate-200/60">
-                        <span class="text-slate-500 font-medium">Wilayah Tujuan:</span>
-                        <span class="font-bold text-emerald-700">{{ $pendingRequest->toRegion->name }}</span>
-                    </div>
-                    <div class="flex justify-between items-start py-1 border-b border-slate-200/60">
-                        <span class="text-slate-500 font-medium shrink-0 mr-2">Alamat Baru:</span>
-                        <span class="font-medium text-slate-800 text-right">{{ $pendingRequest->address_text }}</span>
-                    </div>
-                    <div class="flex justify-between items-center py-1 border-b border-slate-200/60">
-                        <span class="text-slate-500 font-medium">Koordinat:</span>
-                        <span class="font-mono text-slate-700">{{ number_format($pendingRequest->latitude, 5) }}, {{ number_format($pendingRequest->longitude, 5) }}</span>
-                    </div>
-                    <div class="flex justify-between items-center py-1">
-                        <span class="text-slate-500 font-medium">Tanggal Pengajuan:</span>
-                        <span class="text-slate-700">{{ $pendingRequest->created_at->translatedFormat('d M Y, H:i') }}</span>
-                    </div>
-                </div>
-
-                <form action="{{ route('mitra.relocation.cancel', $pendingRequest) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan permohonan perpindahan wilayah ini? Akun Anda akan kembali terhubung dengan wilayah asal.');">
+                <form action="{{ route('mitra.relocation.cancel', $pendingRequest) }}" method="POST" onsubmit="return confirm('Batalkan pengajuan pindah wilayah?');">
                     @csrf
-                    <button type="submit" class="w-full min-h-[44px] py-2.5 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 font-bold text-xs transition cursor-pointer flex items-center justify-center space-x-1.5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        <span>Batalkan Permohonan Relokasi</span>
+                    <button type="submit" class="w-full py-2.5 rounded-xl border border-slate-200 hover:border-rose-300 text-slate-600 hover:text-rose-700 text-xs font-medium transition cursor-pointer">
+                        Batalkan Pengajuan
                     </button>
                 </form>
             </div>
 
         @elseif ($hasActiveOrders)
-            {{-- CASE B: Has Active or Scheduled Orders (Prerequisite Guard) --}}
-            <div class="bg-white rounded-2xl p-5 border border-rose-200 shadow-xs space-y-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 uppercase tracking-wider">
-                            Pindah Wilayah Terkunci
-                        </span>
-                        <h2 class="text-sm font-bold text-slate-900 mt-1">Selesaikan Pesanan Terlebih Dahulu</h2>
-                    </div>
-                </div>
+            {{-- CASE B: Masih Ada Pesanan Aktif --}}
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-5 space-y-3">
+                <h3 class="text-sm font-bold text-slate-800">Pindah Wilayah Terkunci</h3>
+                <p class="text-xs text-slate-500">Selesaikan Pesanan Terlebih Dahulu</p>
 
-                <div class="p-3.5 rounded-xl bg-rose-50/70 border border-rose-200/80 text-xs text-rose-950 leading-relaxed">
-                    Anda saat ini masih memiliki <strong>{{ $activeOrdersCount }} pesanan</strong> yang berstatus aktif atau telah dijadwalkan (FCFS/Booking).
-                    Sistem melarang perpindahan wilayah selama masih ada tanggung jawab layanan kepada pelanggan di wilayah saat ini.
-                </div>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Anda masih memiliki {{ $activeOrdersCount }} pesanan aktif atau terjadwal. Harap selesaikan seluruh pesanan sebelum mengajukan pindah wilayah.
+                </p>
 
-                <div class="space-y-2 pt-1">
-                    <a href="{{ route('mitra.orders.my-schedule') }}" class="w-full min-h-[44px] py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs transition cursor-pointer flex items-center justify-center space-x-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span>Lihat Jadwal & Pesanan Saya</span>
-                    </a>
-                    <a href="{{ route('mitra.profile') }}" class="w-full min-h-[44px] py-2.5 border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-xs transition cursor-pointer flex items-center justify-center">
-                        Kembali ke Profil
+                <div class="pt-2">
+                    <a href="{{ route('mitra.orders.my-schedule') }}" class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl text-xs transition flex items-center justify-center">
+                        Lihat Jadwal Saya
                     </a>
                 </div>
             </div>
 
         @else
-            {{-- CASE C: Eligible to Apply (MIT-22 Form) --}}
-            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-xs text-blue-950 flex items-start space-x-3">
-                <svg class="w-5 h-5 text-blue-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div class="leading-relaxed">
-                    <strong>Ketentuan Relokasi Antarwilayah:</strong>
-                    Tentukan titik domisili baru Anda pada peta di wilayah operasional yang aktif. Riwayat pesanan, rating bintang, dan riwayat sanksi Anda akan tetap terjaga setelah disetujui.
-                </div>
-            </div>
-
-            <form action="{{ route('mitra.relocation.store') }}" method="POST" id="relocation-form" class="space-y-4">
+            {{-- CASE C: Formulir Ringkas --}}
+            <form action="{{ route('mitra.relocation.store') }}" method="POST" id="relocation-form" class="space-y-3">
                 @csrf
 
-                <!-- Wilayah Saat Ini -->
-                <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs flex items-center justify-between">
-                    <div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Wilayah Asal Saat Ini</span>
-                        <span class="text-sm font-black text-slate-900 mt-0.5 block">{{ $currentRegion?->name ?? 'Belum Ditentukan' }}</span>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
-                        Aktif
-                    </span>
-                </div>
-
-                <!-- Pemilihan Titik Peta & Leaflet -->
-                <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-4 space-y-3.5">
+                    <!-- Rute: Asal & Tujuan -->
+                    <div class="grid grid-cols-2 gap-3 items-center">
+                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                            <span class="text-[10px] text-slate-400 block font-medium">Wilayah Asal</span>
+                            <span class="text-xs font-bold text-slate-800 truncate block mt-0.5">Wilayah {{ $currentRegion?->name ?? '-' }}</span>
+                        </div>
                         <div>
-                            <h3 class="text-xs font-bold text-slate-900">Pilih Titik Domisili Baru</h3>
-                            <p class="text-[11px] text-slate-500">Geser pin marker pada peta ke lokasi tempat tinggal / pangkalan baru Anda.</p>
+                            <label for="city_select" class="text-[10px] text-slate-400 block font-medium mb-1">Kota Tujuan</label>
+                            <select id="city_select" onchange="onCityChanged(this)"
+                                class="w-full text-xs rounded-xl border-slate-200 focus:border-emerald-600 focus:ring-emerald-600 bg-white py-2 font-medium">
+                                <option value="">Pilih Kota</option>
+                                @foreach ($activeRegions as $r)
+                                    <option value="{{ $r->id }}">{{ $r->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
 
-                    <!-- Quick Pan Buttons -->
-                    @if ($activeRegions->isNotEmpty())
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Pintasan Kota Tujuan:</span>
-                            <div class="flex flex-wrap gap-1.5">
-                                @foreach ($activeRegions as $r)
-                                    <button type="button"
-                                            onclick="searchCityCenter('{{ $r->name }}')"
-                                            class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer">
-                                        {{ $r->name }}
-                                    </button>
-                                @endforeach
+                    <!-- Peta -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                            Pilih Titik Domisili Baru
+                        </label>
+                        <div class="w-full h-48 rounded-xl border border-slate-200 overflow-hidden" id="relocation-map"></div>
+                        @error('latitude')
+                            <p class="text-xs text-rose-600 mt-1 font-medium">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <input type="hidden" name="latitude" id="lat" value="{{ old('latitude', $defaultLat ?? '') }}">
+                    <input type="hidden" name="longitude" id="lng" value="{{ old('longitude', $defaultLng ?? '') }}">
+
+                    <!-- Alamat Lengkap & Rekomendasi Alamat (Shopee / Grab Autocomplete) -->
+                    <div class="relative" id="address-container">
+                        <div class="flex items-center justify-between mb-1">
+                            <label for="address_text" class="block text-xs font-semibold text-slate-700">
+                                Alamat Lengkap
+                            </label>
+                            <span id="geocode-status" class="text-[10px] text-emerald-600 font-medium hidden">
+                                Menyesuaikan pin...
+                            </span>
+                        </div>
+
+                        <div class="relative">
+                            <textarea id="address_text" name="address_text" rows="2" required 
+                                placeholder="Ketik nama jalan, desa, atau kecamatan (cth: Trimulyo, Jetis)..."
+                                autocomplete="off"
+                                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-emerald-600 focus:ring-emerald-600 pr-8">{{ old('address_text') }}</textarea>
+
+                            <button type="button" id="clear-address-btn" onclick="clearAddressInput()" 
+                                title="Hapus teks"
+                                class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 hidden">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+
+                            <!-- Dropdown Rekomendasi Alamat -->
+                            <div id="address-suggestions" 
+                                class="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-2xl border border-slate-200 z-[1000] overflow-hidden hidden max-h-60 overflow-y-auto divide-y divide-slate-100">
                             </div>
                         </div>
-                    @endif
 
-                    <!-- Leaflet Container -->
-                    <div class="relative rounded-xl overflow-hidden border border-slate-200">
-                        <div id="relocation-map" class="h-64 w-full z-0"></div>
-                        <div class="absolute bottom-2 left-2 right-2 bg-white/90 backdrop-blur-xs px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] text-slate-600 flex items-center justify-between pointer-events-none z-10">
-                            <span id="geo-status">Geser pin peta untuk memilih koordinat</span>
-                            <span id="coord-display" class="font-mono text-slate-700 font-bold">-</span>
-                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">
+                            Ketik alamat untuk memilih dari rekomendasi, atau geser pin langsung pada peta.
+                        </p>
+                        @error('address_text') <p class="text-xs text-rose-600 mt-1 font-medium">{{ $message }}</p> @enderror
                     </div>
 
-                    <!-- Hidden Coordinate Inputs -->
-                    <input type="hidden" name="latitude" id="lat" value="{{ old('latitude', '-6.9175') }}">
-                    <input type="hidden" name="longitude" id="lng" value="{{ old('longitude', '107.6191') }}">
-
-                    <!-- Detail Alamat Teks -->
-                    <div>
-                        <label for="address_text" class="block text-xs font-semibold text-slate-700 mb-1">
-                            Alamat Lengkap Domisili Baru <span class="text-rose-500">*</span>
-                        </label>
-                        <textarea name="address_text" id="address_text" rows="3" required
-                                  placeholder="Contoh: Jl. Diponegoro No. 12, RT 02/RW 04, Kel. Citarum, Kec. Bandung Wetan"
-                                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-emerald-600 focus:ring-emerald-600 transition">{{ old('address_text') }}</textarea>
-                        <p class="text-[10px] text-slate-400 mt-1">Alamat dapat terisi otomatis saat pin digeser atau dapat Anda edit secara manual agar lebih akurat.</p>
-                    </div>
-
-                    <!-- Catatan Tambahan (Opsional) -->
+                    <!-- Alasan (Opsional) -->
                     <div>
                         <label for="notes" class="block text-xs font-semibold text-slate-700 mb-1">
-                            Alasan / Catatan ke Admin Wilayah (Opsional)
+                            Alasan Pindah <span class="text-slate-400 font-normal">(Opsional)</span>
                         </label>
-                        <textarea name="notes" id="notes" rows="2"
-                                  placeholder="Contoh: Pindah tempat tinggal keluarga ke Bandung per bulan ini."
-                                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-emerald-600 focus:ring-emerald-600 transition">{{ old('notes') }}</textarea>
+                        <input type="text" id="notes" name="notes" value="{{ old('notes') }}" placeholder="Alasan perpindahan..."
+                            class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-emerald-600 focus:ring-emerald-600">
                     </div>
-                </div>
 
-                <div class="pt-1">
                     <button type="submit"
-                            class="w-full min-h-[48px] py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-sm transition cursor-pointer flex items-center justify-center space-x-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>Ajukan Permohonan Pindah Wilayah</span>
+                        class="w-full py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs transition cursor-pointer">
+                        Ajukan Pindah Wilayah
                     </button>
                 </div>
             </form>
 
             <script>
-                let map, marker, geocodeTimeout;
+                let map, marker, reverseGeocodeTimeout, searchTimeout;
+                let isProgrammaticChange = false;
+                let currentSuggestions = [];
 
-                function updateMarkerPosition(lat, lng) {
-                    document.getElementById('lat').value = lat.toFixed(7);
-                    document.getElementById('lng').value = lng.toFixed(7);
-                    document.getElementById('coord-display').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-                    reverseGeocode(lat, lng);
+                function setCoordinates(lat, lng, syncAddress = true) {
+                    document.getElementById('lat').value = lat.toFixed(6);
+                    document.getElementById('lng').value = lng.toFixed(6);
+                    if (syncAddress) {
+                        reverseGeocode(lat, lng);
+                    }
                 }
 
                 function reverseGeocode(lat, lng) {
                     const addressInput = document.getElementById('address_text');
-                    const geoStatus = document.getElementById('geo-status');
+                    if (!addressInput) return;
 
-                    if (geoStatus) {
-                        geoStatus.textContent = 'Mendeteksi alamat...';
-                    }
-
-                    clearTimeout(geocodeTimeout);
-                    geocodeTimeout = setTimeout(() => {
+                    clearTimeout(reverseGeocodeTimeout);
+                    reverseGeocodeTimeout = setTimeout(() => {
                         fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
                             .then(res => res.json())
                             .then(data => {
                                 if (data && data.display_name) {
-                                    if (!addressInput.value || addressInput.value.trim() === '') {
-                                        addressInput.value = data.display_name;
-                                    }
-                                    if (geoStatus) {
-                                        geoStatus.textContent = '✓ Koordinat siap disematkan';
-                                    }
-                                } else {
-                                    if (geoStatus) geoStatus.textContent = 'Pin peta berhasil disematkan';
+                                    isProgrammaticChange = true;
+                                    addressInput.value = data.display_name;
+                                    isProgrammaticChange = false;
+                                    updateClearButton();
+                                    hideSuggestions();
                                 }
                             })
-                            .catch(() => {
-                                if (geoStatus) geoStatus.textContent = 'Pin peta berhasil disematkan';
-                            });
-                    }, 500);
+                            .catch(() => {});
+                    }, 300);
+                }
+
+                function updateClearButton() {
+                    const addressInput = document.getElementById('address_text');
+                    const clearBtn = document.getElementById('clear-address-btn');
+                    if (clearBtn && addressInput) {
+                        if (addressInput.value.trim().length > 0) {
+                            clearBtn.classList.remove('hidden');
+                        } else {
+                            clearBtn.classList.add('hidden');
+                        }
+                    }
+                }
+
+                function clearAddressInput() {
+                    const addressInput = document.getElementById('address_text');
+                    if (addressInput) {
+                        addressInput.value = '';
+                        addressInput.focus();
+                        updateClearButton();
+                        hideSuggestions();
+                    }
+                }
+
+                function hideSuggestions() {
+                    const list = document.getElementById('address-suggestions');
+                    if (list) {
+                        list.classList.add('hidden');
+                        list.innerHTML = '';
+                    }
+                    currentSuggestions = [];
+                }
+
+                function generateQueryCandidates(rawText, cityName) {
+                    const candidates = [];
+                    const cleanCity = cityName
+                        ? cityName.replace(/\b(kabupaten|kab\.|kota|kotamadya)\s+/gi, '').trim()
+                        : '';
+
+                    const cleaned = rawText
+                        .replace(/\b(rt|rw)\s*\/?\s*\d+/gi, ' ')
+                        .replace(/\bno(mor|\.)?\s*\d+[a-z]?\b/gi, ' ')
+                        .replace(/\b(desa|kelurahan|kel\.|dusun|dukuh|kp\.|kampung)\s+/gi, ' ')
+                        .replace(/\b(kecamatan|kec\.)\s+/gi, ' ')
+                        .replace(/\b(kabupaten|kab\.|kotamadya|kota)\s+/gi, ' ')
+                        .replace(/[,;]+/g, ', ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+
+                    if (!cleaned) return candidates;
+
+                    if (cleanCity && !cleaned.toLowerCase().includes(cleanCity.toLowerCase())) {
+                        candidates.push(`${cleaned}, ${cleanCity}`);
+                    }
+                    candidates.push(cleaned);
+
+                    const commaParts = cleaned.split(',').map(p => p.trim()).filter(Boolean);
+                    if (commaParts.length > 1) {
+                        for (let i = 1; i < commaParts.length; i++) {
+                            const sub = commaParts.slice(i).join(', ');
+                            if (cleanCity && !sub.toLowerCase().includes(cleanCity.toLowerCase())) {
+                                candidates.push(`${sub}, ${cleanCity}`);
+                            }
+                            candidates.push(sub);
+                        }
+                    }
+
+                    const words = cleaned.replace(/[,.]+/g, ' ').split(/\s+/).filter(w => w.length > 2);
+                    if (words.length > 1) {
+                        for (let i = words.length - 1; i >= 0; i--) {
+                            const w = words[i];
+                            if (cleanCity && w.toLowerCase() !== cleanCity.toLowerCase()) {
+                                candidates.push(`${w}, ${cleanCity}`);
+                            }
+                        }
+                    }
+
+                    if (cleanCity && !rawText.toLowerCase().includes(cleanCity.toLowerCase())) {
+                        candidates.push(`${rawText.trim()}, ${cleanCity}`);
+                    }
+
+                    return [...new Set(candidates)];
+                }
+
+                function fetchAddressSuggestions(rawText) {
+                    if (isProgrammaticChange) return;
+
+                    updateClearButton();
+
+                    if (!rawText || rawText.trim().length < 3) {
+                        hideSuggestions();
+                        return;
+                    }
+
+                    const list = document.getElementById('address-suggestions');
+                    const statusEl = document.getElementById('geocode-status');
+
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(async () => {
+                        const citySelect = document.getElementById('city_select');
+                        const cityName = citySelect && citySelect.selectedIndex > 0 ? citySelect.options[citySelect.selectedIndex].text : '';
+
+                        const candidates = generateQueryCandidates(rawText, cityName);
+                        if (candidates.length === 0) {
+                            hideSuggestions();
+                            return;
+                        }
+
+                        if (statusEl) {
+                            statusEl.textContent = 'Mencari rekomendasi...';
+                            statusEl.classList.remove('hidden');
+                        }
+
+                        list.innerHTML = `
+                            <div class="px-3.5 py-3 text-xs text-slate-500 flex items-center space-x-2">
+                                <svg class="animate-spin w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                </svg>
+                                <span>Mencari rekomendasi alamat...</span>
+                            </div>
+                        `;
+                        list.classList.remove('hidden');
+
+                        let results = [];
+                        for (const query of candidates) {
+                            try {
+                                const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(query)}&addressdetails=1&limit=5&countrycodes=id`;
+                                const res = await fetch(url);
+                                const data = await res.json();
+                                if (data && data.length > 0) {
+                                    results = data;
+                                    break;
+                                }
+                            } catch (err) {}
+                        }
+
+                        if (statusEl) {
+                            statusEl.classList.add('hidden');
+                        }
+
+                        if (results.length === 0) {
+                            list.innerHTML = `
+                                <div class="px-3.5 py-3 text-xs text-slate-400 text-center">
+                                    Tidak ada rekomendasi lokasi. Coba tulis nama desa/kecamatan atau geser pin langsung pada peta.
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        currentSuggestions = results;
+                        list.innerHTML = results.map((item, index) => {
+                            const title = item.name || (item.display_name ? item.display_name.split(',')[0] : 'Lokasi');
+                            const subtitle = item.display_name || '';
+                            return `
+                                <button type="button" onclick="selectSuggestion(${index})"
+                                    class="w-full text-left px-3.5 py-2.5 hover:bg-emerald-50/60 focus:bg-emerald-50/60 flex items-start space-x-2.5 transition group cursor-pointer">
+                                    <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-emerald-600 group-hover:text-white transition">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="text-xs font-semibold text-slate-800 truncate group-hover:text-emerald-900 transition">
+                                            ${title}
+                                        </div>
+                                        <div class="text-[10px] text-slate-500 line-clamp-1 mt-0.5">
+                                            ${subtitle}
+                                        </div>
+                                    </div>
+                                </button>
+                            `;
+                        }).join('');
+                    }, 350);
+                }
+
+                function selectSuggestion(index) {
+                    const item = currentSuggestions[index];
+                    if (!item) return;
+
+                    const addressInput = document.getElementById('address_text');
+                    const lat = parseFloat(item.lat);
+                    const lng = parseFloat(item.lon);
+
+                    isProgrammaticChange = true;
+                    addressInput.value = item.display_name;
+                    isProgrammaticChange = false;
+
+                    updateClearButton();
+                    hideSuggestions();
+
+                    document.getElementById('lat').value = lat.toFixed(6);
+                    document.getElementById('lng').value = lng.toFixed(6);
+
+                    marker.setLatLng([lat, lng]);
+
+                    if (item.boundingbox && item.boundingbox.length === 4) {
+                        const south = parseFloat(item.boundingbox[0]);
+                        const north = parseFloat(item.boundingbox[1]);
+                        const west = parseFloat(item.boundingbox[2]);
+                        const east = parseFloat(item.boundingbox[3]);
+                        map.fitBounds([[south, west], [north, east]], { maxZoom: 16 });
+                    } else {
+                        map.setView([lat, lng], 15);
+                    }
+
+                    const statusEl = document.getElementById('geocode-status');
+                    if (statusEl) {
+                        statusEl.textContent = 'Pin disesuaikan';
+                        statusEl.classList.remove('hidden');
+                        setTimeout(() => {
+                            statusEl.classList.add('hidden');
+                            statusEl.textContent = 'Menyesuaikan pin...';
+                        }, 1500);
+                    }
+                }
+
+                function onCityChanged(selectEl) {
+                    const addressInput = document.getElementById('address_text');
+                    if (addressInput && addressInput.value.trim().length >= 3) {
+                        fetchAddressSuggestions(addressInput.value);
+                    } else if (selectEl.selectedIndex > 0) {
+                        searchCityCenter(selectEl.options[selectEl.selectedIndex].text);
+                    }
                 }
 
                 function searchCityCenter(cityName) {
-                    const geoStatus = document.getElementById('geo-status');
-                    if (geoStatus) geoStatus.textContent = `Mencari wilayah ${cityName}...`;
+                    if (!cityName || cityName.includes('Pilih Kota')) return;
+                    const cleanCity = cityName.replace(/\b(kabupaten|kab\.|kota|kotamadya)\s+/gi, '').trim();
 
-                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName + ', Indonesia')}`)
+                    fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(cleanCity)}&limit=1&countrycodes=id`)
                         .then(res => res.json())
                         .then(data => {
                             if (data && data.length > 0) {
                                 const lat = parseFloat(data[0].lat);
                                 const lng = parseFloat(data[0].lon);
-                                map.setView([lat, lng], 13);
+                                if (data[0].boundingbox && data[0].boundingbox.length === 4) {
+                                    map.fitBounds([
+                                        [parseFloat(data[0].boundingbox[0]), parseFloat(data[0].boundingbox[2])],
+                                        [parseFloat(data[0].boundingbox[1]), parseFloat(data[0].boundingbox[3])]
+                                    ], { maxZoom: 13 });
+                                } else {
+                                    map.setView([lat, lng], 13);
+                                }
                                 marker.setLatLng([lat, lng]);
-                                updateMarkerPosition(lat, lng);
+                                setCoordinates(lat, lng, true);
                             }
                         })
-                        .catch(() => {
-                            if (geoStatus) geoStatus.textContent = 'Gagal memusatkan peta';
-                        });
+                        .catch(() => {});
                 }
 
                 document.addEventListener('DOMContentLoaded', function () {
                     const latInput = document.getElementById('lat');
                     const lngInput = document.getElementById('lng');
+                    const addressInput = document.getElementById('address_text');
 
-                    const initLat = parseFloat(latInput?.value) || -6.9175;
-                    const initLng = parseFloat(lngInput?.value) || 107.6191;
+                    const initLat = parseFloat(latInput?.value) || {{ $defaultLat ?? '-7.7956' }};
+                    const initLng = parseFloat(lngInput?.value) || {{ $defaultLng ?? '110.3695' }};
 
                     map = L.map('relocation-map').setView([initLat, initLng], 12);
 
@@ -294,20 +462,43 @@
                         attribution: '© OpenStreetMap'
                     }).addTo(map);
 
-                    marker = L.marker([initLat, initLng], {
-                        draggable: true
-                    }).addTo(map);
-
-                    updateMarkerPosition(initLat, initLng);
+                    marker = L.marker([initLat, initLng], { draggable: true }).addTo(map);
 
                     marker.on('dragend', function (e) {
                         const pos = marker.getLatLng();
-                        updateMarkerPosition(pos.lat, pos.lng);
+                        setCoordinates(pos.lat, pos.lng, true);
                     });
 
                     map.on('click', function (e) {
                         marker.setLatLng(e.latlng);
-                        updateMarkerPosition(e.latlng.lat, e.latlng.lng);
+                        setCoordinates(e.latlng.lat, e.latlng.lng, true);
+                    });
+
+                    if (addressInput) {
+                        addressInput.addEventListener('input', function (e) {
+                            fetchAddressSuggestions(e.target.value);
+                        });
+
+                        addressInput.addEventListener('focus', function (e) {
+                            if (e.target.value.trim().length >= 3 && currentSuggestions.length > 0) {
+                                document.getElementById('address-suggestions')?.classList.remove('hidden');
+                            }
+                        });
+
+                        updateClearButton();
+                    }
+
+                    document.addEventListener('click', function (e) {
+                        const container = document.getElementById('address-container');
+                        if (container && !container.contains(e.target)) {
+                            hideSuggestions();
+                        }
+                    });
+
+                    document.addEventListener('keydown', function (e) {
+                        if (e.key === 'Escape') {
+                            hideSuggestions();
+                        }
                     });
                 });
             </script>
@@ -315,4 +506,3 @@
 
     </div>
 </x-pwa-layout>
-

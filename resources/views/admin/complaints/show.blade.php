@@ -170,8 +170,8 @@
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 @foreach ($complaint->evidence_photos as $idx => $photo)
                                     <div class="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 cursor-pointer"
-                                         @click="previewPhoto = '{{ asset($photo) }}'; previewTitle = 'Bukti Foto #{{ $idx + 1 }}'">
-                                        <img src="{{ asset($photo) }}" alt="Bukti aduan" class="w-full h-full object-cover transition group-hover:scale-105">
+                                         @click="previewPhoto = '{{ asset('storage/' . $photo) }}'; previewTitle = 'Bukti Foto #{{ $idx + 1 }}'">
+                                        <img src="{{ asset('storage/' . $photo) }}" alt="Bukti aduan" class="w-full h-full object-cover transition group-hover:scale-105">
                                         <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-semibold transition">
                                             Perbesar
                                         </div>
