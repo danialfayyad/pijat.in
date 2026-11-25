@@ -73,7 +73,8 @@ class Region extends Model
     }
 
     /**
-     * Check if a given polygon WKT intersects with this region.
+     * Check if a given polygon WKT overlaps with existing regions.
+     * Touching boundaries (shared border line) is permitted for adjacent regions.
      */
     public static function hasOverlappingRegion(string $polygonWkt, ?int $excludeRegionId = null): bool
     {
@@ -84,8 +85,13 @@ class Region extends Model
         }
 
         return $query->whereRaw(
-            "ST_Intersects(boundaries, ST_GeomFromText(?, 4326, 'axis-order=long-lat'))",
-            [$polygonWkt]
+            "(
+                ST_Overlaps(boundaries, ST_GeomFromText(?, 4326, 'axis-order=long-lat'))
+                OR ST_Contains(boundaries, ST_GeomFromText(?, 4326, 'axis-order=long-lat'))
+                OR ST_Within(boundaries, ST_GeomFromText(?, 4326, 'axis-order=long-lat'))
+                OR ST_Equals(boundaries, ST_GeomFromText(?, 4326, 'axis-order=long-lat'))
+            )",
+            [$polygonWkt, $polygonWkt, $polygonWkt, $polygonWkt]
         )->exists();
     }
 

@@ -31,6 +31,7 @@ Route::middleware(['auth', 'role:pelanggan'])->prefix('pelanggan')->name('pelang
     // Customer Orders & Booking (Slice 4 & 5: CUS-04, CUS-06, CUS-07, CUS-08, SYS-08)
     Route::get('/orders', [OrderBookingController::class, 'index'])->name('orders.index');
     Route::get('/orders/check-instant', [OrderBookingController::class, 'checkInstantAvailability'])->name('orders.check-instant');
+    Route::post('/orders/validate-voucher', [OrderBookingController::class, 'validateVoucher'])->name('orders.validate-voucher');
     Route::get('/orders/create', [OrderBookingController::class, 'create'])->name('orders.create');
     Route::post('/orders', [OrderBookingController::class, 'store'])->name('orders.store');
     Route::get('/orders/{order}', [OrderBookingController::class, 'show'])->name('orders.show');

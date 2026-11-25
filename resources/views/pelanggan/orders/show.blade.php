@@ -590,7 +590,7 @@
                    aria-label="Kembali ke Pesanan"
                    title="Kembali">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                     </svg>
                 </a>
 
@@ -679,22 +679,18 @@
         @else
             <!-- FULL-PAGE LAYOUT (Belum Ada Mitra / Selesai / Dibatalkan) -->
             <div class="w-full h-full flex flex-col bg-slate-50">
-                <header class="bg-white border-b border-slate-200/80 px-4 py-3 flex items-center justify-between gap-3 shrink-0">
-                    <div class="flex items-center space-x-2.5 min-w-0">
+                <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/70 px-4 py-2.5 min-h-[56px] flex items-center justify-between gap-3 shrink-0">
+                    <div class="flex items-center space-x-2 min-w-0">
                         <a href="{{ route('pelanggan.orders.index') }}"
-                           class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center shrink-0 transition"
+                           class="w-8 h-8 -ml-1 rounded-full flex items-center justify-center text-slate-700 hover:bg-slate-100 transition shrink-0 cursor-pointer"
                            aria-label="Kembali ke Pesanan"
                            title="Kembali">
-                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7" />
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                             </svg>
                         </a>
-                        <h1 class="text-sm font-bold text-slate-900 truncate">Rincian Pesanan</h1>
+                        <h1 class="text-sm font-bold text-slate-900 leading-tight truncate">Rincian Pesanan</h1>
                     </div>
-                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold {{ $order->status->textColorClass() }} shrink-0">
-                        <span class="w-1.5 h-1.5 rounded-full {{ str_replace('animate-pulse', '', $order->status->dotClass()) }}"></span>
-                        {{ $order->status->label() }}
-                    </span>
                 </header>
         @endif
 
@@ -867,7 +863,19 @@
         @endif
 
             <!-- MODE 2: EXPANDED / FULL-PAGE VIEW (Scrollable Rincian Lengkap & Pelacakan) -->
-            <div @if ($showMap) x-show="isExpanded" @endif class="flex-1 overflow-y-auto px-4 pb-8 {{ $showMap ? 'pt-3' : 'pt-4' }} space-y-3.5 overscroll-contain">
+            <div @if ($showMap) x-show="isExpanded" @endif class="flex-1 overflow-y-auto px-4 pb-32 sm:pb-36 {{ $showMap ? 'pt-3' : 'pt-4' }} space-y-3.5 overscroll-contain">
+
+                <!-- Top Summary Card: Nomor Pesanan & Status -->
+                <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex items-center justify-between gap-3">
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Nomor Pesanan</span>
+                        <span class="text-xs font-bold font-mono text-slate-800">#{{ $order->order_code }}</span>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold {{ $order->status->textColorClass() }} shrink-0">
+                        <span class="w-1.5 h-1.5 rounded-full {{ str_replace('animate-pulse', '', $order->status->dotClass()) }}"></span>
+                        {{ $order->status->label() }}
+                    </span>
+                </div>
 
                 @if ($order->status === \App\Enums\OrderStatus::Dibatalkan)
                     <div class="bg-white rounded-2xl p-4 border border-rose-200/80 shadow-xs space-y-1.5">
@@ -996,8 +1004,18 @@
                                 <span>Saldo Dompet Anda</span>
                                 <span class="font-semibold text-slate-900 font-mono">{{ $userWallet->formatted_balance }}</span>
                             </div>
+                            @if ($order->discount_amount > 0)
+                                <div class="flex items-center justify-between text-slate-600">
+                                    <span>Tarif Layanan</span>
+                                    <span class="font-semibold text-slate-900 font-mono">Rp {{ number_format($order->total_price + $order->discount_amount, 0, ',', '.') }}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-emerald-700 font-medium">
+                                    <span>Diskon Voucher ({{ $order->voucher->code ?? 'PROMO' }})</span>
+                                    <span class="font-semibold font-mono">-Rp {{ number_format($order->discount_amount, 0, ',', '.') }}</span>
+                                </div>
+                            @endif
                             <div class="flex items-center justify-between text-slate-600">
-                                <span>Total Tagihan</span>
+                                <span>Total Tagihan Bersih</span>
                                 <span class="font-semibold text-slate-900 font-mono">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
                             </div>
                             @if (! $hasSufficient)
@@ -1395,32 +1413,39 @@
                             </template>
                         </div>
 
-                        <!-- Opsi / Status Aduan Layanan (CUS-19) -->
+                        <!-- Status Aduan Layanan (CUS-19) -->
                         @if ($existingComplaint)
                             @if ($isComplainant)
                                 <a href="{{ route('pelanggan.complaints.show', [$existingComplaint, 'from' => 'order']) }}"
-                                   class="p-3 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200/80 flex items-center justify-between gap-3 text-xs transition group">
-                                    <div class="min-w-0 space-y-0.5">
-                                        <div class="flex items-center space-x-1.5 text-[11px]">
-                                            <span class="font-mono font-semibold text-slate-500">{{ $existingComplaint->complaint_code }}</span>
-                                            <span class="text-slate-300">•</span>
-                                            <span class="font-semibold text-amber-700">{{ $existingComplaint->status->label() }}</span>
+                                   class="p-3.5 bg-white hover:bg-slate-50 rounded-xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-3 text-xs transition group">
+                                    <div class="min-w-0 space-y-1">
+                                        <div class="flex items-center space-x-2 text-[11px]">
+                                            <span class="font-mono font-bold text-slate-800">#{{ $existingComplaint->complaint_code }}</span>
+                                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200/80">
+                                                {{ $existingComplaint->status->label() }}
+                                            </span>
                                         </div>
-                                        <p class="text-slate-800 font-medium truncate">{{ $existingComplaint->title }}</p>
+                                        <p class="text-xs font-semibold text-slate-900 truncate">{{ $existingComplaint->title }}</p>
+                                        <p class="text-[11px] text-slate-500">Aduan Anda sedang diproses oleh Admin Wilayah.</p>
                                     </div>
-                                    <span class="inline-flex items-center space-x-1 text-emerald-700 font-semibold text-[11px] shrink-0 group-hover:text-emerald-800">
-                                        <span>Lihat Status</span>
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                    </span>
+                                    <div class="inline-flex items-center space-x-1 text-emerald-700 font-semibold text-xs shrink-0 group-hover:text-emerald-800">
+                                        <span>Rincian</span>
+                                        <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </div>
                                 </a>
                             @else
-                                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-700 space-y-1">
-                                    <div class="flex items-center space-x-1.5 font-semibold text-slate-800">
-                                        <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                        <span>Pesanan Dalam Peninjauan Laporan Kendala</span>
+                                <div class="p-3.5 bg-white rounded-xl border border-slate-200/90 shadow-xs text-xs space-y-1">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                                            <span class="font-bold text-slate-900">Kendala Dilaporkan Terapis</span>
+                                        </div>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200/80 shrink-0">
+                                            {{ $existingComplaint->status->label() }}
+                                        </span>
                                     </div>
-                                    <p class="text-[11px] text-slate-500 leading-relaxed">
-                                        Tiket: <span class="font-semibold text-slate-700">{{ $existingComplaint->complaint_code }}</span> ({{ $existingComplaint->status->label() }}). Sedang ditangani Admin Wilayah.
+                                    <p class="text-[11px] text-slate-500 leading-relaxed pt-1 border-t border-slate-100">
+                                        Tiket <span class="font-mono font-bold text-slate-700">#{{ $existingComplaint->complaint_code }}</span> sedang ditinjau oleh Admin Wilayah.
                                     </p>
                                 </div>
                             @endif
@@ -1526,6 +1551,22 @@
                                     Segera (Instan)
                                 @endif
                             </span>
+                        </div>
+
+                        @if ($order->discount_amount > 0)
+                            <div class="flex items-start justify-between gap-4 pt-2 border-t border-slate-100">
+                                <span class="text-slate-500 shrink-0">Tarif Layanan</span>
+                                <span class="font-semibold text-slate-900 font-mono text-right">Rp {{ number_format($order->total_price + $order->discount_amount, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="flex items-start justify-between gap-4 text-emerald-700">
+                                <span class="font-medium shrink-0">Diskon Voucher ({{ $order->voucher->code ?? 'PROMO' }})</span>
+                                <span class="font-bold font-mono text-right">-Rp {{ number_format($order->discount_amount, 0, ',', '.') }}</span>
+                            </div>
+                        @endif
+
+                        <div class="flex items-start justify-between gap-4 pt-2 border-t border-slate-100">
+                            <span class="text-slate-900 font-bold shrink-0">Total Pembayaran</span>
+                            <span class="font-bold text-slate-900 font-mono text-right">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
                         </div>
                     </div>
 

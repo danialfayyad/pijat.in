@@ -246,3 +246,52 @@ test('customer cannot access, edit, or delete another customer address', functio
         ->delete(route('pelanggan.addresses.destroy', $otherAddress))
         ->assertForbidden();
 });
+
+test('customer can switch primary address from checkout flow and redirects back to order create', function () {
+    $service = app(CustomerAddressService::class);
+    $addr1 = $service->createAddress($this->customer, [
+        'label' => 'Rumah Bandung',
+        'address_text' => 'Jl. Braga No. 1',
+        'latitude' => -6.9175,
+        'longitude' => 107.6191,
+    ]);
+
+    $addr2 = $service->createAddress($this->customer, [
+        'label' => 'Kantor Bandung',
+        'address_text' => 'Jl. Asia Afrika No. 10',
+        'latitude' => -6.9200,
+        'longitude' => 107.6200,
+        'is_primary' => false,
+    ]);
+
+    $response = $this->actingAs($this->customer)
+        ->post(route('pelanggan.addresses.set-primary', $addr2), [
+            'from' => 'checkout',
+            'package_id' => 123,
+        ]);
+
+    $response->assertRedirect(route('pelanggan.orders.create', ['package_id' => 123]))
+        ->assertSessionHas('status', 'Alamat pengantaran pesanan berhasil diperbarui.');
+
+    $addr2->refresh();
+    expect($addr2->is_primary)->toBeTrue();
+});
+
+test('customer adding new address from checkout flow becomes primary and redirects to order create', function () {
+    $response = $this->actingAs($this->customer)
+        ->post(route('pelanggan.addresses.store'), [
+            'label' => 'Alamat Pengantaran Baru',
+            'address_text' => 'Jl. Merdeka No. 45',
+            'latitude' => -6.9175,
+            'longitude' => 107.6191,
+            'from' => 'checkout',
+            'package_id' => 456,
+        ]);
+
+    $response->assertRedirect(route('pelanggan.orders.create', ['package_id' => 456]))
+        ->assertSessionHas('status', 'Alamat baru berhasil ditambahkan dan digunakan untuk pesanan.');
+
+    $address = CustomerAddress::where('label', 'Alamat Pengantaran Baru')->first();
+    expect($address)->not->toBeNull()
+        ->and($address->is_primary)->toBeTrue();
+});

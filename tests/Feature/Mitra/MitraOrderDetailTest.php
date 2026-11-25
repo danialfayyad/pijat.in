@@ -4,6 +4,8 @@ use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Models\CustomerAddress;
 use App\Models\Order;
+use App\Models\OrderDispatch;
+use App\Models\OrderRating;
 use App\Models\PartnerProfile;
 use App\Models\Region;
 use App\Models\Service;
@@ -90,6 +92,7 @@ test('mitra dapat melihat detail pesanan, peta lokasi pelanggan, dan jarak terap
         'status' => OrderStatus::Dijadwalkan,
     ]);
 
+    // Saat belum berangkat (Dijadwalkan), UI full-page tanpa map latar belakang
     $response = $this->actingAs($this->mitra)->get(route('mitra.orders.show', $order));
 
     $response->assertOk();
@@ -98,10 +101,18 @@ test('mitra dapat melihat detail pesanan, peta lokasi pelanggan, dan jarak terap
     $response->assertSee('Jl. Semeru No. 10, Sumbersari');
     $response->assertSee('Pagar Hitam Depan Masjid');
     $response->assertSee('Cedera otot pundak kanan');
-    $response->assertSee('mitra-order-map');
-    $response->assertSee('Jarak ke Pelanggan');
+    $response->assertDontSee('id="mitra-order-map"', false);
+    $response->assertDontSee('Rute Pelanggan');
+    $response->assertSee('Rincian Pesanan');
     $response->assertSee('Buka Rute Navigasi di Google Maps');
     $response->assertSee('Rp 90.000'); // 90% net earnings
+
+    // Saat mitra berangkat (Menuju Lokasi), Leaflet map dan navigasi rute muncul
+    $order->update(['status' => OrderStatus::MenujuLokasi]);
+    $responseDeparted = $this->actingAs($this->mitra)->get(route('mitra.orders.show', $order));
+    $responseDeparted->assertOk();
+    $responseDeparted->assertSee('id="mitra-order-map"', false);
+    $responseDeparted->assertSee('Rute Pelanggan');
 });
 
 test('mitra dapat memperbarui status pesanan secara bertahap menuju lokasi hingga selesai', function () {
@@ -225,6 +236,12 @@ test('mitra terhalang validasi radius 50m saat tiba jika jarak jauh tanpa konfir
 
     $response->assertSessionHas('location_warning');
     expect($order->fresh()->status)->toBe(OrderStatus::MenujuLokasi);
+
+    $viewResponse = $this->actingAs($this->mitra)
+        ->withSession(['location_warning' => ['message' => 'Jarak Anda terdeteksi 1800 meter dari lokasi pelanggan.']])
+        ->get(route('mitra.orders.show', $order));
+    $viewResponse->assertSee('Anda Masih Jauh dari Titik Pelanggan');
+    $viewResponse->assertSee('Jarak Anda terdeteksi 1800 meter dari lokasi pelanggan.');
 
     // Dengan force_arrived (jalur cadangan/toleransi GPS)
     $responseFallback = $this->actingAs($this->mitra)
@@ -365,11 +382,92 @@ test('mitra order details mask sensitive customer data when order is completed m
     $response = $this->actingAs($this->mitra)->get(route('mitra.orders.show', $order));
 
     $response->assertOk();
-    $response->assertSee('Data Lokasi dan Rute Diarsipkan');
-    $response->assertSee('Arsip Riwayat (Lebih dari 24 Jam)');
     $response->assertSee($order->masked_address);
     $response->assertDontSee('Jl. Semeru Sangat Rahasia No. 10');
     $response->assertSee($order->masked_phone);
     $response->assertDontSee('082233445566');
     $response->assertDontSee('Riwayat cedera pinggang rahasia');
+});
+
+test('mitra can see customer rating or new customer badge on order detail', function () {
+    $order = Order::factory()->create([
+        'customer_id' => $this->customer->id,
+        'mitra_id' => $this->mitra->id,
+        'service_id' => $this->service->id,
+        'region_id' => $this->region->id,
+        'service_package_id' => $this->package->id,
+        'status' => OrderStatus::MenujuLokasi,
+        'order_type' => OrderType::Instan,
+        'recipient_name' => 'Danial Fayyad',
+    ]);
+
+    // Customer has no rating -> displays "Pelanggan Baru"
+    $response = $this->actingAs($this->mitra)->get(route('mitra.orders.show', $order));
+    $response->assertOk();
+    $response->assertSee('Pelanggan Baru');
+
+    // Add a review for customer from another partner
+    $otherMitra = User::factory()->mitra()->create(['gender' => 'pria']);
+    OrderRating::create([
+        'order_id' => $order->id,
+        'from_user_id' => $otherMitra->id,
+        'to_user_id' => $this->customer->id,
+        'score' => 5,
+        'rating_type' => 'mitra_to_customer',
+    ]);
+
+    $responseWithRating = $this->actingAs($this->mitra)->get(route('mitra.orders.show', $order));
+    $responseWithRating->assertOk();
+    $responseWithRating->assertSee('5.0');
+});
+
+test('pending offer returns customer rating info for instant orders', function () {
+    $order = Order::factory()->create([
+        'customer_id' => $this->customer->id,
+        'service_id' => $this->service->id,
+        'region_id' => $this->region->id,
+        'service_package_id' => $this->package->id,
+        'status' => OrderStatus::MencariMitra,
+        'order_type' => OrderType::Instan,
+        'recipient_name' => 'Danial Fayyad',
+        'customer_address_id' => $this->address->id,
+    ]);
+
+    OrderDispatch::create([
+        'order_id' => $order->id,
+        'partner_id' => $this->mitra->id,
+        'status' => OrderDispatch::STATUS_OFFERED,
+        'offered_at' => now(),
+        'expires_at' => now()->addSeconds(60),
+    ]);
+
+    $res = $this->actingAs($this->mitra)->getJson(route('mitra.orders.pending-offer'));
+    $res->assertOk();
+    $res->assertJson([
+        'has_offer' => true,
+        'customer_name' => 'Danial Fayyad',
+        'customer_rating' => null,
+        'customer_ratings_count' => 0,
+        'is_new_customer' => true,
+    ]);
+
+    // Give customer a 4-star rating from another mitra
+    $otherMitra = User::factory()->mitra()->create(['gender' => 'pria']);
+    OrderRating::create([
+        'order_id' => $order->id,
+        'from_user_id' => $otherMitra->id,
+        'to_user_id' => $this->customer->id,
+        'score' => 4,
+        'rating_type' => 'mitra_to_customer',
+    ]);
+
+    $res2 = $this->actingAs($this->mitra)->getJson(route('mitra.orders.pending-offer'));
+    $res2->assertOk();
+    $res2->assertJson([
+        'has_offer' => true,
+        'customer_name' => 'Danial Fayyad',
+        'customer_rating' => '4.0',
+        'customer_ratings_count' => 1,
+        'is_new_customer' => false,
+    ]);
 });

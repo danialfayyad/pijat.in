@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Parameter;
+use App\Services\PwaService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -92,6 +93,8 @@ class BrandingSettingController extends Controller
         }
 
         Parameter::clearCache();
+        PwaService::syncManifestFile();
+        PwaService::syncManifestFile();
 
         return redirect()->route('superadmin.branding.index')
             ->with('status', 'Identitas dan branding aplikasi berhasil diperbarui.');

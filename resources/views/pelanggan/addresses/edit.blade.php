@@ -16,67 +16,59 @@
             <!-- Card: Pilihan Wilayah & Peta Spasial -->
             <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-5 space-y-4"
                  x-data="{
-                    searchQuery: '',
                     selectedRegionId: '{{ $address->region_id }}',
                     regions: @js($activeRegions),
                     label: '{{ old('label', $address->label) }}',
-                    get filteredRegions() {
-                        if (!this.searchQuery.trim()) return this.regions;
-                        const q = this.searchQuery.toLowerCase();
-                        return this.regions.filter(r => r.name.toLowerCase().includes(q));
-                    },
-                    selectRegion(region) {
-                        this.selectedRegionId = region.id;
-                        if (window.onCustomerRegionSelected) {
+                    onSelectDropdown(id) {
+                        this.selectedRegionId = id;
+                        const region = this.regions.find(r => r.id == id);
+                        if (region && window.onCustomerRegionSelected) {
                             window.onCustomerRegionSelected(region);
                         }
                     }
                  }">
 
-                <!-- Label Alamat -->
+                <!-- Label Alamat (Pilihan Rapi Tanpa Kolom Input) -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                    <label class="block text-xs font-semibold text-slate-700 mb-2">
                         Label Alamat <span class="text-rose-500">*</span>
                     </label>
-                    <div class="flex items-center space-x-2 mb-2">
-                        <template x-for="item in ['Rumah', 'Kantor', 'Apartemen', 'Kos']" :key="item">
-                            <button type="button" @click="label = item"
-                                    class="min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center justify-center"
-                                    :class="label === item ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs' : 'bg-slate-50 text-slate-800 border-slate-200 hover:border-emerald-300'">
+                    <input type="hidden" name="label" :value="label">
+                    <div class="grid grid-cols-4 gap-2">
+                        <template x-for="item in ['Rumah', 'Kantor', 'Kos', 'Apartemen']" :key="item">
+                            <button type="button" 
+                                    @click="label = item"
+                                    class="py-2.5 px-1.5 rounded-xl text-xs text-center border transition-all cursor-pointer flex items-center justify-center select-none active:scale-95"
+                                    :class="label === item 
+                                        ? 'border-emerald-600 bg-emerald-50/70 text-emerald-800 font-bold ring-1 ring-emerald-600/30 shadow-2xs' 
+                                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 font-medium'">
                                 <span x-text="item"></span>
                             </button>
                         </template>
                     </div>
-                    <input type="text" name="label" x-model="label" required placeholder="Contoh: Rumah, Kantor..."
-                        class="w-full min-h-[44px] text-xs rounded-xl border-slate-200 focus:border-emerald-600 focus:ring-emerald-600 py-2.5">
-                    @error('label') <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p> @enderror
+                    @error('label') <p class="text-xs text-rose-600 mt-1.5 font-semibold">{{ $message }}</p> @enderror
                 </div>
 
-                <!-- 1. Cari / Pilih Kota Layanan Aktif -->
+                <!-- 1. Pilih Wilayah Operasional Kota (Dropdown Rapi & Tidak Overwhelming) -->
                 <div>
-                    <label for="search_city" class="block text-xs font-semibold text-slate-700 mb-1">
-                        Pilih Wilayah Operasional Kota
+                    <label for="region_select" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                        Pilih Wilayah Operasional Kota <span class="text-rose-500">*</span>
                     </label>
                     <div class="relative">
-                        <input type="text" id="search_city" x-model="searchQuery" 
-                            placeholder="Cari kota layanan..."
-                            class="w-full min-h-[44px] text-xs rounded-xl border-slate-200 focus:border-emerald-600 focus:ring-emerald-600 placeholder-slate-400 pl-8 py-2">
-                        <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
+                        <select id="region_select" 
+                                x-model="selectedRegionId" 
+                                @change="onSelectDropdown($event.target.value)"
+                                class="w-full min-h-[42px] text-xs rounded-xl border border-slate-200 bg-white text-slate-800 focus:border-emerald-600 focus:ring-emerald-600 py-2.5 px-3.5 pr-8 appearance-none cursor-pointer">
+                            <option value="" disabled>-- Pilih Kota Wilayah Layanan --</option>
+                            @foreach ($activeRegions as $r)
+                                <option value="{{ $r['id'] }}" {{ $address->region_id == $r['id'] ? 'selected' : '' }}>{{ $r['name'] }}</option>
+                            @endforeach
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
                     </div>
-
-                    <!-- City Chips -->
-                    <div class="mt-2 flex flex-wrap gap-2 max-h-36 overflow-y-auto p-1">
-                        <template x-for="r in filteredRegions" :key="r.id">
-                            <button type="button" @click="selectRegion(r)"
-                                    class="min-h-[44px] px-3 py-2 rounded-xl border text-xs font-medium transition flex items-center space-x-1.5 cursor-pointer"
-                                    :class="selectedRegionId == r.id ? 'bg-emerald-700 text-white border-emerald-700 font-bold shadow-xs' : 'bg-white text-slate-800 border-slate-200 hover:border-emerald-300'">
-                                <span x-text="r.name"></span>
-                                <span x-show="selectedRegionId == r.id" class="text-xs">✓</span>
-                            </button>
-                        </template>
-                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">Peta di bawah akan otomatis menampilkan area jangkauan kota yang dipilih.</p>
                 </div>
 
                 <!-- 2. Interactive Map -->

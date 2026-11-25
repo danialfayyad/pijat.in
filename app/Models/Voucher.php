@@ -133,9 +133,11 @@ class Voucher extends Model
         }
 
         if (! $this->isStarted()) {
+            $formattedStart = $this->starts_at ? $this->starts_at->copy()->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i').' WIB' : '';
+
             return [
                 'valid' => false,
-                'message' => 'Voucher belum dapat digunakan. Berlaku mulai '.($this->starts_at ? $this->starts_at->translatedFormat('d M Y H:i') : '').'.',
+                'message' => 'Voucher belum dapat digunakan. Berlaku mulai '.$formattedStart.'.',
                 'discount_amount' => 0,
             ];
         }

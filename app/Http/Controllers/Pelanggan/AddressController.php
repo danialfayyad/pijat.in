@@ -70,14 +70,23 @@ class AddressController extends Controller
         ]);
 
         try {
+            $isPrimary = $request->input('from') === 'checkout'
+                ? true
+                : (bool) ($validated['is_primary'] ?? false);
+
             $this->addressService->createAddress($request->user(), [
                 'label' => $validated['label'],
                 'address_text' => $validated['address_text'],
                 'benchmark' => $validated['benchmark'] ?? null,
                 'latitude' => (float) $validated['latitude'],
                 'longitude' => (float) $validated['longitude'],
-                'is_primary' => (bool) ($validated['is_primary'] ?? false),
+                'is_primary' => $isPrimary,
             ]);
+
+            if ($request->input('from') === 'checkout' && $request->filled('package_id')) {
+                return redirect()->route('pelanggan.orders.create', ['package_id' => $request->input('package_id')])
+                    ->with('status', 'Alamat baru berhasil ditambahkan dan digunakan untuk pesanan.');
+            }
 
             return redirect()->route('pelanggan.addresses.index')
                 ->with('status', 'Alamat berhasil disimpan.');
@@ -156,6 +165,11 @@ class AddressController extends Controller
 
         try {
             $this->addressService->setPrimaryAddress($request->user(), $address);
+
+            if ($request->input('from') === 'checkout' && $request->filled('package_id')) {
+                return redirect()->route('pelanggan.orders.create', ['package_id' => $request->input('package_id')])
+                    ->with('status', 'Alamat pengantaran pesanan berhasil diperbarui.');
+            }
 
             return redirect()->route('pelanggan.addresses.index')
                 ->with('status', 'Alamat utama berhasil diperbarui. Wilayah layanan Anda telah dialihkan.');

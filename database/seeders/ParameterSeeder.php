@@ -97,6 +97,15 @@ class ParameterSeeder extends Seeder
                 'description' => 'Radius garis lurus maksimal pencarian dan penawaran kandidat mitra terapis',
                 'unit' => 'Kilometer',
             ],
+            [
+                'key' => 'partner_cancellation_penalty_points',
+                'value' => '15',
+                'type' => 'integer',
+                'group' => 'operational',
+                'label' => 'Poin Sanksi Pembatalan Sepihak Mitra',
+                'description' => 'Jumlah poin sanksi pelanggaran (SP) yang otomatis dikenakan saat mitra membatalkan pesanan secara sepihak',
+                'unit' => 'Poin',
+            ],
 
             // 3. Kualitas & Kepatuhan
             [

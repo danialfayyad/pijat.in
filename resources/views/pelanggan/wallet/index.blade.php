@@ -166,7 +166,7 @@
             </div>
 
             <!-- Scrollable Transaction Body -->
-            <div class="flex-1 overflow-y-auto px-5 pt-3 pb-6 space-y-4 overscroll-contain">
+            <div class="flex-1 overflow-y-auto px-5 pt-3 pb-28 space-y-4 overscroll-contain">
                 <!-- Riwayat Pengajuan Penarikan Dana (Tampil pada filter Semua atau Penarikan) -->
                 @if (in_array($selectedType, ['semua', 'penarikan'], true) && isset($withdrawalRequests) && $withdrawalRequests->isNotEmpty())
                     <div class="space-y-2.5 pt-1">

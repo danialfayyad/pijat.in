@@ -89,7 +89,7 @@ class Parameter extends Model
      */
     public static function getAvailableBanks(): array
     {
-        $banks = Bank::active()->orderBy('sort_order')->orderBy('name')->pluck('name')->all();
+        $banks = Bank::bank()->active()->orderBy('sort_order')->orderBy('name')->pluck('name')->all();
 
         return ! empty($banks) ? $banks : ['Bank Central Asia', 'Bank Mandiri', 'Bank Rakyat Indonesia', 'Bank Negara Indonesia'];
     }

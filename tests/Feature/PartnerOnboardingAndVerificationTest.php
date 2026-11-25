@@ -291,7 +291,7 @@ test('unverified mitra cannot toggle active online status', function () {
     $response->assertSessionHasErrors('is_active');
 });
 
-test('updating bank account in mitra profile triggers re-verification (MIT-20)', function () {
+test('updating bank account in mitra profile is automatically verified and keeps mitra active (MIT-20)', function () {
     $regionService = app(RegionService::class);
     $region = $regionService->createRegion('Yogya', [[110.3, -7.7], [110.4, -7.7], [110.4, -7.9], [110.3, -7.9], [110.3, -7.7]]);
     $admin = User::factory()->create(['role' => Role::Admin]);
@@ -313,7 +313,7 @@ test('updating bank account in mitra profile triggers re-verification (MIT-20)',
         'is_verified' => true,
     ]);
 
-    // Update bank account number
+    // Update bank account number via profile update
     $response = $this->actingAs($mitra)->post(route('mitra.profile.update'), [
         'name' => $mitra->name,
         'phone' => $mitra->phone,
@@ -322,9 +322,23 @@ test('updating bank account in mitra profile triggers re-verification (MIT-20)',
         'account_holder_name' => $mitra->name,
     ]);
 
-    $response->assertRedirect(route('mitra.status'));
-    expect($mitra->fresh()->status)->toBe(UserStatus::MenungguVerifikasi)
-        ->and($bank->fresh()->is_verified)->toBeFalse();
+    $response->assertRedirect();
+    expect($mitra->fresh()->status)->toBe(UserStatus::Terverifikasi)
+        ->and($bank->fresh()->account_number)->toBe('999888777')
+        ->and($bank->fresh()->is_verified)->toBeTrue();
+
+    // Update bank account directly via bank edit form
+    $bankResponse = $this->actingAs($mitra)->post(route('mitra.profile.bank.update'), [
+        'bank_name' => 'Bank Mandiri',
+        'account_number' => '555666777',
+        'account_holder_name' => $mitra->name,
+    ]);
+
+    $bankResponse->assertRedirect(route('mitra.profile'));
+    expect($mitra->fresh()->status)->toBe(UserStatus::Terverifikasi)
+        ->and($bank->fresh()->bank_name)->toBe('Bank Mandiri')
+        ->and($bank->fresh()->account_number)->toBe('555666777')
+        ->and($bank->fresh()->is_verified)->toBeTrue();
 });
 
 test('mitra onboarding renders active cities list and rejects mismatch between selected region and pin coordinates', function () {

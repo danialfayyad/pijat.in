@@ -180,7 +180,7 @@ class PartnerOnboardingService
     protected function storeFile(UploadedFile|string|null $file, string $directory): string
     {
         if ($file instanceof UploadedFile) {
-            return $this->imageCompressionService->compressAndStore($file, $directory);
+            return $this->imageCompressionService->compressAndStore($file, $directory, disk: 'public');
         }
 
         return (string) $file;

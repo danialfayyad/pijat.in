@@ -31,6 +31,7 @@ Parameter berikut dapat diatur langsung oleh Super Admin melalui antarmuka **/su
 | **Operasional & Jangkauan** | `operational_start_time` | String | `08:00` | Format `HH:mm` | Jam mulai pemesanan dan layanan waktu setempat wilayah (BRD 4.4, 8). |
 | **Operasional & Jangkauan** | `operational_end_time` | String | `21:00` | Format `HH:mm` | Jam tutup pemesanan layanan waktu setempat wilayah (BRD 4.4, 8). |
 | **Operasional & Jangkauan** | `dispatch_max_radius_km` | Integer | `5` | Kilometer | Radius garis lurus maksimal pencarian kandidat terapis (BRD 4.5, 8). |
+| **Operasional & Jangkauan** | `partner_cancellation_penalty_points` | Integer | `15` | Poin | Poin sanksi pelanggaran otomatis akibat pembatalan sepihak oleh mitra (BRD 4.7, 8). |
 | **Privasi Data (UU PDP)** | `chat_and_medical_retention_days` | Integer | `30` | Hari | Batas retensi penghapusan otomatis chat dan data medis sesuai UU PDP (BRD 4.15, 8). |
 
 ---

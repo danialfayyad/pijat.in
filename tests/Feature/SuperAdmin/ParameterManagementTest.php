@@ -36,7 +36,8 @@ test('superadmin can view operational parameters list grouped by categories', fu
         ->assertSee('Manajemen Parameter Operasional')
         ->assertSee('Keuangan &amp; Bagi Hasil', false)
         ->assertSee('platform_commission_percent')
-        ->assertSee('dispatch_max_radius_km');
+        ->assertSee('dispatch_max_radius_km')
+        ->assertSee('partner_cancellation_penalty_points');
 });
 
 test('superadmin can update parameters with mandatory audit reason', function () {

@@ -65,7 +65,7 @@ class MitraOrderController extends Controller
             ->whereIn('service_id', $enabledServiceIds)
             ->whereNotNull('scheduled_start_time')
             ->where('scheduled_start_time', '>', now())
-            ->with(['service', 'region', 'customerAddress'])
+            ->with(['service', 'region', 'customerAddress', 'customer'])
             ->orderBy('scheduled_start_time', 'asc')
             ->get();
 
@@ -462,7 +462,8 @@ class MitraOrderController extends Controller
                         ->with('location_warning', [
                             'distance_meters' => round($distanceMeters),
                             'message' => 'Jarak Anda terdeteksi '.round($distanceMeters).' meter dari lokasi pelanggan. Mohon mendekat ke lokasi atau konfirmasi kedatangan manual.',
-                        ]);
+                        ])
+                        ->with('error', 'Jarak Anda masih '.round($distanceMeters).' meter dari lokasi pelanggan. Maksimal radius tiba 50 meter.');
                 }
             }
         }

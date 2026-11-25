@@ -47,6 +47,14 @@ class PartnerRelocationController extends Controller
             ->where('id', '!=', $profile?->region_id ?? 0)
             ->get(['id', 'name', 'timezone']);
 
+        $initialCoordinates = DB::selectOne(
+            'SELECT ST_Latitude(COALESCE(current_coordinate, coordinate)) as lat, ST_Longitude(COALESCE(current_coordinate, coordinate)) as lng FROM partner_profiles WHERE user_id = ?',
+            [$user->id]
+        );
+
+        $defaultLat = $initialCoordinates?->lat ? (float) $initialCoordinates->lat : -7.7956;
+        $defaultLng = $initialCoordinates?->lng ? (float) $initialCoordinates->lng : 110.3695;
+
         return view('mitra.relocation.create', compact(
             'user',
             'profile',
@@ -54,7 +62,9 @@ class PartnerRelocationController extends Controller
             'activeOrdersCount',
             'pendingRequest',
             'currentRegion',
-            'activeRegions'
+            'activeRegions',
+            'defaultLat',
+            'defaultLng'
         ));
     }
 

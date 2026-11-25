@@ -1,30 +1,36 @@
 {
-  "name": "Pijat.In - Layanan Pijat & Wellness Profesional",
-  "short_name": "Pijat.In",
-  "description": "Aplikasi Pemesanan & Kemitraan Pijat Profesional Berbasis Wilayah",
-  "start_url": "/dashboard",
-  "scope": "/",
-  "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#f8fafc",
-  "theme_color": "#059669",
-  "icons": [
-    {
-      "src": "/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    }
-  ]
+    "name": "Pijat.In - Layanan Pijat & Relaksasi Profesional",
+    "short_name": "Pijat.In",
+    "description": "Platform pemesanan terapis pijat dan relaksasi profesional terpercaya langsung ke lokasi Anda.",
+    "start_url": "/dashboard",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#ffffff",
+    "theme_color": "#059669",
+    "icons": [
+        {
+            "src": "/storage/branding/X7nYfwkq7hH06Q1hXOLCElzXMYpMVno35VQvGuwi.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/storage/branding/X7nYfwkq7hH06Q1hXOLCElzXMYpMVno35VQvGuwi.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/storage/branding/maskable_a40b58d877b149c1c5ade14d2273cd4b.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/storage/branding/KicrKikyxd9v3RmV3kwIJc8O3bZ3u8wRMqXFJu3B.png",
+            "sizes": "64x64 32x32 24x24 16x16",
+            "type": "image/x-icon"
+        }
+    ]
 }

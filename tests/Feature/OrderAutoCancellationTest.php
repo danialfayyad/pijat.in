@@ -127,3 +127,52 @@ test('auto cancel unpaid orders and expire topup invoices after 15 mins (SYS-02)
     expect($unpaidOrder->fresh()->status)->toBe(OrderStatus::Dibatalkan)
         ->and($topupInvoice->fresh()->status)->toBe('EXPIRED');
 });
+
+test('auto cancel abandoned scheduled orders taken by mitra when mitra never departs after 60 mins past schedule', function () {
+    $mitra = User::factory()->mitra()->create([
+        'name' => 'Mitra Ghosting',
+        'status' => 'terverifikasi',
+        'penalty_points' => 0,
+    ]);
+
+    $order = ($this->createOrder)([
+        'order_code' => 'ORD-AUTO-ABANDONED',
+        'order_type' => OrderType::Terjadwal,
+        'status' => OrderStatus::Dijadwalkan,
+        'mitra_id' => $mitra->id,
+        'scheduled_start_time' => Carbon::now()->subMinutes(65),
+    ]);
+
+    $this->artisan('orders:process-cancellations')
+        ->assertSuccessful();
+
+    $order->refresh();
+    expect($order->status)->toBe(OrderStatus::Dibatalkan)
+        ->and($order->cancellation_reason)->toContain('tidak berangkat melebihi batas toleransi 60 menit')
+        ->and((float) $this->customerWallet->fresh()->balance)->toEqual(100000.0)
+        ->and($mitra->fresh()->penalty_points)->toBe(25);
+});
+
+test('does not auto cancel scheduled orders taken by mitra when schedule has not passed 60 mins', function () {
+    $mitra = User::factory()->mitra()->create([
+        'name' => 'Mitra On Time',
+        'status' => 'terverifikasi',
+        'penalty_points' => 0,
+    ]);
+
+    $order = ($this->createOrder)([
+        'order_code' => 'ORD-AUTO-NOT-YET',
+        'order_type' => OrderType::Terjadwal,
+        'status' => OrderStatus::Dijadwalkan,
+        'mitra_id' => $mitra->id,
+        'scheduled_start_time' => Carbon::now()->subMinutes(30),
+    ]);
+
+    $this->artisan('orders:process-cancellations')
+        ->assertSuccessful();
+
+    $order->refresh();
+    expect($order->status)->toBe(OrderStatus::Dijadwalkan)
+        ->and((float) $this->customerWallet->fresh()->balance)->toEqual(0.0)
+        ->and($mitra->fresh()->penalty_points)->toBe(0);
+});

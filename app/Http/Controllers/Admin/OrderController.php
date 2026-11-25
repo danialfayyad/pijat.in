@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\Region;
+use App\Models\Voucher;
+use App\Models\VoucherUsage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -143,6 +145,11 @@ class OrderController extends Controller
                 'cancelled_by_id' => $admin->id,
                 'cancelled_by_role' => $admin->role->value,
             ]);
+
+            if ($order->voucher_id) {
+                VoucherUsage::where('order_id', $order->id)->delete();
+                Voucher::where('id', $order->voucher_id)->where('used_count', '>', 0)->decrement('used_count');
+            }
 
             OrderStatusHistory::create([
                 'order_id' => $order->id,

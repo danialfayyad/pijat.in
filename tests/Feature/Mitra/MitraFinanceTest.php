@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use App\Models\WithdrawalRequest;
+use Carbon\Carbon;
 
 beforeEach(function () {
     $this->region = Region::where('status', 'aktif')->first() ?? Region::factory()->create([
@@ -109,6 +110,72 @@ test('partner can filter transaction history by 7 days and 30 days (MIT-15)', fu
     $response30->assertOk()
         ->assertSee('ORD-RECENT')
         ->assertSee('ORD-OLDER');
+});
+
+test('partner can filter transaction history and withdrawal requests by specific month', function () {
+    // Transaction in September 2026
+    $septTx = WalletTransaction::create([
+        'wallet_id' => $this->wallet->id,
+        'user_id' => $this->mitra->id,
+        'region_id' => $this->region->id,
+        'type' => 'credit',
+        'amount' => 50000,
+        'balance_before' => 100000,
+        'balance_after' => 150000,
+        'reference_type' => 'order_earning',
+        'reference_id' => '201',
+        'description' => 'Pendapatan pesanan ORD-SEPTEMBER',
+    ]);
+    DB::table('wallet_transactions')->where('id', $septTx->id)->update(['created_at' => Carbon::create(2026, 9, 15, 10, 0, 0)]);
+
+    // Transaction in November 2026
+    $novTx = WalletTransaction::create([
+        'wallet_id' => $this->wallet->id,
+        'user_id' => $this->mitra->id,
+        'region_id' => $this->region->id,
+        'type' => 'credit',
+        'amount' => 75000,
+        'balance_before' => 150000,
+        'balance_after' => 225000,
+        'reference_type' => 'order_earning',
+        'reference_id' => '202',
+        'description' => 'Pendapatan pesanan ORD-NOVEMBER',
+    ]);
+    DB::table('wallet_transactions')->where('id', $novTx->id)->update(['created_at' => Carbon::create(2026, 11, 5, 10, 0, 0)]);
+
+    // Withdrawal request in November 2026
+    $novWd = WithdrawalRequest::create([
+        'withdrawal_code' => 'WD-NOV-2026',
+        'user_id' => $this->mitra->id,
+        'bank_account_id' => $this->bankAccount->id,
+        'region_id' => $this->region->id,
+        'amount' => 100000.00,
+        'fee' => 0.00,
+        'net_amount' => 100000.00,
+        'bank_name' => 'BCA',
+        'account_number' => '1234567890',
+        'account_holder_name' => 'Mitra Terapis Testing',
+        'status' => WithdrawalRequest::STATUS_APPROVED,
+    ]);
+    DB::table('withdrawal_requests')->where('id', $novWd->id)->update(['created_at' => Carbon::create(2026, 11, 6, 10, 0, 0)]);
+
+    // Filtering by September: must see September, must NOT see November transaction or November withdrawal
+    $responseSept = $this->actingAs($this->mitra)
+        ->get(route('mitra.finance.index', ['month' => '2026-09']));
+
+    $responseSept->assertOk()
+        ->assertSee('ORD-SEPTEMBER')
+        ->assertDontSee('ORD-NOVEMBER')
+        ->assertDontSee('WD-NOV-2026');
+
+    // Filtering by November: must see November, must NOT see September
+    $responseNov = $this->actingAs($this->mitra)
+        ->get(route('mitra.finance.index', ['month' => '2026-11']));
+
+    $responseNov->assertOk()
+        ->assertSee('ORD-NOVEMBER')
+        ->assertSee('WD-NOV-2026')
+        ->assertDontSee('ORD-SEPTEMBER');
 });
 
 test('partner can view withdrawal form with verified bank account (MIT-16)', function () {

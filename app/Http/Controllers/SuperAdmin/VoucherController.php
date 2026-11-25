@@ -105,7 +105,15 @@ class VoucherController extends Controller
 
         $validated['code'] = strtoupper(trim($validated['code']));
         $validated['min_order_amount'] = $validated['min_order_amount'] ?? 0;
-        $validated['is_active'] = $request->boolean('is_active', true);
+        $validated['is_active'] = $request->boolean('is_active');
+
+        // Input tanggal dari admin di Indonesia (WIB) dikonversi ke UTC untuk disimpan di database
+        if (! empty($validated['starts_at'])) {
+            $validated['starts_at'] = Carbon::parse($validated['starts_at'], 'Asia/Jakarta')->setTimezone('UTC');
+        }
+        if (! empty($validated['expires_at'])) {
+            $validated['expires_at'] = Carbon::parse($validated['expires_at'], 'Asia/Jakarta')->setTimezone('UTC');
+        }
 
         Voucher::create($validated);
 
@@ -144,7 +152,18 @@ class VoucherController extends Controller
 
         $validated['code'] = strtoupper(trim($validated['code']));
         $validated['min_order_amount'] = $validated['min_order_amount'] ?? 0;
-        $validated['is_active'] = $request->boolean('is_active', true);
+        $validated['is_active'] = $request->boolean('is_active');
+
+        // Input tanggal dari admin di Indonesia (WIB) dikonversi ke UTC untuk disimpan di database
+        if (! empty($validated['starts_at'])) {
+            $validated['starts_at'] = Carbon::parse($validated['starts_at'], 'Asia/Jakarta')->setTimezone('UTC');
+        } else {
+            $validated['starts_at'] = null;
+        }
+
+        if (! empty($validated['expires_at'])) {
+            $validated['expires_at'] = Carbon::parse($validated['expires_at'], 'Asia/Jakarta')->setTimezone('UTC');
+        }
 
         $voucher->update($validated);
 

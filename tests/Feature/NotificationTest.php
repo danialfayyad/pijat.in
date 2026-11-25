@@ -179,7 +179,18 @@ test('pwa layout contains web push notification manager and notification drawer 
         ->assertSee('window.PwaLiveNotifications')
         ->assertSee('/sw.js')
         ->assertSee('Aktifkan Notifikasi Layar')
-        ->assertSee('Pusat Notifikasi');
+        ->assertSee('Pusat Notifikasi')
+        ->assertSee('pwaInstallBanner')
+        ->assertSee('Pasang Aplikasi Pijat.In');
+});
+
+test('mitra dashboard contains pwa install banner for uninstalled sessions', function () {
+    $response = $this->actingAs($this->mitra)
+        ->get(route('mitra.dashboard'));
+
+    $response->assertOk()
+        ->assertSee('pwaInstallBanner')
+        ->assertSee('Pasang Aplikasi Pijat.In');
 });
 
 test('authenticated user can poll unread notification count via check-unread route', function () {
